@@ -41,7 +41,10 @@
   <a class="navbar-brand js-scroll-trigger" href="#page-top">
     <span class="d-block d-lg-none">Brian Ruggieri</span>
     <span class="d-none d-lg-block">
-      <img class="img-fluid img-profile rounded-circle mx-auto mb-2" src="/img/jake.jpg" alt="">
+      <div id="profileCoin" class="mx-auto mb-2">
+        <div class="coin-side coin-front" style="background-image: url('/img/jake.jpg')"></div>
+        <div class="coin-side coin-back" style="background-image: url('img/me.png')"></div>
+      </div>
     </span>
   </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,6 +76,8 @@
     </ul>
   </div>
 </nav>
+  
+  <canvas id="bg-field"></canvas>
   <div class="container-fluid p-0">
     
 
@@ -102,6 +107,8 @@
   <script src="https://unpkg.com/smoothscroll-anchor-polyfill@1.3.2/dist/index.min.js" integrity="sha384-EY9NBEHCFbZANmPcTm7CgG8OhsFILy0VBLG85pF6OIpP42NVbZVNsFOc23PYTCkB" crossorigin="anonymous"></script>
   
   <script async src="/js/resume.js"></script>
+  <script async src="/js/coin-flip.js"></script>
+  <script src="/js/bg-field.js"></script>
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=XX-123446-01"></script>
     <script>
