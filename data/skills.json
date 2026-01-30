@@ -1,0 +1,18 @@
+[
+  {
+      "grouping":"Languages",
+      "skills":[ "TypeScript","JavaScript","C#","Python","SQL","HTML","CSS"]
+  },
+  {
+      "grouping":"Frameworks & Platforms",
+      "skills":[ "Vue.js","Angular","Node.js","Unity","PlayCanvas","WebGL"]
+  },
+  {
+      "grouping":"Data & Infrastructure",
+      "skills":[ "PostgreSQL","GraphQL","AWS","Docker","Azure","Git","GitHub","CI/CD","Metabase"]
+  },
+  {
+      "grouping":"Domains",
+      "skills":[ "Full-Stack Development","Platform Engineering","Creative Tooling","Interactive Systems","Educational Technology","Product Engineering"]
+  }
+]

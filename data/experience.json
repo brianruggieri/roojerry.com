@@ -1,0 +1,32 @@
+[
+    {
+        "role":"Senior Software Engineer (Platform)",
+        "company":"Daktronics",
+        "summary":"Full-stack development on large-scale display management platform using Angular and TypeScript\n- Maintained and extended shared core libraries in monorepo architecture\n- Led dependency upgrades improving security, performance, and maintainability\n- Designed and integrated authentication systems including two-factor authentication",
+        "range":"September 2024 - August 2025"
+    },
+    {
+        "role":"Senior Software Engineer (Connected Fitness Platform)",
+        "company":"Flexia Pilates",
+        "summary":"Full-stack development on connected fitness platform using Vue.js and TypeScript\n- Built streaming video delivery systems and IoT hardware integrations\n- Designed metrics and analytics pipelines for engagement, research, and product planning",
+        "range":"February 2023 - April 2024"
+    },
+    {
+        "role":"Technical Director of R&D",
+        "company":"ExploreLearning",
+        "summary":"Led multidisciplinary teams delivering 20+ interactive STEM educational products\n- Designed technical architecture and creative production pipelines\n- Collaborated with researchers and educators on learning experience design",
+        "range":"August 2021 - February 2023"
+    },
+    {
+        "role":"Senior Systems Engineer",
+        "company":"ExploreLearning",
+        "summary":"Converted Unity-based applications into web-based interactive experiences\n- Built visual authoring tools for artists and content designers\n- Led pipeline engineering for scalable interactive content production",
+        "range":"November 2017 - August 2021"
+    },
+    {
+        "role":"Game Developer / Software Engineer",
+        "company":"Cogent Education",
+        "summary":"Developed cross-platform STEM educational games using Unity (C#)\n- Principal investigator and lead developer on NIH-funded educational games\n- Collaborated with educators and researchers on curriculum-aligned systems",
+        "range":"November 2012 - November 2017"
+    }
+]

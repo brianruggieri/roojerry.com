@@ -1,0 +1,36 @@
+[
+    {
+        "name": "BeeTees",
+        "description": "Resource management simulation game based on the lifecycle of a beehive",
+        "link": "http://beeteesgame.com",
+        "tags": ["Unity", "C#", "Game Development"]
+    },
+    {
+        "name": "Nurbits",
+        "description": "Puzzle game in which players apply neuroscience principles to solve puzzles and make music",
+        "link": "http://nurbits.com",
+        "tags": ["Unity", "C#", "Game Development", "Neuroscience"]
+    },
+    {
+        "name": "Orbstep",
+        "description": "College VR project, turned research project, developing a spatial audio creation mobile application",
+        "tags": ["VR", "Mobile", "Audio", "Research"]
+    },
+    {
+        "name": "Nice Job Hero",
+        "description": "Platformer with a luck mechanic built in 48 hours at a local game jam",
+        "link": "https://github.com/marilyn/nice-job-hero",
+        "tags": ["Unity", "C#", "Game Jam", "Platformer"]
+    },
+    {
+        "name": "Earth: Lost In Translation",
+        "description": "Match 3 earth defense puzzle game built in 48 hours at a local game jam",
+        "tags": ["Unity", "C#", "Game Jam", "Puzzle"]
+    },
+    {
+        "name": "Biology Interactive Case Studies",
+        "description": "A suite of 3D simulations/learning modules developed for the highschool biology classroom",
+        "link": "http://cogenteducation.com/products",
+        "tags": ["Unity", "C#", "Educational Technology", "3D"]
+    }
+]
