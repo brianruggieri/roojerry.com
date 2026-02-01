@@ -1,18 +1,50 @@
 [
   {
       "grouping":"Languages",
-      "skills":[ "TypeScript","JavaScript","C#","Python","SQL","HTML","CSS"]
+      "skills":[
+          { "name": "TypeScript", "devicon": "typescript" },
+          { "name": "JavaScript", "devicon": "javascript" },
+          { "name": "C#", "devicon": "csharp" },
+          { "name": "Python", "devicon": "python" },
+          { "name": "SQL", "devicon": "postgresql" },
+          { "name": "HTML", "devicon": "html5" },
+          { "name": "CSS", "devicon": "css3" }
+      ]
   },
   {
       "grouping":"Frameworks & Platforms",
-      "skills":[ "Vue.js","Angular","Node.js","Unity","PlayCanvas","WebGL"]
+      "skills":[
+          { "name": "Vue.js", "devicon": "vuejs" },
+          { "name": "Angular", "devicon": "angularjs" },
+          { "name": "Node.js", "devicon": "nodejs" },
+          { "name": "Unity", "devicon": "unity" },
+          { "name": "PlayCanvas", "devicon": "javascript" },
+          { "name": "WebGL", "devicon": "javascript" }
+      ]
   },
   {
       "grouping":"Data & Infrastructure",
-      "skills":[ "PostgreSQL","GraphQL","AWS","Docker","Azure","Git","GitHub","CI/CD","Metabase"]
+      "skills":[
+          { "name": "PostgreSQL", "devicon": "postgresql" },
+          { "name": "GraphQL", "devicon": "graphql" },
+          { "name": "AWS", "devicon": "amazonwebservices" },
+          { "name": "Docker", "devicon": "docker" },
+          { "name": "Azure", "devicon": "azure" },
+          { "name": "Git", "devicon": "git" },
+          { "name": "GitHub", "devicon": "github" },
+          { "name": "CI/CD", "devicon": "jenkins" },
+          { "name": "Metabase", "devicon": "metabase" }
+      ]
   },
   {
       "grouping":"Domains",
-      "skills":[ "Full-Stack Development","Platform Engineering","Creative Tooling","Interactive Systems","Educational Technology","Product Engineering"]
+      "skills":[
+          { "name": "Full-Stack Development", "devicon": "html5" },
+          { "name": "Platform Engineering", "devicon": "docker" },
+          { "name": "Creative Tooling", "devicon": "nodejs" },
+          { "name": "Interactive Systems", "devicon": "javascript" },
+          { "name": "Educational Technology", "devicon": "python" },
+          { "name": "Product Engineering", "devicon": "nodejs" }
+      ]
   }
 ]
