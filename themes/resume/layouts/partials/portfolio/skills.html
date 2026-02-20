@@ -13,7 +13,9 @@
                 {{ else }}
                   {{ $name = . }}
                 {{ end }}
-                {{ if isset . "devicon" }}
+                {{ if isset . "fa" }}
+                    {{ $iconclass = printf "fas fa-%s" .fa }}
+                {{ else if isset . "devicon" }}
                     {{ $iconclass = printf "devicon-%s-plain devicon-%-original" ( lower .devicon ) (lower .devicon ) }}
                 {{ else }}
                     {{ $iconclass = printf "devicon-%s-plain devicon-%-original" ( lower $name ) (lower $name ) }}

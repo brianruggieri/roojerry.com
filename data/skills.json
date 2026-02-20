@@ -33,7 +33,7 @@
           { "name": "Git", "devicon": "git" },
           { "name": "GitHub", "devicon": "github" },
           { "name": "CI/CD", "devicon": "jenkins" },
-          { "name": "Metabase", "devicon": "metabase" }
+          { "name": "Metabase", "fa": "chart-bar" }
       ]
   },
   {
