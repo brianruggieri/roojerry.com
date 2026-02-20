@@ -1,0 +1,31 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
+  <a class="navbar-brand js-scroll-trigger">
+    <span class="d-block d-lg-none">{{ .Site.Params.firstName }} {{ .Site.Params.lastName }}</span>
+    <span class="d-none d-lg-block">
+      <div id="profileCoin" class="mx-auto mb-2">
+        <div class="coin-side coin-front" style="background-image: url('{{ .Site.Params.profileImage | relURL }}')"></div>
+        <div class="coin-side coin-back" style="background-image: url('img/me.png')"></div>
+      </div>
+    </span>
+  </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link js-scroll-trigger" href="{{ "#about" | relURL }}">{{ i18n "about" }}</a>
+      </li>
+      {{ range .Site.Params.sections }}
+      <li class="nav-item">
+        <a class="nav-link js-scroll-trigger" href="/#{{.}}">{{ . | i18n }}</a>
+      </li>
+      {{ end }}
+      {{ if .Site.Params.showContact}}
+          <li class="nav-item">
+            <a class="nav-link" href="/contact">{{ i18n "contact" }}</a>
+          </li>
+      {{ end }}
+    </ul>
+  </div>
+</nav>

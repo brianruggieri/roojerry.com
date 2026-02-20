@@ -1,0 +1,92 @@
+.field-controls {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: translateY(10px);
+}
+
+.field-controls.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.field-controls.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+}
+
+.field-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 14px 16px 12px;
+  width: 180px;
+  box-shadow:
+    0 0 30px rgba(48, 133, 164, 0.25),
+    0 0 80px rgba(137, 196, 90, 0.08);
+  font-family: system-ui, sans-serif;
+}
+
+.field-title {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(244, 244, 242, 0.8);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.dial {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.dial label {
+  font-size: 10px;
+  color: rgba(244, 244, 242, 0.8);
+}
+
+.dial input[type="range"] {
+  appearance: none;
+  height: 4px;
+  background: rgba(137, 196, 90, 0.2);
+  border-radius: 4px;
+  outline: none;
+}
+
+.dial input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--panel-accent);
+  box-shadow: 0 0 10px rgba(137, 196, 90, 0.8);
+  cursor: pointer;
+}
+
+.dial input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--panel-accent);
+  box-shadow: 0 0 10px rgba(137, 196, 90, 0.8);
+  cursor: pointer;
+}
+
+.hint {
+  margin-top: 6px;
+  font-size: 9px;
+  color: rgba(139, 186, 193, 0.6);
+  text-align: center;
+}
+
+.hint span {
+  color: var(--panel-accent);
+}

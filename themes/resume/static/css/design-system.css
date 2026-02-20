@@ -1,0 +1,45 @@
+:root {
+  /* Palette */
+  --brand: #3085A4;
+  --brand-dark: #2D4A52;
+  --accent: #89C45A;
+  --muted: #7F7D81;
+  --bg-off: #F4F4F2;
+  --bg-mid: #EEF4F6;
+  --bg-deep: #E1ECEF;
+  --cyan: #8BBAC1;
+
+  /* Controls */
+  --panel-bg: rgba(45, 74, 82, 0.85);
+  --panel-border: rgba(139, 186, 193, 0.3);
+  --panel-accent: #89C45A;
+}
+
+/* Small utilities */
+.hidden { display: none; }
+.visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px; overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap; border: 0; padding: 0; margin: -1px;
+}
+
+/* Cross-browser slider thumb styles */
+input[type="range"] { appearance: none; -webkit-appearance: none; background: transparent; }
+input[type="range"]:focus { outline: none; }
+
+input[type="range"]::-webkit-slider-thumb {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--panel-accent);
+  box-shadow: 0 0 8px rgba(137,196,90,0.8); border: 2px solid rgba(255,255,255,0.15);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--panel-accent);
+  box-shadow: 0 0 8px rgba(137,196,90,0.8); border: 2px solid rgba(255,255,255,0.15);
+}
+input[type="range"]::-ms-thumb {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--panel-accent);
+  box-shadow: 0 0 8px rgba(137,196,90,0.8); border: 2px solid rgba(255,255,255,0.15);
+}
+
+/* Provide a base transition for elements that use prefixed versions */
+.transition-base { transition: all 0.2s ease; }

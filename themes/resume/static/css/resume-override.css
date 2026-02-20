@@ -1,0 +1,17 @@
+/* Override styles for customizations */
+/* =========================
+   Name Physics Layer
+========================= */
+
+#name-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0; /* above bg-field (-1), below text (1) */
+}
+
+/* Ensure name stays readable */
+#hero-name {
+  position: relative;
+  z-index: 2;
+}

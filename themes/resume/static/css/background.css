@@ -1,0 +1,44 @@
+#bg-field {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 30% 30%,
+    var(--bg-mid),
+    var(--bg-deep) 70%
+  );
+}
+
+/* Name mask sits above bg but below page content */
+#name-field {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Content above background */
+body,
+#page-top,
+.container-fluid,
+.resume-section,
+section,
+main,
+aside {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+/* Prevent clipping */
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
