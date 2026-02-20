@@ -8,6 +8,7 @@ PygmentsStyle = "vim"
 enableGitInfo = false
 
 [params]
+description = "Full-stack engineer and creative technologist based in Athens, GA. I build interactive platforms, data tools, and immersive experiences — from web apps to real-time 3D."
 address = "Athens, GA"
 email = "brianruggieri@gmail.com"
 favicon = "/favicon.ico"
@@ -21,7 +22,7 @@ showContact = false
 showBoards  = false
 showCertifications = false
 showSocializations = true
-sections = ["skills","creations","experience","education"]
+sections = ["experience","skills","creations","education"]
 vcardfields = [
     "name",
     "image",

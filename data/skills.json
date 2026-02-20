@@ -39,12 +39,12 @@
   {
       "grouping":"Domains",
       "skills":[
-          { "name": "Full-Stack Development", "devicon": "html5" },
-          { "name": "Platform Engineering", "devicon": "docker" },
-          { "name": "Creative Tooling", "devicon": "nodejs" },
-          { "name": "Interactive Systems", "devicon": "javascript" },
-          { "name": "Educational Technology", "devicon": "python" },
-          { "name": "Product Engineering", "devicon": "nodejs" }
+          { "name": "Full-Stack Development" },
+          { "name": "Platform Engineering" },
+          { "name": "Creative Tooling" },
+          { "name": "Interactive Systems" },
+          { "name": "Educational Technology" },
+          { "name": "Product Engineering" }
       ]
   }
 ]

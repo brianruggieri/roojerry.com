@@ -13,15 +13,16 @@
                 {{ else }}
                   {{ $name = . }}
                 {{ end }}
+                {{ $hasIcon := false }}
                 {{ if isset . "fa" }}
                     {{ $iconclass = printf "fas fa-%s" .fa }}
+                    {{ $hasIcon = true }}
                 {{ else if isset . "devicon" }}
                     {{ $iconclass = printf "devicon-%s-plain devicon-%-original" ( lower .devicon ) (lower .devicon ) }}
-                {{ else }}
-                    {{ $iconclass = printf "devicon-%s-plain devicon-%-original" ( lower $name ) (lower $name ) }}
+                    {{ $hasIcon = true }}
                 {{ end }}
                 <li class="list-inline-item">
-                      <i class="{{ $iconclass }}"></i>
+                      {{ if $hasIcon }}<i class="{{ $iconclass }}"></i>{{ end }}
                       {{if isset . "link"}}
                           <a href="{{.link}}">{{$name}}</a>
                       {{ else }}
