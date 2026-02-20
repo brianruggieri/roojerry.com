@@ -13,6 +13,7 @@ email = "brianruggieri@gmail.com"
 favicon = "/favicon.ico"
 firstName = "Brian"
 lastName = "Ruggieri"
+backgroundMode = "canvas"
 phone = "REDACTED"
 profileImage = "img/jake.png"
 showQr = false

@@ -3,3 +3,17 @@ public/tags
 public/index.html
 public/js
 public/css
+public/.DS_Store
+public/living-machine/
+
+# macOS metadata
+.DS_Store
+
+# Dev tooling
+.claude-flow/
+
+# Dev test files (see SITE_REVIEW.md — move to _dev/ when cleaning up)
+test-disturbance.html
+test-disturbance.js
+test-disturbance-headless.js
+test-server.js
