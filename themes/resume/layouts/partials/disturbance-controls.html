@@ -1,4 +1,4 @@
-<div id="disturbance-panel" class="disturbance-panel">
+<div id="disturbance-panel" class="disturbance-panel hidden">
   <div class="disturbance-header">
     <h4>Disturbance Field</h4>
     <button id="disturbance-toggle" class="disturbance-toggle" title="Toggle panel">−</button>
@@ -140,4 +140,11 @@
   }
 
   initDisturbanceControls();
+
+  // Press 'd' to toggle panel visibility (dev use)
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'd' && !e.target.matches('input, textarea')) {
+      document.getElementById('disturbance-panel').classList.toggle('hidden');
+    }
+  });
 </script>

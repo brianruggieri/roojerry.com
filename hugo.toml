@@ -36,7 +36,7 @@ vcardfields = [
 [params.google]
 
 [params.google.analytics]
-trackerID = "XX-123446-01"
+trackerID = "G-BNPJM4R4TM"
 
 [[params.handles]]
     name = "LinkedIn"
