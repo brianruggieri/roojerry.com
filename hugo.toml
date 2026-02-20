@@ -21,7 +21,7 @@ showContact = false
 showBoards  = false
 showCertifications = false
 showSocializations = true
-sections = ["experience","skills","creations","education"]
+sections = ["experience","skills","education"]
 vcardfields = [
     "name",
     "image",
