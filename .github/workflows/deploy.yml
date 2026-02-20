@@ -19,6 +19,8 @@ jobs:
 
       - name: Build
         run: hugo --minify
+        env:
+          HUGO_PARAMS_PHONE: ${{ secrets.PHONE }}
 
       - name: Deploy via rsync
         uses: burnett01/rsync-deployments@7.0.1
