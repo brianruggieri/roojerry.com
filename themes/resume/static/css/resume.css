@@ -241,8 +241,6 @@ a:hover, a:focus, a:active {
   -moz-transform: rotateY(0deg);
   transform: rotateY(0deg) translateZ(20px);
   z-index: 2;
-      background-size: 130%;
-    background-position-y: -19px;
 }
 
 .coin-back {
