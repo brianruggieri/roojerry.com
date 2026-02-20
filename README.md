@@ -1,6 +1,6 @@
 # roojerry
 
-Personal portfolio and resume site for Brian Ruggieri — [roojery.com](https://roojery.com)
+Personal portfolio and resume site for Brian Ruggieri — [roojerry.com](https://roojerry.com)
 
 Built with [Hugo](https://gohugo.io/) using a customized fork of the [resume theme](https://github.com/eddiewebb/hugo-resume).
 
