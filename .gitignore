@@ -1,10 +1,5 @@
-public/projects
-public/tags
-public/index.html
-public/js
-public/css
-public/.DS_Store
-public/living-machine/
+# Build output
+public/
 
 # macOS metadata
 .DS_Store
@@ -13,7 +8,7 @@ public/living-machine/
 .claude/
 .claude-flow/
 
-# Dev test files (see SITE_REVIEW.md — move to _dev/ when cleaning up)
+# Dev test files
 test-disturbance.html
 test-disturbance.js
 test-disturbance-headless.js
