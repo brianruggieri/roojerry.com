@@ -29,3 +29,4 @@ Pushes to `main` trigger a GitHub Actions workflow that builds with Hugo and dep
 | `DEPLOY_USER` | SSH user |
 | `DEPLOY_PATH` | Remote path |
 | `DEPLOY_KEY` | SSH private key |
+| `PHONE` | Phone number injected into vCard at build time |
