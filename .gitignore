@@ -1,8 +1,14 @@
 # Build output
 public/
 
+# Hugo
+.hugo_build.lock
+
 # macOS metadata
 .DS_Store
+
+# Editor
+.vscode/
 
 # Dev tooling
 .claude/

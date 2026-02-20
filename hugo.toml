@@ -15,7 +15,6 @@ favicon = "/favicon.ico"
 firstName = "Brian"
 lastName = "Ruggieri"
 backgroundMode = "canvas"
-phone = "REDACTED"
 profileImage = "img/me-illustration.png"
 showQr = false
 showContact = false
