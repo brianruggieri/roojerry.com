@@ -1,0 +1,18 @@
+{
+  "name": "roojerry",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev":          "/opt/homebrew/bin/hugo server -D",
+    "build":        "/opt/homebrew/bin/hugo --minify",
+    "build:check":  "/opt/homebrew/bin/hugo --minify --renderToMemory",
+    "preview":      "/opt/homebrew/bin/hugo server --disableFastRender",
+    "clean":        "rm -rf public/",
+    "env":          "/opt/homebrew/bin/hugo env",
+    "test":         "node test-achievements.js",
+    "test:watch":   "node --watch test-achievements.js"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.0.0"
+  }
+}

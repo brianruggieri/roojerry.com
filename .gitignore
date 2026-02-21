@@ -1,6 +1,9 @@
 # Build output
 public/
 
+# Node / npm
+node_modules/
+
 # Hugo
 .hugo_build.lock
 
