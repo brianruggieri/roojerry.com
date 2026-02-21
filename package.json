@@ -9,7 +9,7 @@
     "preview":      "/opt/homebrew/bin/hugo server --disableFastRender",
     "clean":        "rm -rf public/",
     "env":          "/opt/homebrew/bin/hugo env",
-    "test":         "node test-achievements.js",
+    "test":         "node test-runner.js",
     "test:watch":   "node --watch test-achievements.js"
   },
   "devDependencies": {

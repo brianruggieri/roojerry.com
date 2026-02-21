@@ -4,7 +4,12 @@
   var nav = document.getElementById('sideNav');
   var about = document.getElementById('about');
 
-  if (!nav || !about) return;
+  if (!nav || !about) {
+    console.warn('[nav-scroll-reveal] missing element:', { nav: !!nav, about: !!about });
+    return;
+  }
+
+  console.log('[nav-scroll-reveal] init');
 
   // Track scroll velocity
   var lastScrollY = window.scrollY;
@@ -40,10 +45,12 @@
         // About section has scrolled above the viewport — show nav
         var velocity = Math.abs(lastScrollY - prevScrollY);
         var duration = velocityToDuration(velocity);
+        console.log('[nav-scroll-reveal] show nav, velocity=' + velocity + ' duration=' + duration + 'ms');
         nav.style.setProperty('--nav-duration', duration + 'ms');
         nav.classList.add('nav-visible');
       } else if (entry.isIntersecting) {
         // Back at the top — snap nav away instantly
+        console.log('[nav-scroll-reveal] hide nav (snap)');
         nav.style.setProperty('--nav-duration', '0ms');
         nav.classList.remove('nav-visible');
         // Reset to no-transition after a tick so future reveals animate
