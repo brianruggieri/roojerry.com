@@ -9,24 +9,35 @@
  */
 
 // Individual achievement definitions
-// Extend this object to add new achievements
+// Extend this object to add new achievements.
+// Use `image` (path to PNG) for custom art, or `icon` (FA icon name) as fallback.
 const ACHIEVEMENT_DEFS = {
   // Snarky meta achievement: clicking the coin 10 times
   coin_clicker: {
     id: 'coin_clicker',
     name: '10 Clicks Hero',
     description: 'Tried clicking the coin 10 times. We saw that coming.',
-    icon: 'mouse-pointer', // Steam-style icon metaphor
+    image: '/img/achievements/coin-clicker-10.png',
     rarity: 'uncommon'
+  },
+
+  // Even snarkier: 50 clicks
+  coin_clicker_50: {
+    id: 'coin_clicker_50',
+    name: '50 Clicks Legend',
+    description: 'You clicked 50 times. Are you okay?',
+    image: '/img/achievements/coin-clicker-50.png',
+    rarity: 'rare'
   }
-  
-  // Future achievements can be added here:
+
+  // Future achievements:
   // example_achievement: {
   //   id: 'example_achievement',
   //   name: 'Achievement Name',
   //   description: 'Snarky description here',
-  //   icon: 'fa-icon-name',
-  //   rarity: 'rare' // rare, uncommon, common, epic
+  //   image: '/img/achievements/example.png', // preferred: custom art
+  //   icon: 'fa-icon-name',                   // fallback: Font Awesome
+  //   rarity: 'rare' // common | uncommon | rare | epic
   // }
 };
 
