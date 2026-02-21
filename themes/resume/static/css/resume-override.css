@@ -1,4 +1,38 @@
 /* Override styles for customizations */
+
+/* =========================
+   Responsive Typography
+========================= */
+
+/* Fluid name: linear interpolation 3.5rem at 320px → 6rem at 480px.
+   Using slope-intercept form (calc(Xvw + Yrem)) per established convention —
+   this anchors the scale to real breakpoints rather than an arbitrary vw magic number.
+   slope = (6−3.5)/(30rem−20rem) = 25vw; intercept = 3.5 − (0.25×20) = −1.5rem */
+h1 {
+  font-size: clamp(3.5rem, calc(-1.5rem + 25vw), 6rem);
+  line-height: clamp(3.2rem, calc(-1.375rem + 22.9vw), 5.5rem);
+}
+
+/* Keep the last name as an atomic line-wrap unit.
+   The disturbance JS wraps every letter as display:inline-block, erasing CSS word
+   boundaries. Wrapping .text-primary in inline-block is the established "word
+   grouping" pattern (per GSAP SplitText smartWrap convention): the word stays
+   together as one box, and the browser only breaks at the space between names. */
+h1 .text-primary {
+  display: inline-block;
+}
+
+/* Social icons: trim slightly on narrowest screens */
+@media (max-width: 400px) {
+  .list-social-icons a .fa-lg {
+    font-size: 1.35rem;
+  }
+  .list-social-icons .list-inline-item {
+    margin-right: 0.1rem;
+    margin-left: 0.1rem;
+  }
+}
+
 /* =========================
    Name Physics Layer
 ========================= */

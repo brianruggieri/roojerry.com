@@ -16,6 +16,7 @@ node_modules/
 # Dev tooling
 .claude/
 .claude-flow/
+.playwright-mcp/
 
 # Dev test files
 test-disturbance.html
