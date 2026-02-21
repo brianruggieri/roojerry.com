@@ -49,14 +49,12 @@
         nav.style.setProperty('--nav-duration', duration + 'ms');
         nav.classList.add('nav-visible');
       } else if (entry.isIntersecting) {
-        // Back at the top — snap nav away instantly
-        console.log('[nav-scroll-reveal] hide nav (snap)');
-        nav.style.setProperty('--nav-duration', '0ms');
+        // About section back in view — slide nav away, velocity-matched
+        var velocity = Math.abs(lastScrollY - prevScrollY);
+        var duration = velocityToDuration(velocity);
+        console.log('[nav-scroll-reveal] hide nav, velocity=' + velocity + ' duration=' + duration + 'ms');
+        nav.style.setProperty('--nav-hide-duration', duration + 'ms');
         nav.classList.remove('nav-visible');
-        // Reset to no-transition after a tick so future reveals animate
-        requestAnimationFrame(function () {
-          nav.style.removeProperty('--nav-duration');
-        });
       }
     });
   }, { threshold: 0 });
