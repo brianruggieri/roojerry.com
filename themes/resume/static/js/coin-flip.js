@@ -36,14 +36,14 @@ function flipCoin() {
 // Click handler (count only real clicks; auto-flips don't increment)
 let coinClickCounter = 0;
 function onCoinClick(e) {
-  // increment click counter for user clicks
-  coinClickCounter = (coinClickCounter || 0) + 1;
+  coinClickCounter++;
   flipCoin();
 
-  // When user clicks the coin 10 times, trigger the achievement
-  if (coinClickCounter >= 1) {
+  if (coinClickCounter === 10) {
     ACHIEVEMENTS.unlock('coin_clicker');
-    // coinClickCounter = 0;
+  }
+  if (coinClickCounter === 50) {
+    ACHIEVEMENTS.unlock('coin_clicker_50');
   }
 }
 
