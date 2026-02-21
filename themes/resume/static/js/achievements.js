@@ -87,19 +87,28 @@ const ACHIEVEMENTS = {
    * Create a single achievement card element.
    */
   createCard(achievement) {
-    const { name, description, icon, rarity } = achievement;
+    const { name, description, icon, image, rarity } = achievement;
 
     // Main card container
     const card = document.createElement('div');
     card.className = `ani_div grad ach-rarity-${rarity || 'common'}`;
     card.setAttribute('data-achievement-id', achievement.id);
 
-    // Icon container
+    // Icon container (image preferred; FA icon as fallback)
     const iconContainer = document.createElement('div');
     iconContainer.className = 'ani_icon';
-    const iconEl = document.createElement('i');
-    iconEl.className = `fa fa-${icon} fa-fw`;
-    iconContainer.appendChild(iconEl);
+
+    if (image) {
+      const imgEl = document.createElement('img');
+      imgEl.src = image;
+      imgEl.alt = name;
+      imgEl.className = 'ach-icon-img';
+      iconContainer.appendChild(imgEl);
+    } else if (icon) {
+      const iconEl = document.createElement('i');
+      iconEl.className = `fa fa-${icon} fa-fw`;
+      iconContainer.appendChild(iconEl);
+    }
 
     // Text container
     const textContainer = document.createElement('div');

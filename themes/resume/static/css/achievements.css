@@ -80,6 +80,13 @@
   color: #fff;
 }
 
+.ach-icon-img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  display: block;
+}
+
 .ach-text {
   display: flex;
   flex-direction: column;
