@@ -31,6 +31,16 @@
                   </a>
                 </li>
             {{ end }}
+            {{ if .Site.Params.showVcard }}
+            <li class="list-inline-item">
+              <a href="/contact.vcf" download data-toggle="tooltip" title="Download vCard" data-offset="0,10">
+                <span class="fa-stack fa-lg">
+                  <i class="fa fa-circle fa-stack-2x"></i>
+                  <i class="fa fa-address-card fa-stack-1x fa-inverse"></i>
+                </span>
+              </a>
+            </li>
+            {{ end }}
           </ul>
           {{ end }}
           {{ if .Site.Params.showCertifications }}

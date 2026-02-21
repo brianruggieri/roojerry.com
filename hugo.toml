@@ -21,6 +21,7 @@ showContact = false
 showBoards  = false
 showCertifications = false
 showSocializations = true
+showVcard = false
 sections = ["experience","skills","education"]
 vcardfields = [
     "name",

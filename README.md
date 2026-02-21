@@ -2,7 +2,7 @@
 
 Personal portfolio and resume site for Brian Ruggieri — [roojerry.com](https://roojerry.com)
 
-Built with [Hugo](https://gohugo.io/) using a customized fork of the [resume theme](https://github.com/eddiewebb/hugo-resume).
+Built with [Hugo](https://gohugo.io/), based on [eddiewebb/hugo-resume](https://github.com/eddiewebb/hugo-resume) (MIT). Theme customizations (interactive physics background, achievement system, nav animations) live in project-level overrides under `layouts/`, `static/css/`, and `static/js/`.
 
 ## Local Development
 
@@ -16,8 +16,11 @@ Open [http://localhost:1313](http://localhost:1313).
 
 - `data/` — Resume content (experience, skills, education)
 - `content/projects/` — Project write-ups
-- `static/` — Images and other static assets
-- `themes/resume/static/` — CSS and JS (custom design system, background canvas, interactive effects)
+- `static/img/` — Images
+- `static/css/` — Custom stylesheets (project-level overrides)
+- `static/js/` — Custom scripts (physics background, achievements, nav animations)
+- `layouts/` — Custom layout overrides (baseof.html, partials, vCard)
+- `themes/resume/` — Vendored upstream theme (eddiewebb/hugo-resume)
 
 ## Deployment
 
