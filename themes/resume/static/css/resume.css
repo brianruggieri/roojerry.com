@@ -274,9 +274,21 @@ a:hover, a:focus, a:active {
 /* Nav scroll-reveal — mobile only */
 @media (max-width: 991px) {
   #sideNav {
-    --nav-duration: 400ms;
+    --nav-duration: 1200ms;
     transform: translateY(-100%);
     transition: none;
+  }
+
+  /* Fill the overshoot region above the nav so the bounce doesn't show a gap */
+  #sideNav::before {
+    content: '';
+    position: fixed;
+    top: -100vh;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    background-color: var(--brand);
+    pointer-events: none;
   }
 
   #sideNav.nav-visible {

@@ -31,12 +31,12 @@
 
   // Map scroll velocity to transition duration
   // Fast scroll → short duration (snappier); slow scroll → longer duration
-  // Velocity is pixels/frame (~16ms). Clamp output 200–600ms.
+  // Velocity is pixels/frame (~16ms). Clamp output 600–1800ms.
   function velocityToDuration(velocity) {
     var v = Math.abs(velocity);
-    // At v=0 → 600ms, at v=50+ → 200ms
+    // At v=0 → 1800ms, at v=50+ → 600ms
     var ratio = Math.min(v / 50, 1);
-    return Math.round(600 - ratio * 400);
+    return Math.round(1800 - ratio * 1200);
   }
 
   var observer = new IntersectionObserver(function (entries) {
