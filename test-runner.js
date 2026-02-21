@@ -8,10 +8,13 @@
 
 import { spawn, execFileSync } from 'child_process';
 import net from 'net';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-const HUGO    = '/opt/homebrew/bin/hugo';
+const HUGO    = process.env.HUGO_PATH || '/opt/homebrew/bin/hugo';
 const PORT    = 1313;
 const TIMEOUT = 15000;
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function probe(port) {
   return new Promise((resolve) => {
@@ -41,7 +44,12 @@ function killExisting() {
     lsof.on('close', () => {
       const list = pids.trim().split('\n').filter(Boolean);
       if (list.length === 0) return resolve();
-      spawn('kill', ['-9', ...list]).on('close', () => setTimeout(resolve, 300));
+      // Graceful shutdown first, then force-kill if still running after 1s
+      spawn('kill', list).on('close', () => {
+        setTimeout(() => {
+          spawn('kill', ['-9', ...list]).on('close', () => setTimeout(resolve, 200));
+        }, 1000);
+      });
     });
   });
 }
@@ -66,9 +74,10 @@ async function main() {
   }
   console.log('[test-runner] Server ready at http://localhost:' + PORT);
 
+  const testFile = join(__dirname, 'test-achievements.js');
   let exitCode = 0;
   try {
-    execFileSync(process.execPath, ['test-achievements.js'], { stdio: 'inherit' });
+    execFileSync(process.execPath, [testFile], { stdio: 'inherit' });
   } catch (e) {
     exitCode = e.status || 1;
   }

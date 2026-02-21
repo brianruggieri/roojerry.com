@@ -276,11 +276,13 @@ a:hover, a:focus, a:active {
   #sideNav {
     --nav-duration: 2400ms;
     --nav-hide-duration: 800ms;
+    z-index: 1030; /* Match Bootstrap .fixed-top; explicit so this block is self-contained */
     transform: translateY(-100%);
     transition: transform var(--nav-hide-duration) cubic-bezier(0.4, 0, 1, 1);
+    will-change: transform;
   }
 
-  /* Fill the overshoot region above the nav so the bounce doesn't show a gap */
+  /* Fill the overshoot region above the nav so the bounce doesn't expose the page background */
   #sideNav::before {
     content: '';
     position: fixed;
@@ -295,5 +297,12 @@ a:hover, a:focus, a:active {
   #sideNav.nav-visible {
     transform: translateY(0);
     transition: transform var(--nav-duration) cubic-bezier(0.22, 1.8, 0.36, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #sideNav,
+    #sideNav.nav-visible {
+      transition: none;
+    }
   }
 }

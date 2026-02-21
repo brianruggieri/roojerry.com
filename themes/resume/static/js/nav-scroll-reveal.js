@@ -4,14 +4,11 @@
   var nav = document.getElementById('sideNav');
   var about = document.getElementById('about');
 
-  if (!nav || !about) {
-    console.warn('[nav-scroll-reveal] missing element:', { nav: !!nav, about: !!about });
-    return;
-  }
+  if (!nav || !about) return;
 
-  console.log('[nav-scroll-reveal] init');
-
-  // Track scroll velocity
+  // Track scroll velocity via RAF.
+  // prevScrollY = position at the frame before lastScrollY was captured.
+  // The delta between them approximates pixels/frame (~16ms) at the time of the last scroll event.
   var lastScrollY = window.scrollY;
   var prevScrollY = window.scrollY;
   var rafPending = false;
@@ -36,7 +33,7 @@
     return Math.round(3600 - ratio * 2400);
   }
 
-  // Hide: snappier slide-up, roughly half the show duration. Clamp output 400–1200ms.
+  // Hide: ~3x faster than show. Clamp output 400–1200ms.
   function hideDuration(velocity) {
     var v = Math.abs(velocity);
     var ratio = Math.min(v / 50, 1);
@@ -45,19 +42,14 @@
 
   var observer = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
+      var velocity = Math.abs(lastScrollY - prevScrollY);
       if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
-        // About section has scrolled above the viewport — show nav
-        var velocity = Math.abs(lastScrollY - prevScrollY);
-        var duration = showDuration(velocity);
-        console.log('[nav-scroll-reveal] show nav, velocity=' + velocity + ' duration=' + duration + 'ms');
-        nav.style.setProperty('--nav-duration', duration + 'ms');
+        // About section has scrolled above the viewport — show nav with bounce
+        nav.style.setProperty('--nav-duration', showDuration(velocity) + 'ms');
         nav.classList.add('nav-visible');
       } else if (entry.isIntersecting) {
         // About section back in view — slide nav away
-        var velocity = Math.abs(lastScrollY - prevScrollY);
-        var duration = hideDuration(velocity);
-        console.log('[nav-scroll-reveal] hide nav, velocity=' + velocity + ' duration=' + duration + 'ms');
-        nav.style.setProperty('--nav-hide-duration', duration + 'ms');
+        nav.style.setProperty('--nav-hide-duration', hideDuration(velocity) + 'ms');
         nav.classList.remove('nav-visible');
       }
     });
