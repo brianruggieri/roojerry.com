@@ -275,7 +275,7 @@ a:hover, a:focus, a:active {
 @media (max-width: 991px) {
   #sideNav {
     --nav-duration: 2400ms;
-    --nav-hide-duration: 2400ms;
+    --nav-hide-duration: 800ms;
     transform: translateY(-100%);
     transition: transform var(--nav-hide-duration) cubic-bezier(0.4, 0, 1, 1);
   }

@@ -29,14 +29,18 @@
 
   window.addEventListener('scroll', onScroll, { passive: true });
 
-  // Map scroll velocity to transition duration
-  // Fast scroll → short duration (snappier); slow scroll → longer duration
-  // Velocity is pixels/frame (~16ms). Clamp output 1200–3600ms.
-  function velocityToDuration(velocity) {
+  // Show: slow bounce-in. Clamp output 1200–3600ms.
+  function showDuration(velocity) {
     var v = Math.abs(velocity);
-    // At v=0 → 3600ms, at v=50+ → 1200ms
     var ratio = Math.min(v / 50, 1);
     return Math.round(3600 - ratio * 2400);
+  }
+
+  // Hide: snappier slide-up, roughly half the show duration. Clamp output 400–1200ms.
+  function hideDuration(velocity) {
+    var v = Math.abs(velocity);
+    var ratio = Math.min(v / 50, 1);
+    return Math.round(1200 - ratio * 800);
   }
 
   var observer = new IntersectionObserver(function (entries) {
@@ -44,14 +48,14 @@
       if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
         // About section has scrolled above the viewport — show nav
         var velocity = Math.abs(lastScrollY - prevScrollY);
-        var duration = velocityToDuration(velocity);
+        var duration = showDuration(velocity);
         console.log('[nav-scroll-reveal] show nav, velocity=' + velocity + ' duration=' + duration + 'ms');
         nav.style.setProperty('--nav-duration', duration + 'ms');
         nav.classList.add('nav-visible');
       } else if (entry.isIntersecting) {
-        // About section back in view — slide nav away, velocity-matched
+        // About section back in view — slide nav away
         var velocity = Math.abs(lastScrollY - prevScrollY);
-        var duration = velocityToDuration(velocity);
+        var duration = hideDuration(velocity);
         console.log('[nav-scroll-reveal] hide nav, velocity=' + velocity + ' duration=' + duration + 'ms');
         nav.style.setProperty('--nav-hide-duration', duration + 'ms');
         nav.classList.remove('nav-visible');
