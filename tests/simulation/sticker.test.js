@@ -80,7 +80,8 @@ TearSystem.prototype._init=function(){
       this.pinned[idx]=1;
       const n1=this._noise(i*.31+3.7,j*.29+8.1);
       const n2=this._noise(i*.19+11.3,j*.37+2.9);
-      this.toughness[idx]=this.params.TEAR_TOUGHNESS_BASE+(n1-.5)*this.params.TEAR_JAGGEDNESS+(n2-.5)*this.params.TEAR_JAGGEDNESS*.4;
+      const fibre=Math.abs(Math.sin(j*0.22))*0.15; // anisotropic fibre (matches sticker.js)
+      this.toughness[idx]=this.params.TEAR_TOUGHNESS_BASE+(n1-.5)*this.params.TEAR_JAGGEDNESS+(n2-.5)*this.params.TEAR_JAGGEDNESS*.4+fibre;
       if(i+1<lw) this._addConstraint(idx,idx+1,rH);
       if(j+1<lh) this._addConstraint(idx,idx+lw,rV);
       if(i+1<lw&&j+1<lh) this._addConstraint(idx,idx+lw+1,rD);

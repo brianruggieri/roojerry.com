@@ -30,7 +30,7 @@
  *   window.STICKER_LAYER.disable()  – hide (particles still run behind it)
  *   window.STICKER_LAYER.reset()    – restore intact sticker
  *
- * Requires: THREE global loaded before this script (Three.js ≥ r155).
+ * Requires: THREE global loaded before this script (Three.js r160).
  */
 
 (() => {
@@ -879,7 +879,8 @@
     this._params = window.STICKER_PARAMS;
     const P = this._params;
 
-    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+    // Feature-based mobile detection (touch + narrow viewport)
+    const isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 1) &&
                      window.innerWidth < 768;
 
     const maskSize = isMobile ? P.MOBILE_MASK_SIZE  : P.MASK_SIZE;
@@ -1065,10 +1066,12 @@
     if (!this._running) return;
 
     requestAnimationFrame((now) => {
-      const dt = Math.min((now - this._lastTime) / 1000, 0.05);
+      // Cap dt and skip large jumps caused by tab becoming active after backgrounding
+      const raw = (now - this._lastTime) / 1000;
       this._lastTime = now;
+      const dt = document.hidden ? 0 : Math.min(raw, 0.05);
 
-      if (this._enabled) {
+      if (this._enabled && dt > 0) {
         this._controller.update(dt);
         this._updateTearSystem(dt);
         this._updateMasks();
