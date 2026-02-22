@@ -79,6 +79,9 @@
   <script defer src="/js/achievements.js"></script>
   <script defer src="/js/coin-flip.js"></script>
   <script defer src="/js/nav-scroll-reveal.js"></script>
+  <!-- Three.js (required by sticker layer) then sticker layer itself -->
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" crossorigin="anonymous"></script>
+  <script defer src="/js/sticker.js"></script>
 
   {{ if .Site.Params.google.analytics.trackerID }}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ .Site.Params.google.analytics.trackerID }}"></script>
