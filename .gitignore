@@ -18,8 +18,5 @@ node_modules/
 .claude-flow/
 .playwright-mcp/
 
-# Dev test files
-test-disturbance.html
-test-disturbance.js
-test-disturbance-headless.js
-test-server.js
+# Tests
+tests/visual/diffs/
