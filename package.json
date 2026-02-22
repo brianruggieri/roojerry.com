@@ -3,14 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev":          "/opt/homebrew/bin/hugo server -D",
-    "build":        "/opt/homebrew/bin/hugo --minify",
-    "build:check":  "/opt/homebrew/bin/hugo --minify --renderToMemory",
-    "preview":      "/opt/homebrew/bin/hugo server --disableFastRender",
-    "clean":        "rm -rf public/",
-    "env":          "/opt/homebrew/bin/hugo env",
-    "test":         "node test-runner.js",
-    "test:watch":   "node --watch test-achievements.js"
+    "dev": "/opt/homebrew/bin/hugo server -D",
+    "build": "/opt/homebrew/bin/hugo --minify",
+    "build:check": "/opt/homebrew/bin/hugo --minify --renderToMemory",
+    "preview": "/opt/homebrew/bin/hugo server --disableFastRender",
+    "clean": "rm -rf public/",
+    "env": "/opt/homebrew/bin/hugo env",
+    "test": "node tests/runner.js",
+    "test:visual": "node tests/visual/runner.js",
+    "test:watch": "node --watch tests/e2e/achievements.test.js",
+    "test:update": "UPDATE_SNAPSHOTS=1 node tests/visual/runner.js"
   },
   "devDependencies": {
     "puppeteer": "^24.0.0"

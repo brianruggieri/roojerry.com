@@ -44,7 +44,7 @@
 
 import puppeteer from 'puppeteer';
 
-const BASE_URL      = 'http://localhost:1313';
+import { BASE_URL } from '../helpers/server.js';
 const COIN_SELECTOR = '#profileCoin';
 const TOAST_SEL     = '.ani_div';
 

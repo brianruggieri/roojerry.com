@@ -1,20 +1,13 @@
-#!/usr/bin/env node
-/**
- * test-runner.js
- *
- * Starts a fresh Hugo dev server, runs the test suite, then tears it down.
- * Ensures tests always run against current source files.
- */
+// tests/helpers/server.js
+// Hugo dev server lifecycle helpers — used by all test runners.
 
-import { spawn, execFileSync } from 'child_process';
+import { spawn } from 'child_process';
 import net from 'net';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
-const HUGO    = process.env.HUGO_PATH || '/opt/homebrew/bin/hugo';
-const PORT    = 1313;
+export const HUGO = process.env.HUGO_PATH || '/opt/homebrew/bin/hugo';
+export const PORT = 1313;
+export const BASE_URL = `http://localhost:${PORT}`;
 const TIMEOUT = 15000;
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function probe(port) {
   return new Promise((resolve) => {
@@ -36,7 +29,7 @@ async function waitForServer(port, timeout) {
   return false;
 }
 
-function killExisting() {
+export function killExisting() {
   return new Promise((resolve) => {
     const lsof = spawn('lsof', ['-ti', `tcp:${PORT}`]);
     let pids = '';
@@ -44,7 +37,6 @@ function killExisting() {
     lsof.on('close', () => {
       const list = pids.trim().split('\n').filter(Boolean);
       if (list.length === 0) return resolve();
-      // Graceful shutdown first, then force-kill if still running after 1s
       spawn('kill', list).on('close', () => {
         setTimeout(() => {
           spawn('kill', ['-9', ...list]).on('close', () => setTimeout(resolve, 200));
@@ -54,39 +46,35 @@ function killExisting() {
   });
 }
 
-async function main() {
+/**
+ * Start a Hugo dev server. Returns the child process.
+ * Rejects if the server doesn't respond within TIMEOUT ms.
+ */
+export async function startServer() {
   await killExisting();
 
-  console.log('[test-runner] Starting Hugo server...');
-  const server = spawn(HUGO, ['server', '-D', '--port', String(PORT)], {
+  console.log('[server] Starting Hugo server...');
+  const proc = spawn(HUGO, ['server', '-D', '--port', String(PORT)], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
-  server.stderr.on('data', d => {
+  proc.stderr.on('data', d => {
     const line = d.toString().trim();
     if (line) process.stderr.write('[hugo] ' + line + '\n');
   });
 
   const ready = await waitForServer(PORT, TIMEOUT);
   if (!ready) {
-    console.error('[test-runner] Hugo server did not start within', TIMEOUT, 'ms');
-    server.kill();
-    process.exit(1);
-  }
-  console.log('[test-runner] Server ready at http://localhost:' + PORT);
-
-  const testFile = join(__dirname, 'test-achievements.js');
-  let exitCode = 0;
-  try {
-    execFileSync(process.execPath, [testFile], { stdio: 'inherit' });
-  } catch (e) {
-    exitCode = e.status || 1;
+    proc.kill();
+    throw new Error(`Hugo server did not start within ${TIMEOUT}ms`);
   }
 
-  server.kill();
-  process.exit(exitCode);
+  console.log(`[server] Ready at ${BASE_URL}`);
+  return proc;
 }
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+/**
+ * Stop a Hugo server process returned by startServer().
+ */
+export function stopServer(proc) {
+  proc.kill();
+}
