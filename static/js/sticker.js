@@ -70,167 +70,78 @@ import * as THREE from 'three';
 
   /* ═══════════════════════════════════════════════════════════
      MASK PAINTER
-     Maintains two WebGLRenderTargets (tearMask, residueMask) and
-     provides stamp methods that paint into them using Three.js scene
-     rendering – no CPU readbacks.
+     Maintains tearMaskRT (1=intact, 0=torn).
+     fillPolygon() renders a solid black polygon into the mask.
   ═══════════════════════════════════════════════════════════ */
 
-  /** @param {THREE.WebGLRenderer} renderer  @param {number} size  Power-of-two */
   function MaskPainter(renderer, size) {
     this.renderer = renderer;
-    this.size = size;
+    this.size     = size;
 
     const rtOpts = {
       minFilter: THREE.LinearFilter,
       magFilter: THREE.LinearFilter,
-      format: THREE.RGBAFormat,
-      type: THREE.UnsignedByteType,
+      format:    THREE.RGBAFormat,
+      type:      THREE.UnsignedByteType,
     };
+    this.tearMaskRT = new THREE.WebGLRenderTarget(size, size, rtOpts);
 
-    /** 1 = intact, 0 = torn/removed */
-    this.tearMaskRT   = new THREE.WebGLRenderTarget(size, size, Object.assign({}, rtOpts));
-    /** 0 = no residue, 1 = heavy residue */
-    this.residueMaskRT = new THREE.WebGLRenderTarget(size, size, Object.assign({}, rtOpts));
-
-    // Paint-scene: ortho camera + single quad
+    // Ortho scene for painting
     this._scene  = new THREE.Scene();
     this._camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    this._geo    = new THREE.PlaneGeometry(2, 2);
 
-    // --- Tear stamp material (paints BLACK = hole) ---
-    this._tearMat = new THREE.ShaderMaterial({
-      uniforms: {
-        u_center:   { value: new THREE.Vector2(0.5, 0.5) },
-        u_radius:   { value: 0.05 },
-        u_softness: { value: 0.01 },
-      },
-      vertexShader: [
-        'varying vec2 v_uv;',
-        'void main(){v_uv=uv;gl_Position=vec4(position.xy,0.0,1.0);}',
-      ].join('\n'),
-      fragmentShader: [
-        'uniform vec2 u_center;',
-        'uniform float u_radius;',
-        'uniform float u_softness;',
-        'varying vec2 v_uv;',
-        'void main(){',
-        '  float d=distance(v_uv,u_center);',
-        '  float a=1.0-smoothstep(u_radius-u_softness,u_radius+u_softness,d);',
-        // Paint black (r=0) where stamp is opaque
-        '  gl_FragColor=vec4(0.0,0.0,0.0,a);',
-        '}',
-      ].join('\n'),
-      transparent: true,
-      // Normal blending: result = src*srcA + dst*(1-srcA)
-      // Black * alpha + white * (1-alpha) → darkens toward 0 at stamp
-      blending: THREE.NormalBlending,
-      depthTest: false,
+    // Solid black fill material (NormalBlending, no depth)
+    this._fillMat = new THREE.MeshBasicMaterial({
+      color:      0x000000,
+      side:       THREE.DoubleSide,
+      depthTest:  false,
       depthWrite: false,
     });
-
-    // --- Residue stamp material (paints warm grey additively) ---
-    this._residueMat = new THREE.ShaderMaterial({
-      uniforms: {
-        u_center:    { value: new THREE.Vector2(0.5, 0.5) },
-        u_radius:    { value: 0.04 },
-        u_intensity: { value: 0.5 },
-        u_seed:      { value: 0.0 },
-      },
-      vertexShader: [
-        'varying vec2 v_uv;',
-        'void main(){v_uv=uv;gl_Position=vec4(position.xy,0.0,1.0);}',
-      ].join('\n'),
-      fragmentShader: [
-        'uniform vec2 u_center;',
-        'uniform float u_radius;',
-        'uniform float u_intensity;',
-        'uniform float u_seed;',
-        'varying vec2 v_uv;',
-        'float hash(vec2 p){',
-        '  p=fract(p*vec2(127.1+u_seed,311.7+u_seed*.3));',
-        '  p+=dot(p,p+47.3);',
-        '  return fract(p.x*p.y);',
-        '}',
-        'void main(){',
-        '  float d=distance(v_uv,u_center);',
-        '  float base=1.0-smoothstep(u_radius*.4,u_radius*1.3,d);',
-        '  float n=hash(v_uv*90.0)*.5+.5;',
-        '  float val=base*n*u_intensity;',
-        '  gl_FragColor=vec4(val,val,val,val);',
-        '}',
-      ].join('\n'),
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthTest: false,
-      depthWrite: false,
-    });
-
-    this._mesh = new THREE.Mesh(this._geo, this._tearMat);
-    this._scene.add(this._mesh);
-
-    // Initialise tearMask to fully WHITE (intact)
-    this._fillRT(this.tearMaskRT, new THREE.Color(1, 1, 1));
-    // Initialise residueMask to BLACK (no residue)
-    this._fillRT(this.residueMaskRT, new THREE.Color(0, 0, 0));
   }
 
-  MaskPainter.prototype._fillRT = function (rt, color) {
+  /**
+   * Fill a closed UV polygon (array of {x,y} in [0,1]) into the tear mask.
+   * UV coords map: x→[-1,1], y→[-1,1] (UV y=0 = bottom = NDC y=-1).
+   * Any filled region becomes 0 (torn) in the mask.
+   */
+  MaskPainter.prototype.fillPolygon = function (uvPath) {
+    if (uvPath.length < 3) return;
+
+    const shape = new THREE.Shape();
+    // Convert UV [0,1] to NDC [-1,1]
+    shape.moveTo(uvPath[0].x * 2 - 1, uvPath[0].y * 2 - 1);
+    for (let i = 1; i < uvPath.length; i++) {
+      shape.lineTo(uvPath[i].x * 2 - 1, uvPath[i].y * 2 - 1);
+    }
+    shape.closePath();
+
+    const geo  = new THREE.ShapeGeometry(shape);
+    const mesh = new THREE.Mesh(geo, this._fillMat);
+
+    // Render into tearMaskRT (black overwrites white = torn region grows)
     const prev = this.renderer.getRenderTarget();
-    this.renderer.setRenderTarget(rt);
-    this.renderer.setClearColor(color, 1);
-    this.renderer.clear(true, false, false);
-    this.renderer.setRenderTarget(prev);
-  };
-
-  MaskPainter.prototype._renderStamp = function (rt) {
-    const prev    = this.renderer.getRenderTarget();
-    const prevAC  = this.renderer.autoClear;
-    this.renderer.autoClear = false;
-    this.renderer.setRenderTarget(rt);
+    this.renderer.setRenderTarget(this.tearMaskRT);
+    // Do NOT clear — preserve existing tears
+    this._scene.add(mesh);
     this.renderer.render(this._scene, this._camera);
+    this._scene.remove(mesh);
+    geo.dispose();
     this.renderer.setRenderTarget(prev);
-    this.renderer.autoClear = prevAC;
   };
 
-  /**
-   * Paint a tear (hole) at UV position with given radius.
-   * @param {number} u  UV x [0,1]
-   * @param {number} v  UV y [0,1]
-   * @param {number} radius  UV-space radius
-   */
-  MaskPainter.prototype.paintTear = function (u, v, radius) {
-    this._mesh.material = this._tearMat;
-    this._tearMat.uniforms.u_center.value.set(u, v);
-    this._tearMat.uniforms.u_radius.value   = radius;
-    this._tearMat.uniforms.u_softness.value = Math.max(0.004, radius * 0.15);
-    this._renderStamp(this.tearMaskRT);
-  };
-
-  /**
-   * Paint residue at UV position.
-   * @param {number} u @param {number} v @param {number} radius @param {number} intensity 0–1
-   * @param {number} seed  Random seed for noise variation.
-   */
-  MaskPainter.prototype.paintResidue = function (u, v, radius, intensity, seed) {
-    this._mesh.material = this._residueMat;
-    this._residueMat.uniforms.u_center.value.set(u, v);
-    this._residueMat.uniforms.u_radius.value    = radius;
-    this._residueMat.uniforms.u_intensity.value = intensity;
-    this._residueMat.uniforms.u_seed.value      = seed || 0;
-    this._renderStamp(this.residueMaskRT);
-  };
-
+  /** Clear mask back to fully intact (all white). */
   MaskPainter.prototype.reset = function () {
-    this._fillRT(this.tearMaskRT,    new THREE.Color(1, 1, 1));
-    this._fillRT(this.residueMaskRT, new THREE.Color(0, 0, 0));
+    const prev = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(this.tearMaskRT);
+    this.renderer.setClearColor(0xffffff, 1);
+    this.renderer.clear(true, false, false);
+    this.renderer.setClearColor(0x000000, 0);
+    this.renderer.setRenderTarget(prev);
   };
 
   MaskPainter.prototype.dispose = function () {
     this.tearMaskRT.dispose();
-    this.residueMaskRT.dispose();
-    this._geo.dispose();
-    this._tearMat.dispose();
-    this._residueMat.dispose();
+    this._fillMat.dispose();
   };
 
   /* ═══════════════════════════════════════════════════════════
@@ -977,7 +888,7 @@ import * as THREE from 'three';
     this._material = new THREE.ShaderMaterial({
       uniforms: {
         u_tearMask:     { value: this._maskPainter.tearMaskRT.texture },
-        u_residueMask:  { value: this._maskPainter.residueMaskRT.texture },
+        // u_residueMask: removed — residueMaskRT no longer exists in MaskPainter
         u_stickerColor: { value: new THREE.Vector3(P.STICKER_COLOR[0], P.STICKER_COLOR[1], P.STICKER_COLOR[2]) },
         u_opacity:      { value: P.STICKER_OPACITY },
         u_time:         { value: 0 },
@@ -1043,7 +954,7 @@ import * as THREE from 'three';
       this._tearTimer = 0;
       const uvFlat = this._tearSystem.getDetachedUVs();
       for (let i = 0; i < uvFlat.length; i += 2) {
-        this._maskPainter.paintTear(uvFlat[i], uvFlat[i + 1], 0.013);
+        // this._maskPainter.paintTear(uvFlat[i], uvFlat[i + 1], 0.013); // replaced by fillPolygon
       }
     }
   };
