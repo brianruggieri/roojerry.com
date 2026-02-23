@@ -811,16 +811,14 @@ import * as THREE from 'three';
       u.u_foldPoint.value.set(-2, -2);
     }
 
-    // Pulse events
+    // Pulse events — expire old ones before iterating (avoid splice-during-iteration)
+    const now = performance.now() * 0.001;
+    this._pulseEvents = this._pulseEvents.filter(p => now - p.spawnTime <= 1.5);
     const pulses = this._pulseEvents;
-    const now    = performance.now() * 0.001;
     for (let i = 0; i < 4; i++) {
       if (i < pulses.length) {
         u.u_pulsePos.value[i].set(pulses[i].uvX, pulses[i].uvY);
         u.u_pulseAge.value[i] = now - pulses[i].spawnTime;
-        if (u.u_pulseAge.value[i] > 1.5) {
-          pulses.splice(i, 1);
-        }
       } else {
         u.u_pulsePos.value[i].set(-2, -2);
         u.u_pulseAge.value[i] = -1;
