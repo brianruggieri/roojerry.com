@@ -534,6 +534,153 @@ console.log('\n[GrabZoneTracker]');
   assert(Math.abs(crackResult.point.x - 0.5) < 1e-9, 'grab zone snaps to nearest crack waypoint');
 }
 
+
+/* ── StickerController v2 ── */
+console.log('\n[StickerController v2]');
+{
+  // Use a fresh params object with v2 values
+  const P2 = {
+    SNAP_THRESHOLD: 0.35,
+    SPRING_K: 18,
+    SPRING_DAMP: 0.72,
+    FIXED_DT: 1 / 60,
+    CRACK_STEP_SIZE: 0.015,
+    TEAR_JAGGEDNESS: 0.45,
+  };
+
+  // Inline new StickerController (no WebGL, no GrabZoneTracker dependency here)
+  function StickerControllerV2(params, innerW, innerH) {
+    this.params = params;
+    this._iw = innerW || 1920;
+    this._ih = innerH || 1080;
+    this.state         = 'IDLE';
+    this.peelProgress  = 0;
+    this.peelVelocity  = 0;
+    this.peelTarget    = 0;
+    this.grabUV        = { x: 0, y: 0 };
+    this.grabNormal    = { x: 1, y: 0 };
+    this.peelDir       = { x: 1, y: 0 };
+    this.onSnapOff     = null;
+    this.onHoverChange = null;
+    this._accum        = 0;
+  }
+  StickerControllerV2.prototype._uvFromPointer = function (e) {
+    return { x: e.clientX / this._iw, y: 1 - e.clientY / this._ih };
+  };
+  StickerControllerV2.prototype.setHover = function (zone) {
+    if (this.state !== 'IDLE' && this.state !== 'HOVER') return;
+    const next = zone ? 'HOVER' : 'IDLE';
+    if (next !== this.state) {
+      this.state = next;
+      if (this.onHoverChange) this.onHoverChange(zone);
+    }
+    if (zone) {
+      this.grabUV = { x: zone.point.x, y: zone.point.y };
+      this.grabNormal = zone.normal;
+      this.peelDir = { x: zone.normal.x, y: zone.normal.y };
+    }
+  };
+  StickerControllerV2.prototype.startPeel = function () {
+    if (this.state !== 'HOVER') return;
+    this.state = 'PEELING';
+    this.peelProgress = 0;
+    this.peelVelocity = 0;
+    this.peelTarget   = 0;
+  };
+  StickerControllerV2.prototype.updatePeelTarget = function (cursorUV) {
+    if (this.state !== 'PEELING') return;
+    const dx = cursorUV.x - this.grabUV.x;
+    const dy = cursorUV.y - this.grabUV.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    this.peelTarget = Math.min(1, dist * 2.2);
+    if (dist > 0.03) {
+      this.peelDir = { x: dx / dist, y: dy / dist };
+    }
+  };
+  StickerControllerV2.prototype.release = function () {
+    if (this.state !== 'PEELING') return;
+    if (this.peelProgress >= this.params.SNAP_THRESHOLD) {
+      this.state = 'SNAP_OFF';
+      if (this.onSnapOff) {
+        const front = {
+          x: this.grabUV.x + this.peelDir.x * this.peelProgress,
+          y: this.grabUV.y + this.peelDir.y * this.peelProgress,
+        };
+        this.onSnapOff(front, this.grabNormal);
+      }
+    } else {
+      this.state = 'SNAP_BACK';
+      this.peelTarget = 0;
+    }
+  };
+  StickerControllerV2.prototype._step = function (dt) {
+    const P = this.params;
+    if (this.state === 'PEELING' || this.state === 'SNAP_BACK') {
+      const error = this.peelTarget - this.peelProgress;
+      this.peelVelocity = this.peelVelocity * P.SPRING_DAMP + error * P.SPRING_K * dt;
+      this.peelProgress = Math.max(0, Math.min(1, this.peelProgress + this.peelVelocity));
+      if (this.state === 'SNAP_BACK' && Math.abs(this.peelProgress) < 0.005 && Math.abs(this.peelVelocity) < 0.002) {
+        this.state = 'IDLE';
+        this.peelProgress = 0;
+        this.peelVelocity = 0;
+      }
+    }
+  };
+  StickerControllerV2.prototype.update = function (dt) {
+    this._accum += dt;
+    while (this._accum >= this.params.FIXED_DT) {
+      this._step(this.params.FIXED_DT);
+      this._accum -= this.params.FIXED_DT;
+    }
+  };
+  StickerControllerV2.prototype.peelFrontUV = function () {
+    return {
+      x: this.grabUV.x + this.peelDir.x * this.peelProgress,
+      y: this.grabUV.y + this.peelDir.y * this.peelProgress,
+    };
+  };
+
+  // Hover → startPeel transition
+  const ctrl = new StickerControllerV2(P2, 1920, 1080);
+  ctrl.setHover({ point: { x: 0, y: 0.5 }, normal: { x: 1, y: 0 } });
+  assert(ctrl.state === 'HOVER', 'setHover transitions to HOVER');
+  ctrl.startPeel();
+  assert(ctrl.state === 'PEELING', 'startPeel transitions to PEELING');
+
+  // SNAP_BACK when below threshold
+  const ctrlBack = new StickerControllerV2(P2, 1920, 1080);
+  ctrlBack.state = 'PEELING';
+  ctrlBack.peelProgress = 0.20; // below SNAP_THRESHOLD 0.35
+  ctrlBack.peelTarget = 0;
+  ctrlBack.release();
+  assert(ctrlBack.state === 'SNAP_BACK', 'release below threshold → SNAP_BACK');
+
+  // SNAP_OFF when above threshold
+  let snapFired = false;
+  const ctrlOff = new StickerControllerV2(P2, 1920, 1080);
+  ctrlOff.onSnapOff = () => { snapFired = true; };
+  ctrlOff.state = 'PEELING';
+  ctrlOff.peelProgress = 0.40; // above SNAP_THRESHOLD
+  ctrlOff.release();
+  assert(ctrlOff.state === 'SNAP_OFF', 'release above threshold → SNAP_OFF');
+  assert(snapFired, 'onSnapOff callback fires on snap-off');
+
+  // Spring-back: SNAP_BACK eventually resolves to IDLE
+  const ctrlSettle = new StickerControllerV2(P2, 1920, 1080);
+  ctrlSettle.state = 'SNAP_BACK';
+  ctrlSettle.peelProgress = 0.25;
+  ctrlSettle.peelTarget = 0;
+  for (let i = 0; i < 300; i++) ctrlSettle._step(P2.FIXED_DT);
+  assert(ctrlSettle.state === 'IDLE', 'SNAP_BACK settles to IDLE');
+  assert(Math.abs(ctrlSettle.peelProgress) < 0.01, 'peelProgress returns near 0 after settle');
+
+  // onHoverChange callback fires on state change
+  let hoverFired = false;
+  const ctrlHov = new StickerControllerV2(P2, 1920, 1080);
+  ctrlHov.onHoverChange = () => { hoverFired = true; };
+  ctrlHov.setHover({ point: { x: 0, y: 0.5 }, normal: { x: 1, y: 0 } });
+  assert(hoverFired, 'onHoverChange fires when entering HOVER state');
+}
 /* ── Summary ── */
 console.log(`\n[sticker tests] ${passed} passed, ${failed} failed\n`);
 process.exit(failed > 0 ? 1 : 0);

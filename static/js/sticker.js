@@ -42,71 +42,30 @@ import * as THREE from 'three';
      PARAMS  (developer-facing tuning knobs)
   ═══════════════════════════════════════════════════════════ */
   window.STICKER_PARAMS = {
-    // ── Sticker geometry ──────────────────────────────────────
-    /** Subdivision columns of the sticker plane mesh. */
-    SEG_X: 50,
-    /** Subdivision rows of the sticker plane mesh. */
-    SEG_Y: 50,
-
-    // ── Mask render-target resolution ─────────────────────────
-    /** Power-of-two size for tearMask and residueMask RTs. */
-    MASK_SIZE: 512,
-    /** RT size on mobile devices. */
-    MOBILE_MASK_SIZE: 256,
-
-    // ── Peel spring physics ────────────────────────────────────
-    /** Spring constant (higher = snappier peel). */
-    SPRING_K: 7.0,
-    /** Damping coefficient applied each fixed step (0–1). */
-    SPRING_DAMP: 0.80,
-
-    // ── Stick-slip (viscoelastic lag) ──────────────────────────
-    /** Force-proxy threshold below which peel "sticks". */
-    STICK_FORCE_THRESH: 0.025,
-    /** Velocity impulse released on stick-slip pop. */
-    SLIP_IMPULSE: 0.06,
-
-    // ── Tearing engine ─────────────────────────────────────────
-    /** Constraint lattice width (nodes). */
-    LATTICE_W: 70,
-    /** Constraint lattice height (nodes). */
-    LATTICE_H: 70,
-    /** Mobile lattice scale factor (0–1 relative to desktop sizes). */
-    MOBILE_LATTICE_SCALE: 0.5,
-    /** Base strain ratio at which constraints break. */
-    TEAR_TOUGHNESS_BASE: 1.40,
-    /** Per-node toughness variation amplitude (jaggedness). */
-    TEAR_JAGGEDNESS: 0.45,
-    /** Constraint solver iterations per physics step. */
-    CONSTRAINT_ITERS: 7,
-    /** Step size along crack path in normalised UV space. */
+    // ── Geometry ───────────────────────────────────────────────
+    SEG_X:              50,
+    SEG_Y:              50,
+    // ── Mask ──────────────────────────────────────────────────
+    MASK_SIZE:          512,
+    MOBILE_MASK_SIZE:   256,
+    // ── Peel spring ───────────────────────────────────────────
+    SPRING_K:           18,
+    SPRING_DAMP:        0.72,     // underdamped → slight overshoot on snap-back
+    SNAP_THRESHOLD:     0.35,     // peelProgress at release to trigger snap-off
+    // ── Curl ──────────────────────────────────────────────────
+    CURL_RADIUS:        0.09,     // tight cylinder radius (stiff plastic film)
+    // ── Crack ─────────────────────────────────────────────────
     CRACK_STEP_SIZE:    0.015,
-    /** Crack propagation speed multiplier. */
-    CRACK_SPEED:        2.2,
-
-    // ── Edge grab ──────────────────────────────────────────────
-    /** CSS pixel distance from viewport edge to count as "edge". */
-    EDGE_MARGIN_PX: 90,
-    /** Snap distance in CSS pixels for grab interaction. */
+    CRACK_SPEED:        2.2,      // crack animation speed (fraction per second)
+    TEAR_JAGGEDNESS:    0.45,
+    // ── Input ─────────────────────────────────────────────────
+    EDGE_MARGIN_PX:     90,
     GRAB_SNAP_PX:       12,
-
-    // ── Residue ────────────────────────────────────────────────
-    /** Base rate of residue deposition per tear step. */
-    RESIDUE_DEPOSITION_RATE: 0.35,
-    /** Extra residue burst on each stick-slip pop event. */
-    RESIDUE_POP_BOOST: 1.8,
-
     // ── Visual ─────────────────────────────────────────────────
-    /** Sticker base colour as [R, G, B] in [0,1]. */
-    STICKER_COLOR: [0.93, 0.91, 0.88],
-    /** Overall sticker opacity when fully intact. */
-    STICKER_OPACITY: 0.94,
-    /** Radius of the curl deformation zone (clip-space units, 0–1). */
-    CURL_RADIUS: 0.20,
-
-    // ── Performance ────────────────────────────────────────────
-    /** Fixed physics timestep (seconds). */
-    FIXED_DT: 1 / 60,
+    STICKER_COLOR:      [0.93, 0.91, 0.88],
+    STICKER_OPACITY:    0.94,
+    // ── Perf ──────────────────────────────────────────────────
+    FIXED_DT:           1 / 60,
   };
 
   /* ═══════════════════════════════════════════════════════════
@@ -523,182 +482,99 @@ import * as THREE from 'three';
      STICKER CONTROLLER  – pointer + peel physics + notch system
   ═══════════════════════════════════════════════════════════ */
 
+  /* ═══════════════════════════════════════════════════════════
+     STICKER CONTROLLER  – peel physics + state machine
+     States: IDLE → HOVER → PEELING → SNAP_BACK | SNAP_OFF
+  ═══════════════════════════════════════════════════════════ */
+
   function StickerController(params) {
-    this.params = params;
+    this.params        = params;
+    this.state         = 'IDLE';
+    this.peelProgress  = 0;
+    this.peelVelocity  = 0;
+    this.peelTarget    = 0;
+    this.grabUV        = new THREE.Vector2();
+    this.grabNormal    = new THREE.Vector2(1, 0);
+    this.peelDir       = new THREE.Vector2(1, 0);
+    this.hoverZone     = null;
 
-    // State machine
-    /** @type {'IDLE'|'GRABBED'|'TEARING'} */
-    this.state = 'IDLE';
+    // Callbacks
+    this.onSnapOff     = null;   // fn(peelFrontUV: {x,y}, grabNormal: Vector2)
+    this.onHoverChange = null;   // fn(zone | null)
 
-    // Peel spring state
-    this.peelProgress = 0;   // 0–1 current lift amount
-    this.peelVelocity = 0;
-    this.peelTarget   = 0;   // desired lift (set by pointer drag)
-
-    // Peel geometry in UV space
-    this.grabUV  = new THREE.Vector2();
-    this.peelDir = new THREE.Vector2(1, 0); // direction of pull
-
-    // Pointer tracking
-    this.pointerUV = new THREE.Vector2();
-
-    // Stick-slip
-    this.isStuck   = false;
-    this.stuckTime = 0;
-
-    this.activeNotch  = null; // { x, y } in UV space
-
-    // Pending mask operations flushed each frame
-    this._pendingTears    = []; // {u,v,radius}
-    this._pendingResidue  = []; // {u,v,radius,intensity,seed}
-
-    // Pop callback (hook for audio / visual flash)
-    this.onPop = null;
-
-    // Fixed-timestep accumulator
     this._accum = 0;
   }
 
   StickerController.prototype._uvFromPointer = function (e) {
     return {
       x: e.clientX / window.innerWidth,
-      y: 1 - e.clientY / window.innerHeight, // flip: browser y=0 is top, UV y=0 is bottom
+      y: 1 - e.clientY / window.innerHeight,
     };
   };
 
-  StickerController.prototype._isNearEdge = function (u, v) {
-    const mx = this.params.EDGE_MARGIN_PX / window.innerWidth;
-    const my = this.params.EDGE_MARGIN_PX / window.innerHeight;
-    return u < mx || u > 1 - mx || v < my || v > 1 - my;
+  StickerController.prototype.setHover = function (zone) {
+    if (this.state !== 'IDLE' && this.state !== 'HOVER') return;
+    const next = zone ? 'HOVER' : 'IDLE';
+    if (next !== this.state) {
+      this.state = next;
+      if (this.onHoverChange) this.onHoverChange(zone);
+    }
+    this.hoverZone = zone;
+    if (zone) {
+      this.grabUV.set(zone.point.x, zone.point.y);
+      this.grabNormal.set(zone.normal.x, zone.normal.y);
+      this.peelDir.set(zone.normal.x, zone.normal.y);
+    }
   };
 
   StickerController.prototype.onPointerDown = function (e) {
-    const uv = this._uvFromPointer(e);
-
-    if (this.state === 'IDLE') {
-      if (!this._isNearEdge(uv.x, uv.y)) return;
-      this.activeNotch = { x: uv.x, y: uv.y };
-      this.grabUV.set(uv.x, uv.y);
-      this.state = 'GRABBED';
-      this.peelTarget   = 0;
-      this.peelProgress = 0;
-      this.peelVelocity = 0;
-      this.isStuck = false;
-      const dl = uv.x, dr = 1 - uv.x, dt = uv.y, db = 1 - uv.y;
-      const minD = Math.min(dl, dr, dt, db);
-      if      (minD === dl) this.peelDir.set( 1,  0);
-      else if (minD === dr) this.peelDir.set(-1,  0);
-      else if (minD === dt) this.peelDir.set( 0,  1);
-      else                  this.peelDir.set( 0, -1);
-    } else if (this.state === 'GRABBED' || this.state === 'TEARING') {
-      this.pointerUV.set(uv.x, uv.y);
-    }
+    if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
+    if (this.state !== 'HOVER') return;
+    this.state         = 'PEELING';
+    this.peelProgress  = 0;
+    this.peelVelocity  = 0;
+    this.peelTarget    = 0;
   };
 
   StickerController.prototype.onPointerMove = function (e) {
+    if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
     const uv = this._uvFromPointer(e);
-    this.pointerUV.set(uv.x, uv.y);
 
-    if (this.state !== 'GRABBED' && this.state !== 'TEARING') return;
-
-    const dx = uv.x - this.grabUV.x;
-    const dy = uv.y - this.grabUV.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    this.peelTarget = Math.min(1.0, dist * 2.0);
-
-    if (dist > 0.03) {
-      this.peelDir.set(dx / dist, dy / dist);
-    }
-    if (this.peelTarget > 0.20 && this.state === 'GRABBED') {
-      this.state = 'TEARING';
+    if (this.state === 'PEELING') {
+      const dx = uv.x - this.grabUV.x;
+      const dy = uv.y - this.grabUV.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      this.peelTarget = Math.min(1, dist * 2.2);
+      if (dist > 0.03) {
+        this.peelDir.set(dx / dist, dy / dist);
+      }
     }
   };
 
-  StickerController.prototype.onPointerUp = function () {
-    if (this.state === 'GRABBED' || this.state === 'TEARING') {
-      this.peelTarget = 0;
-      const ctrl = this;
-      setTimeout(function () {
-        if (ctrl.state === 'GRABBED' || ctrl.state === 'TEARING') {
-          ctrl.state = 'IDLE';
-          ctrl.peelProgress = 0;
-          ctrl.peelVelocity = 0;
-          ctrl.isStuck = false;
+  StickerController.prototype.onPointerUp = function (e) {
+    if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
+    if (this.state !== 'PEELING') return;
+
+    if (this.peelProgress >= this.params.SNAP_THRESHOLD) {
+      this.state = 'SNAP_OFF';
+      if (this.onSnapOff) {
+        const front = this.peelFrontUV();
+        this.onSnapOff(front, this.grabNormal);
+      }
+      // Reset after brief animation delay
+      setTimeout(() => {
+        if (this.state === 'SNAP_OFF') {
+          this.state        = 'IDLE';
+          this.peelProgress = 0;
+          this.peelVelocity = 0;
         }
-      }, 600);
+      }, 350);
     } else {
-      this.state = 'IDLE';
+      this.state      = 'SNAP_BACK';
+      this.peelTarget = 0;
     }
   };
 
-  StickerController.prototype._step = function (dt) {
-    if (this.state !== 'GRABBED' && this.state !== 'TEARING') return;
-
-    const error = this.peelTarget - this.peelProgress;
-    const K     = this.params.SPRING_K;
-    const damp  = this.params.SPRING_DAMP;
-
-    if (!this.isStuck) {
-      const accel = error * K;
-      this.peelVelocity  = this.peelVelocity * damp + accel * dt;
-      this.peelProgress += this.peelVelocity;
-      this.peelProgress  = Math.max(0, Math.min(1, this.peelProgress));
-
-      // Stick if very slow and nearly at target
-      if (Math.abs(this.peelVelocity) < this.params.STICK_FORCE_THRESH * 0.4 &&
-          Math.abs(error) < 0.015) {
-        this.isStuck   = true;
-        this.stuckTime = 0;
-      }
-    } else {
-      this.stuckTime += dt;
-      const breakForce = Math.abs(error) * K + this.stuckTime * 0.8;
-
-      if (breakForce > this.params.STICK_FORCE_THRESH * 2.5) {
-        this.isStuck = false;
-        this.peelVelocity += Math.sign(error) * this.params.SLIP_IMPULSE;
-
-        // Residue burst on pop
-        const fu = this.grabUV.x + this.peelDir.x * this.peelProgress;
-        const fv = this.grabUV.y + this.peelDir.y * this.peelProgress;
-        this._pendingResidue.push({
-          u: fu + (Math.random() - 0.5) * 0.03,
-          v: fv + (Math.random() - 0.5) * 0.03,
-          radius: 0.045,
-          intensity: this.params.RESIDUE_POP_BOOST,
-          seed: Math.random() * 200,
-        });
-
-        if (this.onPop) this.onPop();
-      }
-    }
-
-    // Ongoing residue deposition while peeling
-    if (this.state === 'TEARING' && Math.random() < 0.12) {
-      const fu = this.grabUV.x + this.peelDir.x * this.peelProgress * 0.85;
-      const fv = this.grabUV.y + this.peelDir.y * this.peelProgress * 0.85;
-      this._pendingResidue.push({
-        u: fu,
-        v: fv,
-        radius: 0.025 + Math.random() * 0.025,
-        intensity: this.params.RESIDUE_DEPOSITION_RATE,
-        seed: Math.random() * 200,
-      });
-    }
-  };
-
-  /** Advance physics by wall-clock delta (fixed sub-steps). */
-  StickerController.prototype.update = function (dt) {
-    this._accum += dt;
-    const FDT = this.params.FIXED_DT;
-    while (this._accum >= FDT) {
-      this._step(FDT);
-      this._accum -= FDT;
-    }
-  };
-
-  /** Current peel-front UV position. */
   StickerController.prototype.peelFrontUV = function () {
     return {
       x: this.grabUV.x + this.peelDir.x * this.peelProgress,
@@ -706,16 +582,28 @@ import * as THREE from 'three';
     };
   };
 
-  /** Consume and return pending mask operations. */
-  StickerController.prototype.flush = function () {
-    const t = this._pendingTears.slice(),
-          r = this._pendingResidue.slice();
-    this._pendingTears    = [];
-    this._pendingResidue  = [];
-    return { tears: t, residue: r };
+  StickerController.prototype._step = function (dt) {
+    const P = this.params;
+    if (this.state !== 'PEELING' && this.state !== 'SNAP_BACK') return;
+    const error = this.peelTarget - this.peelProgress;
+    this.peelVelocity = this.peelVelocity * P.SPRING_DAMP + error * P.SPRING_K * dt;
+    this.peelProgress = Math.max(0, Math.min(1, this.peelProgress + this.peelVelocity));
+    if (this.state === 'SNAP_BACK'
+      && Math.abs(this.peelProgress) < 0.005
+      && Math.abs(this.peelVelocity) < 0.002) {
+      this.state        = 'IDLE';
+      this.peelProgress = 0;
+      this.peelVelocity = 0;
+    }
   };
 
-
+  StickerController.prototype.update = function (dt) {
+    this._accum += dt;
+    while (this._accum >= this.params.FIXED_DT) {
+      this._step(this.params.FIXED_DT);
+      this._accum -= this.params.FIXED_DT;
+    }
+  };
   /* ═══════════════════════════════════════════════════════════
      CRACK GENERATOR
      Produces a jagged polyline from a UV origin to the nearest
