@@ -80,11 +80,7 @@ import * as THREE from 'three';
     /** Constraint solver iterations per physics step. */
     CONSTRAINT_ITERS: 7,
 
-    // ── Notching ───────────────────────────────────────────────
-    /** Clicks required near an edge before a grab handle appears. */
-    NOTCH_THRESHOLD: 3,
-    /** UV-space radius that defines the "same notch cell". */
-    NOTCH_RADIUS_UV: 0.07,
+    // ── Edge grab ──────────────────────────────────────────────
     /** CSS pixel distance from viewport edge to count as "edge". */
     EDGE_MARGIN_PX: 90,
 
@@ -562,13 +558,8 @@ import * as THREE from 'three';
   StickerController.prototype._uvFromPointer = function (e) {
     return {
       x: e.clientX / window.innerWidth,
-      y: e.clientY / window.innerHeight,
+      y: 1 - e.clientY / window.innerHeight, // flip: browser y=0 is top, UV y=0 is bottom
     };
-  };
-
-  StickerController.prototype._notchKey = function (u, v) {
-    const r = Math.round(1 / this.params.NOTCH_RADIUS_UV);
-    return Math.round(u * r) + ',' + Math.round(v * r);
   };
 
   StickerController.prototype._isNearEdge = function (u, v) {
@@ -582,18 +573,6 @@ import * as THREE from 'three';
 
     if (this.state === 'IDLE') {
       if (!this._isNearEdge(uv.x, uv.y)) return;
-
-      const key = this._notchKey(uv.x, uv.y);
-      const dmg = (this.notchDamage.get(key) || 0) + 1;
-      this.notchDamage.set(key, dmg);
-
-      if (dmg < this.params.NOTCH_THRESHOLD) {
-        this.state = 'NOTCHING'; // brief transient visual cue
-        setTimeout(() => { if (this.state === 'NOTCHING') this.state = 'IDLE'; }, 200);
-        return;
-      }
-
-      // Notch threshold reached → grab
       this.activeNotch = { x: uv.x, y: uv.y };
       this.grabUV.set(uv.x, uv.y);
       this.state = 'GRABBED';
@@ -601,15 +580,12 @@ import * as THREE from 'three';
       this.peelProgress = 0;
       this.peelVelocity = 0;
       this.isStuck = false;
-
-      // Determine initial peel direction (away from nearest edge)
       const dl = uv.x, dr = 1 - uv.x, dt = uv.y, db = 1 - uv.y;
       const minD = Math.min(dl, dr, dt, db);
       if      (minD === dl) this.peelDir.set( 1,  0);
       else if (minD === dr) this.peelDir.set(-1,  0);
       else if (minD === dt) this.peelDir.set( 0,  1);
       else                  this.peelDir.set( 0, -1);
-
     } else if (this.state === 'GRABBED' || this.state === 'TEARING') {
       this.pointerUV.set(uv.x, uv.y);
     }
@@ -966,12 +942,15 @@ import * as THREE from 'three';
   };
 
   StickerLayer.prototype._onPointerDown = function (e) {
+    if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
     if (this._enabled) this._controller.onPointerDown(e);
   };
   StickerLayer.prototype._onPointerMove = function (e) {
+    if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
     if (this._enabled) this._controller.onPointerMove(e);
   };
   StickerLayer.prototype._onPointerUp = function (e) {
+    if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
     if (this._enabled) this._controller.onPointerUp(e);
   };
 
@@ -1046,10 +1025,10 @@ import * as THREE from 'three';
     u.u_peelDir.value.set(ctrl.peelDir.x, ctrl.peelDir.y);
 
     if (ctrl.state === 'GRABBED' || ctrl.state === 'TEARING') {
-      // Map UV [0,1] → clip-space [-1,1] (flip Y)
+      // Map UV [0,1] → clip-space [-1,1] (no Y flip needed; UV y=0 is already bottom)
       u.u_peelCenter.value.set(
         ctrl.grabUV.x * 2 - 1,
-        -(ctrl.grabUV.y * 2 - 1)
+        ctrl.grabUV.y * 2 - 1
       );
     } else {
       u.u_peelCenter.value.set(-2, -2); // inactive (off-screen)
