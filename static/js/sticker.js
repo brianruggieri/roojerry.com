@@ -11,13 +11,11 @@
  *   MaskPainter       – maintains tearMaskRT and residueMaskRT WebGL render
  *                       targets; paints circular stamps into them without
  *                       CPU↔GPU readbacks.
- *   UnionFind         – fast path-compressed union-find used by TearSystem.
- *   TearSystem        – NxM constraint lattice (Verlet integration); breaks
- *                       spring constraints when strain exceeds local toughness;
- *                       outputs detached-node UVs for mask painting.
+ *   CrackGenerator    – builds procedural crack paths and branch trees in UV space.
+ *   GrabZoneTracker   – tracks viewport-edge and crack-boundary grab zones.
  *   StickerController – pointer event state machine (IDLE →
- *                       GRABBED → TEARING); spring-damper peel physics with
- *                       stick-slip stick.
+ *                       HOVER → PEELING → SNAP_BACK | SNAP_OFF); spring-damper
+ *                       peel physics with snap-off detection.
  *   StickerLayer      – facade: creates Three.js renderer/scene/camera/mesh
  *                       with custom ShaderMaterial; orchestrates all subsystems
  *                       inside a single rAF loop.
@@ -144,255 +142,6 @@ import * as THREE from 'three';
     this.tearMaskRT.dispose();
     this._fillMat.dispose();
   };
-
-  /* ═══════════════════════════════════════════════════════════
-     UNION-FIND  (path-compressed, rank-union)
-  ═══════════════════════════════════════════════════════════ */
-
-  function UnionFind(n) {
-    this.parent = new Int32Array(n);
-    this.rank   = new Uint8Array(n);
-    for (let i = 0; i < n; i++) this.parent[i] = i;
-  }
-
-  UnionFind.prototype.find = function (x) {
-    while (this.parent[x] !== x) {
-      this.parent[x] = this.parent[this.parent[x]]; // path halving
-      x = this.parent[x];
-    }
-    return x;
-  };
-
-  UnionFind.prototype.union = function (a, b) {
-    a = this.find(a); b = this.find(b);
-    if (a === b) return;
-    if (this.rank[a] < this.rank[b]) { const t = a; a = b; b = t; }
-    this.parent[b] = a;
-    if (this.rank[a] === this.rank[b]) this.rank[a]++;
-  };
-
-  /* ═══════════════════════════════════════════════════════════
-     TEAR SYSTEM  – constraint lattice
-  ═══════════════════════════════════════════════════════════ */
-
-  /**
-   * @param {number} lw  Lattice width (nodes)
-   * @param {number} lh  Lattice height (nodes)
-   * @param {object} params  STICKER_PARAMS
-   */
-  function TearSystem(lw, lh, params) {
-    this.lw = lw;
-    this.lh = lh;
-    this.params = params;
-    this.nodeCount = lw * lh;
-
-    // Node positions (UV space 0–1)
-    this.px   = new Float32Array(this.nodeCount);
-    this.py   = new Float32Array(this.nodeCount);
-    // Previous positions (Verlet)
-    this.ppx  = new Float32Array(this.nodeCount);
-    this.ppy  = new Float32Array(this.nodeCount);
-    // 1 = pinned (adhered to surface), 0 = free
-    this.pinned = new Uint8Array(this.nodeCount);
-
-    // Per-node toughness (derived from procedural noise)
-    this.toughness = new Float32Array(this.nodeCount);
-
-    // Constraint arrays
-    const maxC = lw * lh * 4;
-    this.conA      = new Int32Array(maxC);
-    this.conB      = new Int32Array(maxC);
-    this.conRest   = new Float32Array(maxC);
-    this.conBroken = new Uint8Array(maxC);
-    this.conCount  = 0;
-
-    this.uf = null;
-
-    // Grab state
-    this.grabNode    = -1;
-    this.grabTargetX = 0;
-    this.grabTargetY = 0;
-
-    this._init();
-  }
-
-  /** Simple deterministic 2-D hash → [0,1] */
-  TearSystem.prototype._noise = function (x, y) {
-    const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-    return s - Math.floor(s);
-  };
-
-  TearSystem.prototype._addConstraint = function (a, b, rest) {
-    const c = this.conCount++;
-    this.conA[c]    = a;
-    this.conB[c]    = b;
-    this.conRest[c] = rest;
-    this.conBroken[c] = 0;
-  };
-
-  TearSystem.prototype._init = function () {
-    const lw = this.lw, lh = this.lh;
-    const restH = 1 / (lw - 1);
-    const restV = 1 / (lh - 1);
-    const restD = Math.hypot(restH, restV);
-
-    for (let j = 0; j < lh; j++) {
-      for (let i = 0; i < lw; i++) {
-        const idx = j * lw + i;
-        this.px[idx]  = i / (lw - 1);
-        this.py[idx]  = j / (lh - 1);
-        this.ppx[idx] = this.px[idx];
-        this.ppy[idx] = this.py[idx];
-        this.pinned[idx] = 1;
-
-        // Procedural toughness: base + noise + anisotropic fibre variation
-        const n1 = this._noise(i * 0.31 + 3.7, j * 0.29 + 8.1);
-        const n2 = this._noise(i * 0.19 + 11.3, j * 0.37 + 2.9);
-        // Horizontal fibres slightly stronger (toughness anisotropy)
-        const fibre = Math.abs(Math.sin(j * 0.22)) * 0.15;
-        this.toughness[idx] =
-          this.params.TEAR_TOUGHNESS_BASE +
-          (n1 - 0.5) * this.params.TEAR_JAGGEDNESS +
-          (n2 - 0.5) * this.params.TEAR_JAGGEDNESS * 0.4 +
-          fibre;
-
-        // Horizontal constraint
-        if (i + 1 < lw) this._addConstraint(idx, idx + 1, restH);
-        // Vertical constraint
-        if (j + 1 < lh) this._addConstraint(idx, idx + lw, restV);
-        // Diagonal (shear)
-        if (i + 1 < lw && j + 1 < lh) this._addConstraint(idx, idx + lw + 1, restD);
-      }
-    }
-
-    this._rebuildUF();
-  };
-
-  TearSystem.prototype._rebuildUF = function () {
-    this.uf = new UnionFind(this.nodeCount);
-    for (let c = 0; c < this.conCount; c++) {
-      if (!this.conBroken[c]) {
-        this.uf.union(this.conA[c], this.conB[c]);
-      }
-    }
-  };
-
-  /** Return the set of component-root IDs that contain at least one pinned node. */
-  TearSystem.prototype._pinnedRoots = function () {
-    const roots = new Set();
-    for (let i = 0; i < this.nodeCount; i++) {
-      if (this.pinned[i]) roots.add(this.uf.find(i));
-    }
-    return roots;
-  };
-
-  /** Unpin nodes within a UV-space circle (simulate peel front lifting sticker). */
-  TearSystem.prototype.releaseRegion = function (uvX, uvY, radius) {
-    const ic = Math.round(uvX * (this.lw - 1));
-    const jc = Math.round(uvY * (this.lh - 1));
-    const ir = Math.ceil(radius * (this.lw - 1)) + 1;
-    const jr = Math.ceil(radius * (this.lh - 1)) + 1;
-
-    for (let dj = -jr; dj <= jr; dj++) {
-      for (let di = -ir; di <= ir; di++) {
-        const ni = ic + di, nj = jc + dj;
-        if (ni < 0 || ni >= this.lw || nj < 0 || nj >= this.lh) continue;
-        const fx = di / (ir || 1), fy = dj / (jr || 1);
-        if (fx * fx + fy * fy <= 1.0) {
-          this.pinned[nj * this.lw + ni] = 0;
-        }
-      }
-    }
-  };
-
-  /** Nearest lattice node to a UV coordinate. */
-  TearSystem.prototype.nodeAt = function (uvX, uvY) {
-    const i = Math.max(0, Math.min(this.lw - 1, Math.round(uvX * (this.lw - 1))));
-    const j = Math.max(0, Math.min(this.lh - 1, Math.round(uvY * (this.lh - 1))));
-    return j * this.lw + i;
-  };
-
-  /** Single physics step (called at fixed 60 Hz). */
-  TearSystem.prototype.update = function (dt) {
-    if (this.grabNode < 0) return;
-
-    // --- Verlet integration (free nodes only) ---
-    for (let i = 0; i < this.nodeCount; i++) {
-      if (this.pinned[i]) continue;
-      const vx = (this.px[i] - this.ppx[i]) * 0.97; // damping
-      const vy = (this.py[i] - this.ppy[i]) * 0.97;
-      this.ppx[i] = this.px[i];
-      this.ppy[i] = this.py[i];
-      this.px[i] += vx;
-      this.py[i] += vy;
-    }
-
-    // --- Apply grab force ---
-    const gn = this.grabNode;
-    if (gn >= 0 && !this.pinned[gn]) {
-      this.px[gn] += (this.grabTargetX - this.px[gn]) * 0.35;
-      this.py[gn] += (this.grabTargetY - this.py[gn]) * 0.35;
-    }
-
-    // --- Constraint satisfaction + breakage ---
-    for (let iter = 0; iter < this.params.CONSTRAINT_ITERS; iter++) {
-      for (let c = 0; c < this.conCount; c++) {
-        if (this.conBroken[c]) continue;
-
-        const a = this.conA[c], b = this.conB[c];
-        const dx = this.px[b] - this.px[a];
-        const dy = this.py[b] - this.py[a];
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1e-6;
-        const rest = this.conRest[c];
-        const strain = dist / rest;
-        const localTough = (this.toughness[a] + this.toughness[b]) * 0.5;
-
-        if (strain > localTough) {
-          this.conBroken[c] = 1;
-          continue;
-        }
-
-        // Position correction (split equally unless pinned)
-        const corr = (dist - rest) / dist * 0.5;
-        const cx = dx * corr, cy = dy * corr;
-        if (!this.pinned[a]) { this.px[a] += cx; this.py[a] += cy; }
-        if (!this.pinned[b]) { this.px[b] -= cx; this.py[b] -= cy; }
-      }
-    }
-  };
-
-  /**
-   * Return UV positions of nodes detached from the anchored sticker body.
-   * Called once per few frames to drive mask painting.
-   */
-  TearSystem.prototype.getDetachedUVs = function () {
-    this._rebuildUF();
-    const pinnedRoots = this._pinnedRoots();
-    const uvs = [];
-    for (let i = 0; i < this.nodeCount; i++) {
-      if (!pinnedRoots.has(this.uf.find(i))) {
-        uvs.push(this.px[i], this.py[i]); // flat pairs
-      }
-    }
-    return uvs;
-  };
-
-  TearSystem.prototype.reset = function () {
-    for (let i = 0; i < this.nodeCount; i++) {
-      this.px[i]  = (i % this.lw) / (this.lw - 1);
-      this.py[i]  = Math.floor(i / this.lw) / (this.lh - 1);
-      this.ppx[i] = this.px[i];
-      this.ppy[i] = this.py[i];
-      this.pinned[i] = 1;
-    }
-    for (let c = 0; c < this.conCount; c++) this.conBroken[c] = 0;
-    this.grabNode = -1;
-    this._rebuildUF();
-  };
-
-  /* ═══════════════════════════════════════════════════════════
-     STICKER CONTROLLER  – pointer + peel physics + notch system
-  ═══════════════════════════════════════════════════════════ */
 
   /* ═══════════════════════════════════════════════════════════
      STICKER CONTROLLER  – peel physics + state machine
@@ -830,14 +579,18 @@ import * as THREE from 'three';
     this._camera     = null;
     this._mesh       = null;
     this._material   = null;
-    this._maskPainter = null;
-    this._tearSystem  = null;
-    this._controller  = null;
+    this._maskPainter    = null;
+    this._crackGen       = null;
+    this._grabTracker    = null;
+    this._controller     = null;
+    this._pulseEvents    = [];
+    this._tornFraction   = 0;
+    this._crackAnimState = null;
+    this._hoverLiftUV    = null;
 
     this._running      = false;
     this._enabled      = true;
     this._lastTime     = 0;
-    this._tearTimer    = 0;  // throttle lattice→mask updates
   }
 
   StickerLayer.prototype.init = function () {
@@ -849,8 +602,6 @@ import * as THREE from 'three';
                      window.innerWidth < 768;
 
     const maskSize = isMobile ? P.MOBILE_MASK_SIZE  : P.MASK_SIZE;
-    const lw = Math.max(8, isMobile ? Math.round(P.LATTICE_W * P.MOBILE_LATTICE_SCALE) : P.LATTICE_W);
-    const lh = Math.max(8, isMobile ? Math.round(P.LATTICE_H * P.MOBILE_LATTICE_SCALE) : P.LATTICE_H);
 
     // --- Canvas ---
     this._canvas = document.createElement('canvas');
@@ -876,10 +627,27 @@ import * as THREE from 'three';
     this._camera.position.z = 1;
 
     // --- Subsystems ---
-    this._maskPainter = new MaskPainter(this._renderer, maskSize);
-    this._tearSystem  = new TearSystem(lw, lh, P);
-    this._controller  = new StickerController(P);
-    this._pulseEvents = [];
+    this._maskPainter   = new MaskPainter(this._renderer, maskSize);
+    this._crackGen      = new CrackGenerator(P);
+    this._grabTracker   = new GrabZoneTracker(P.EDGE_MARGIN_PX, P.GRAB_SNAP_PX);
+    this._controller    = new StickerController(P);
+    this._pulseEvents   = [];
+    this._tornFraction  = 0;
+    this._crackAnimState = null;
+    this._hoverLiftUV   = null;
+
+    // Wire snap-off callback
+    this._controller.onSnapOff = (frontUV, grabNormal) => {
+      this._doSnapOff(frontUV, grabNormal);
+    };
+
+    // Wire hover change (for cursor style)
+    this._controller.onHoverChange = (zone) => {
+      document.body.style.cursor = zone ? 'grab' : '';
+    };
+
+    // Initialise mask to white (fully intact)
+    this._maskPainter.reset();
 
     // --- Mesh ---
     this._buildMesh();
@@ -936,7 +704,13 @@ import * as THREE from 'three';
   };
   StickerLayer.prototype._onPointerMove = function (e) {
     if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
-    if (this._enabled) this._controller.onPointerMove(e);
+    if (!this._enabled) return;
+    this._controller.onPointerMove(e);
+    const uv = {
+      x: e.clientX / window.innerWidth,
+      y: 1 - e.clientY / window.innerHeight,
+    };
+    this._updateHover(uv);
   };
   StickerLayer.prototype._onPointerUp = function (e) {
     if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
@@ -952,31 +726,72 @@ import * as THREE from 'three';
     // Body will be implemented in a later task.
   };
 
-  StickerLayer.prototype._updateTearSystem = function (dt) {
-    const ctrl = this._controller;
-    if (ctrl.state !== 'PEELING') return;
+  StickerLayer.prototype._updateHover = function (pointerUV) {
+    if (!pointerUV) return;
+    const zone = this._grabTracker.nearest(
+      pointerUV,
+      window.innerWidth,
+      window.innerHeight
+    );
+    this._controller.setHover(zone ? { point: zone.point, normal: zone.normal } : null);
+  };
 
-    const f = ctrl.peelFrontUV();
-    this._tearSystem.grabNode    = this._tearSystem.nodeAt(ctrl.grabUV.x, ctrl.grabUV.y);
-    this._tearSystem.grabTargetX = f.x;
-    this._tearSystem.grabTargetY = f.y;
+  StickerLayer.prototype._doSnapOff = function (frontUV, grabNormal) {
+    const primary  = this._crackGen.buildPath(frontUV);
+    const branches = this._crackGen.buildBranches(primary);
 
-    if (ctrl.peelProgress > 0.04) {
-      this._tearSystem.releaseRegion(f.x, f.y, 0.09);
-    }
+    // Register new grab zone from the primary crack boundary
+    this._grabTracker.addCrackBoundary(primary, { x: grabNormal.x, y: grabNormal.y });
 
-    this._tearSystem.update(dt);
-
-    // Propagate detached lattice nodes to tear mask (throttled to ~10 Hz)
-    this._tearTimer += dt;
-    if (this._tearTimer > 0.10) {
-      this._tearTimer = 0;
-      const uvFlat = this._tearSystem.getDetachedUVs();
-      for (let i = 0; i < uvFlat.length; i += 2) {
-        // this._maskPainter.paintTear(uvFlat[i], uvFlat[i + 1], 0.013); // replaced by fillPolygon
+    // Emit pulse events at secondary branch termini near viewport edges
+    for (const branch of branches) {
+      const tip = branch[branch.length - 1];
+      const nearEdge = tip.x < 0.08 || tip.x > 0.92 || tip.y < 0.08 || tip.y > 0.92;
+      if (nearEdge && this._pulseEvents.length < 4) {
+        this._pulseEvents.push({ uvX: tip.x, uvY: tip.y, spawnTime: performance.now() * 0.001 });
       }
     }
+
+    // Build closed tear polygon: crack path + viewport edges to close it
+    const polygon = primary.slice();
+    const last  = primary[primary.length - 1];
+    const first = primary[0];
+    const corners = [
+      { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }
+    ];
+    const nearestCornerIdx = (pt) => {
+      let best = 0, bestD = Infinity;
+      corners.forEach((c, i) => {
+        const d = Math.hypot(c.x - pt.x, c.y - pt.y);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      return best;
+    };
+    const lastCorner  = nearestCornerIdx(last);
+    const firstCorner = nearestCornerIdx(first);
+    let ci = lastCorner, steps = 0;
+    while (ci !== firstCorner && steps < 4) {
+      polygon.push(corners[ci]);
+      ci = (ci + 1) % 4;
+      steps++;
+    }
+    polygon.push(corners[firstCorner]);
+
+    // Paint polygon into mask
+    this._maskPainter.fillPolygon(polygon);
+
+    // Start crack animation
+    this._crackAnimState = { primary, branches, progress: 0 };
+
+    // Estimate torn fraction
+    const xs = polygon.map(p => p.x);
+    const ys = polygon.map(p => p.y);
+    const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+    this._tornFraction = Math.min(1, this._tornFraction + area * 0.5);
+    if (this._tornFraction >= 0.98 && this.onCleared) this.onCleared();
   };
+
+
 
   StickerLayer.prototype._updateShaderUniforms = function () {
     const ctrl = this._controller;
@@ -1024,8 +839,18 @@ import * as THREE from 'three';
 
       if (this._enabled && dt > 0) {
         this._controller.update(dt);
-        this._updateTearSystem(dt);
-        this._updateMasks();
+
+        // Update crack animation progress
+        if (this._crackAnimState) {
+          this._crackAnimState.progress = Math.min(
+            1,
+            this._crackAnimState.progress + dt * this._params.CRACK_SPEED
+          );
+          if (this._crackAnimState.progress >= 1) {
+            this._crackAnimState = null;
+          }
+        }
+
         this._updateShaderUniforms();
       }
 
@@ -1054,11 +879,14 @@ import * as THREE from 'three';
 
   /** Restore the sticker to fully intact (clears all tear/residue masks). */
   StickerLayer.prototype.reset = function () {
-    this._tearSystem.reset();
     this._maskPainter.reset();
+    this._grabTracker.reset();
     this._controller.state        = 'IDLE';
     this._controller.peelProgress = 0;
     this._controller.peelVelocity = 0;
+    this._tornFraction   = 0;
+    this._crackAnimState = null;
+    this._pulseEvents    = [];
   };
 
   StickerLayer.prototype.dispose = function () {
