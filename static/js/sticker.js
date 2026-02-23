@@ -743,69 +743,80 @@ import * as THREE from 'three';
 \`;
 
   const STICKER_FRAG = /* glsl */`
-    uniform sampler2D u_tearMask;
-    uniform sampler2D u_residueMask;
-    uniform vec3  u_stickerColor;
-    uniform float u_opacity;
-    uniform float u_time;
+  uniform sampler2D u_tearMask;
+  uniform vec3      u_stickerColor;
+  uniform float     u_opacity;
+  uniform float     u_time;
+  uniform vec2      u_pulsePos[4];
+  uniform float     u_pulseAge[4];
 
-    varying vec2  v_uv;
-    varying float v_lift;
-    varying float v_underside;
+  varying vec2  v_uv;
+  varying float v_lift;
+  varying float v_underside;
 
-    // Fast 2-D hash
-    float hash(vec2 p) {
-      p = fract(p * vec2(127.1, 311.7));
-      p += dot(p, p + 47.3);
-      return fract(p.x * p.y);
+  float hash(vec2 p) {
+    p = fract(p * vec2(127.1, 311.7));
+    p += dot(p, p + 47.3);
+    return fract(p.x * p.y);
+  }
+
+  void main() {
+    float tearVal = texture2D(u_tearMask, v_uv).r;
+
+    // Fray: noise-driven alpha erosion near torn boundary
+    float frayNoise  = hash(v_uv * 240.0 + u_time * 0.04);
+    float fray       = step(tearVal, frayNoise * 0.09);
+    float stickerAlpha = tearVal * (1.0 - fray);
+
+    float totalAlpha = stickerAlpha * u_opacity;
+    if (totalAlpha < 0.02) discard;
+
+    // \u2500\u2500 Base colour \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    vec3 color = u_stickerColor;
+    float sheen = hash(v_uv * 6.0 + u_time * 0.008) * 0.06;
+    color += sheen * (1.0 - v_lift);
+
+    // \u2500\u2500 Edge darkening \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    float edgeDark = smoothstep(0.12, 0.0, tearVal);
+    color = mix(color, vec3(0.08, 0.05, 0.03), edgeDark * 0.75);
+
+    // \u2500\u2500 Rim highlight at peel fold \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    float rimHL = smoothstep(0.55, 0.75, v_lift) * (1.0 - smoothstep(0.75, 1.0, v_lift));
+    color += rimHL * vec3(0.35, 0.28, 0.22);
+
+    // \u2500\u2500 Underside shading \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    if (v_underside > 0.5) {
+      float adhesiveN = hash(v_uv * 50.0) * 0.4 + 0.6;
+      color = u_stickerColor * (0.38 * adhesiveN) + vec3(0.06, 0.04, 0.02);
     }
 
-    void main() {
-      float tearVal   = texture2D(u_tearMask,    v_uv).r;
-      float residueVal = texture2D(u_residueMask, v_uv).r;
+    // \u2500\u2500 Iridescent tear-boundary shimmer \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    float edgeStrength = abs(dFdx(tearVal)) + abs(dFdy(tearVal));
+    edgeStrength = clamp(edgeStrength * 12.0, 0.0, 1.0);
+    float edgePhase = v_uv.x * 8.0 + v_uv.y * 5.0;
+    vec3 irid = 0.5 + 0.5 * vec3(
+      sin(u_time * 3.0 + edgePhase),
+      sin(u_time * 3.0 + edgePhase + 2.094),
+      sin(u_time * 3.0 + edgePhase + 4.189)
+    );
+    float boundaryMask = smoothstep(0.90, 1.0, tearVal) * edgeStrength;
+    color += irid * boundaryMask * 0.35;
 
-      // --- Torn-edge fray (noise-driven alpha erosion near boundary) ---
-      float frayNoise  = hash(v_uv * 240.0 + u_time * 0.04);
-      float fray       = step(tearVal, frayNoise * 0.09);
-      float stickerAlpha = tearVal * (1.0 - fray);
-
-      // --- Residue alpha (visible where sticker is removed) ---
-      float residueAlpha = (1.0 - tearVal) * residueVal * 0.55;
-
-      float totalAlpha = stickerAlpha + residueAlpha;
-      totalAlpha *= u_opacity;
-
-      if (totalAlpha < 0.02) discard;
-
-      // --- Base sticker colour ---
-      vec3 color = u_stickerColor;
-
-      // Slight procedural plastic noise
-      float sheen = hash(v_uv * 6.0 + u_time * 0.008) * 0.06;
-      color += sheen * (1.0 - v_lift);
-
-      // Edge darkening near tears
-      float edgeDark = smoothstep(0.12, 0.0, tearVal);
-      color = mix(color, vec3(0.08, 0.05, 0.03), edgeDark * 0.75);
-
-      // Rim highlight at peel edge
-      float rimHL = smoothstep(0.55, 0.75, v_lift) * (1.0 - smoothstep(0.75, 1.0, v_lift));
-      color += rimHL * vec3(0.35, 0.28, 0.22);
-
-      // Underside shading (adhesive-side visible during curl)
-      if (v_underside > 0.5) {
-        float adhesiveN = hash(v_uv * 50.0) * 0.4 + 0.6;
-        color = u_stickerColor * (0.38 * adhesiveN) + vec3(0.06, 0.04, 0.02);
-      }
-
-      // Residue colour (warm amber tint on background)
-      vec3 residueColor = vec3(0.72, 0.65, 0.50);
-      float blendT = stickerAlpha / (totalAlpha + 0.001);
-      color = mix(residueColor, color, blendT);
-
-      gl_FragColor = vec4(color, totalAlpha);
+    // \u2500\u2500 Expanding pulse rings at new grab points \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    vec3 pulseAccum = vec3(0.0);
+    for (int i = 0; i < 4; i++) {
+      float age = u_pulseAge[i];
+      if (age < 0.0) continue;
+      float dist = distance(v_uv, u_pulsePos[i]);
+      float ring = 1.0 - smoothstep(0.0, 0.018, abs(dist - age * 0.22));
+      float fade = 1.0 - smoothstep(0.0, 1.2, age);
+      pulseAccum += vec3(0.65, 0.88, 1.0) * ring * fade * 0.55;
     }
-  `;
+    color += pulseAccum;
+
+    gl_FragColor = vec4(color, totalAlpha);
+  }
+`;
 
   /* ═══════════════════════════════════════════════════════════
      STICKER LAYER  – façade / main object
