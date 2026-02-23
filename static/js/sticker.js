@@ -30,19 +30,13 @@
  *   window.STICKER_LAYER.disable()  – hide (particles still run behind it)
  *   window.STICKER_LAYER.reset()    – restore intact sticker
  *
- * Requires: THREE global loaded before this script (Three.js r160).
+ * Requires: Three.js r160 (loaded via ES module import).
  */
+
+import * as THREE from 'three';
 
 (() => {
   'use strict';
-
-  /* ─────────────────────────────────────────────────────────────
-     GUARD – skip gracefully if Three.js is missing
-  ───────────────────────────────────────────────────────────── */
-  if (typeof THREE === 'undefined') {
-    console.warn('[sticker] Three.js not available – sticker layer disabled.');
-    return;
-  }
 
   /* ═══════════════════════════════════════════════════════════
      PARAMS  (developer-facing tuning knobs)
