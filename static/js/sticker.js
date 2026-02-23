@@ -8,9 +8,9 @@
  * below the DOM content (z-index hierarchy: bg-field -1 → sticker 0 → DOM 1).
  *
  * Internal classes
- *   MaskPainter       – maintains tearMaskRT and residueMaskRT WebGL render
- *                       targets; paints circular stamps into them without
- *                       CPU↔GPU readbacks.
+ *   MaskPainter       – maintains tearMaskRT WebGL render target;
+ *                       fillPolygon() renders solid polygon fills into
+ *                       tearMaskRT without CPU↔GPU readbacks.
  *   CrackGenerator    – builds procedural crack paths and branch trees in UV space.
  *   GrabZoneTracker   – tracks viewport-edge and crack-boundary grab zones.
  *   StickerController – pointer event state machine (IDLE →
@@ -189,7 +189,6 @@ import * as THREE from 'three';
   };
 
   StickerController.prototype.onPointerDown = function (e) {
-    if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
     if (this.state !== 'HOVER') return;
     this.state         = 'PEELING';
     this.peelProgress  = 0;
@@ -198,7 +197,6 @@ import * as THREE from 'three';
   };
 
   StickerController.prototype.onPointerMove = function (e) {
-    if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
     const uv = this._uvFromPointer(e);
 
     if (this.state === 'PEELING') {
@@ -213,7 +211,6 @@ import * as THREE from 'three';
   };
 
   StickerController.prototype.onPointerUp = function (e) {
-    if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
     if (this.state !== 'PEELING') return;
 
     if (this.peelProgress >= this.params.SNAP_THRESHOLD) {
@@ -390,7 +387,13 @@ import * as THREE from 'three';
   }
 
   GrabZoneTracker.prototype._initViewportEdges = function () {
-    // Sampled at 9 points along each edge for fine-grained proximity
+    // Sample points along inset lines (EDGE_MARGIN_PX inset from each edge)
+    // This makes the hover zone reachable without hugging the exact screen edge
+    const iw = (typeof window !== 'undefined') ? window.innerWidth  : 1920;
+    const ih = (typeof window !== 'undefined') ? window.innerHeight : 1080;
+    const mx = this.edgeMarginPx / iw;   // UV fraction for left/right margin
+    const my = this.edgeMarginPx / ih;   // UV fraction for top/bottom margin
+
     const pts = (ax, ay, bx, by) => {
       const path = [];
       for (let i = 0; i <= 8; i++) {
@@ -399,10 +402,10 @@ import * as THREE from 'three';
       return path;
     };
     this.zones = [
-      { path: pts(0, 0, 0, 1), normal: { x:  1, y:  0 } },  // left
-      { path: pts(1, 0, 1, 1), normal: { x: -1, y:  0 } },  // right
-      { path: pts(0, 0, 1, 0), normal: { x:  0, y:  1 } },  // top
-      { path: pts(0, 1, 1, 1), normal: { x:  0, y: -1 } },  // bottom
+      { path: pts(mx,     0, mx,     1), normal: { x:  1, y:  0 } },  // left
+      { path: pts(1 - mx, 0, 1 - mx, 1), normal: { x: -1, y:  0 } },  // right
+      { path: pts(0,     my, 1,     my), normal: { x:  0, y:  1 } },  // top
+      { path: pts(0, 1 - my, 1, 1 - my), normal: { x:  0, y: -1 } },  // bottom
     ];
   };
 
@@ -586,7 +589,6 @@ import * as THREE from 'three';
     this._pulseEvents    = [];
     this._tornFraction   = 0;
     this._crackAnimState = null;
-    this._hoverLiftUV    = null;
 
     this._running      = false;
     this._enabled      = true;
@@ -634,7 +636,6 @@ import * as THREE from 'three';
     this._pulseEvents   = [];
     this._tornFraction  = 0;
     this._crackAnimState = null;
-    this._hoverLiftUV   = null;
 
     // Wire snap-off callback
     this._controller.onSnapOff = (frontUV, grabNormal) => {
@@ -653,10 +654,15 @@ import * as THREE from 'three';
     this._buildMesh();
 
     // --- Events ---
-    window.addEventListener('pointerdown', this._onPointerDown.bind(this));
-    window.addEventListener('pointermove', this._onPointerMove.bind(this));
-    window.addEventListener('pointerup',   this._onPointerUp.bind(this));
-    window.addEventListener('resize',      this._onResize.bind(this));
+    // Store bound event listener references for cleanup in dispose()
+    this._boundPointerDown = this._onPointerDown.bind(this);
+    this._boundPointerMove = this._onPointerMove.bind(this);
+    this._boundPointerUp   = this._onPointerUp.bind(this);
+    this._boundResize      = this._onResize.bind(this);
+    window.addEventListener('pointerdown', this._boundPointerDown);
+    window.addEventListener('pointermove', this._boundPointerMove);
+    window.addEventListener('pointerup',   this._boundPointerUp);
+    window.addEventListener('resize',      this._boundResize);
 
     // --- Start loop ---
     this._running  = true;
@@ -720,10 +726,7 @@ import * as THREE from 'three';
   StickerLayer.prototype._onResize = function () {
     if (!this._renderer) return;
     this._renderer.setSize(window.innerWidth, window.innerHeight, true);
-  };
-
-  StickerLayer.prototype._updateMasks = function () {
-    // Body will be implemented in a later task.
+    this._grabTracker.reset();  // recalculate edge zone UV positions
   };
 
   StickerLayer.prototype._updateHover = function (pointerUV) {
@@ -769,10 +772,14 @@ import * as THREE from 'three';
     };
     const lastCorner  = nearestCornerIdx(last);
     const firstCorner = nearestCornerIdx(first);
+    // Walk corners from lastCorner to firstCorner via the shorter path
+    const ccwSteps = (firstCorner - lastCorner + 4) % 4;
+    const cwSteps  = (lastCorner - firstCorner + 4) % 4;
+    const dir = (cwSteps <= ccwSteps) ? -1 : 1;   // clockwise or counterclockwise
     let ci = lastCorner, steps = 0;
     while (ci !== firstCorner && steps < 4) {
       polygon.push(corners[ci]);
-      ci = (ci + 1) % 4;
+      ci = (ci + dir + 4) % 4;
       steps++;
     }
     polygon.push(corners[firstCorner]);
@@ -783,11 +790,13 @@ import * as THREE from 'three';
     // Start crack animation
     this._crackAnimState = { primary, branches, progress: 0 };
 
-    // Estimate torn fraction
-    const xs = polygon.map(p => p.x);
-    const ys = polygon.map(p => p.y);
-    const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
-    this._tornFraction = Math.min(1, this._tornFraction + area * 0.5);
+    // Shoelace formula for actual polygon area (more accurate than bounding box)
+    let area = 0;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      area += (polygon[j].x + polygon[i].x) * (polygon[j].y - polygon[i].y);
+    }
+    area = Math.abs(area) / 2;
+    this._tornFraction = Math.min(1, this._tornFraction + area);
     if (this._tornFraction >= 0.98 && this.onCleared) this.onCleared();
   };
 
@@ -889,6 +898,10 @@ import * as THREE from 'three';
 
   StickerLayer.prototype.dispose = function () {
     this._running = false;
+    window.removeEventListener('pointerdown', this._boundPointerDown);
+    window.removeEventListener('pointermove', this._boundPointerMove);
+    window.removeEventListener('pointerup',   this._boundPointerUp);
+    window.removeEventListener('resize',      this._boundResize);
     if (this._maskPainter) this._maskPainter.dispose();
     if (this._material)    this._material.dispose();
     if (this._mesh)        this._mesh.geometry.dispose();
