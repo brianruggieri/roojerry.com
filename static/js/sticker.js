@@ -696,47 +696,51 @@ import * as THREE from 'three';
   ═══════════════════════════════════════════════════════════ */
 
   const STICKER_VERT = /* glsl */`
-    uniform vec2  u_peelCenter;
-    uniform vec2  u_peelDir;
-    uniform float u_peelProgress;
-    uniform float u_curlRadius;
+  #define PI     3.14159265
+  #define HALF_PI 1.57079633
 
-    varying vec2  v_uv;
-    varying float v_lift;
-    varying float v_underside;
+  uniform vec2  u_foldPoint;      // NDC position of fold line anchor
+  uniform vec2  u_peelDir;        // unit vector: direction peel advances
+  uniform float u_peelProgress;
+  uniform float u_curlRadius;
 
-    void main() {
-      v_uv = uv;
-      v_lift      = 0.0;
-      v_underside = 0.0;
+  varying vec2  v_uv;
+  varying float v_lift;
+  varying float v_underside;
 
-      vec3 pos = position;
+  void main() {
+    v_uv        = uv;
+    v_lift      = 0.0;
+    v_underside = 0.0;
 
-      if (u_peelProgress > 0.01) {
-        // Project vertex position onto peel direction
-        vec2 fromCenter  = pos.xy - u_peelCenter;
-        float projAlong  = dot(fromCenter, u_peelDir);
-        // Peel front advances along peelDir; clip-space goes -1..1
-        float frontDist  = u_peelProgress * 1.8 - projAlong;
-        float liftZone   = u_curlRadius * 2.2;
-        float lift       = clamp(1.0 - abs(frontDist) / liftZone, 0.0, 1.0);
+    vec3 pos = position;
 
-        // Only the peeled (behind-front) side lifts
-        lift *= step(projAlong, u_peelProgress * 1.8);
-        lift *= u_peelProgress;
-        v_lift = lift;
+    if (u_peelProgress > 0.005) {
+      // Signed distance from the fold line (negative = in the flap)
+      float d = dot(pos.xy - u_foldPoint, u_peelDir);
 
-        // Curl in Z
-        float angle = lift * 2.5;
-        pos.z += sin(angle) * u_curlRadius * u_peelProgress * 0.6;
+      if (d < 0.0) {
+        // Cylindrical fold: sweep vertex around a cylinder of radius u_curlRadius
+        float theta = clamp(-d / u_curlRadius, 0.0, PI);
 
-        // Mark underside when angle past ~PI
-        v_underside = step(2.2, angle);
+        // Re-position along the cylinder arc:
+        //   along peelDir:   sin(theta) * curlRadius
+        //   in Z:            (1 - cos(theta)) * curlRadius
+        float arcAlong = sin(theta) * u_curlRadius;
+        float arcUp    = (1.0 - cos(theta)) * u_curlRadius;
+
+        // Move vertex: replace the -d penetration with the arc position
+        pos.xy += u_peelDir * (arcAlong - (-d));
+        pos.z  += arcUp;
+
+        v_lift      = sin(theta);
+        v_underside = step(HALF_PI, theta);
       }
-
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }
-  `;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  }
+\`;
 
   const STICKER_FRAG = /* glsl */`
     uniform sampler2D u_tearMask;
@@ -864,6 +868,7 @@ import * as THREE from 'three';
     this._maskPainter = new MaskPainter(this._renderer, maskSize);
     this._tearSystem  = new TearSystem(lw, lh, P);
     this._controller  = new StickerController(P);
+    this._pulseEvents = [];
 
     // --- Mesh ---
     this._buildMesh();
@@ -888,15 +893,17 @@ import * as THREE from 'three';
 
     this._material = new THREE.ShaderMaterial({
       uniforms: {
-        u_tearMask:     { value: this._maskPainter.tearMaskRT.texture },
-        // u_residueMask: removed — residueMaskRT no longer exists in MaskPainter
-        u_stickerColor: { value: new THREE.Vector3(P.STICKER_COLOR[0], P.STICKER_COLOR[1], P.STICKER_COLOR[2]) },
-        u_opacity:      { value: P.STICKER_OPACITY },
-        u_time:         { value: 0 },
-        u_peelCenter:   { value: new THREE.Vector2(-2, -2) },
+        u_foldPoint:    { value: new THREE.Vector2(-2, -2) },
         u_peelDir:      { value: new THREE.Vector2(1, 0) },
         u_peelProgress: { value: 0 },
         u_curlRadius:   { value: P.CURL_RADIUS },
+        u_tearMask:     { value: this._maskPainter.tearMaskRT.texture },
+        u_stickerColor: { value: new THREE.Vector3(...P.STICKER_COLOR) },
+        u_opacity:      { value: P.STICKER_OPACITY },
+        u_time:         { value: 0 },
+        u_pulsePos:     { value: [new THREE.Vector2(-2,-2), new THREE.Vector2(-2,-2),
+                                   new THREE.Vector2(-2,-2), new THREE.Vector2(-2,-2)] },
+        u_pulseAge:     { value: [-1, -1, -1, -1] },
       },
       vertexShader:   STICKER_VERT,
       fragmentShader: STICKER_FRAG,
@@ -964,18 +971,34 @@ import * as THREE from 'three';
     const ctrl = this._controller;
     const u    = this._material.uniforms;
 
-    u.u_time.value        = performance.now() * 0.001;
+    u.u_time.value         = performance.now() * 0.001;
     u.u_peelProgress.value = ctrl.peelProgress;
     u.u_peelDir.value.set(ctrl.peelDir.x, ctrl.peelDir.y);
 
-    if (ctrl.state === 'PEELING') {
-      // Map UV [0,1] → clip-space [-1,1] (no Y flip needed; UV y=0 is already bottom)
-      u.u_peelCenter.value.set(
-        ctrl.grabUV.x * 2 - 1,
-        ctrl.grabUV.y * 2 - 1
+    if (ctrl.state === 'PEELING' || ctrl.state === 'HOVER' || ctrl.state === 'SNAP_BACK') {
+      const front = ctrl.peelFrontUV();
+      u.u_foldPoint.value.set(
+        front.x * 2 - 1,
+        front.y * 2 - 1
       );
     } else {
-      u.u_peelCenter.value.set(-2, -2); // inactive (off-screen)
+      u.u_foldPoint.value.set(-2, -2);
+    }
+
+    // Pulse events
+    const pulses = this._pulseEvents;
+    const now    = performance.now() * 0.001;
+    for (let i = 0; i < 4; i++) {
+      if (i < pulses.length) {
+        u.u_pulsePos.value[i].set(pulses[i].uvX, pulses[i].uvY);
+        u.u_pulseAge.value[i] = now - pulses[i].spawnTime;
+        if (u.u_pulseAge.value[i] > 1.5) {
+          pulses.splice(i, 1);
+        }
+      } else {
+        u.u_pulsePos.value[i].set(-2, -2);
+        u.u_pulseAge.value[i] = -1;
+      }
     }
   };
 
