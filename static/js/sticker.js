@@ -492,7 +492,7 @@ import * as THREE from 'three';
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
-\`;
+`;
 
   const STICKER_FRAG = /* glsl */`
   uniform sampler2D u_tearMask;
