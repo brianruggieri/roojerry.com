@@ -79,6 +79,10 @@
   <script defer src="/js/achievements.js"></script>
   <script defer src="/js/coin-flip.js"></script>
   <script defer src="/js/nav-scroll-reveal.js"></script>
+  <!-- Three.js ESM (required by sticker layer) -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js" integrity="sha384-8/hf5tabFfIo0BPku31TKUvGIKpWGYaMwNtlSNqNyZzXgZCMd4lnOGWbJElML9dv" crossorigin="anonymous">
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js"}}</script>
+  <script type="module" src="/js/sticker.js"></script>
 
   {{ if .Site.Params.google.analytics.trackerID }}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ .Site.Params.google.analytics.trackerID }}"></script>
