@@ -952,7 +952,6 @@ import * as THREE from 'three';
     this._maskPainter = new MaskPainter(this._renderer, maskSize);
     this._tearSystem  = new TearSystem(lw, lh, P);
     this._controller  = new StickerController(P);
-    this._controller.onPop = this._onPop.bind(this);
 
     // --- Mesh ---
     this._buildMesh();
@@ -1000,14 +999,6 @@ import * as THREE from 'three';
     this._scene.add(this._mesh);
   };
 
-  StickerLayer.prototype._onPop = function () {
-    // Brief opacity flash on stick-slip pop
-    if (!this._material) return;
-    const u = this._material.uniforms.u_opacity;
-    const orig = u.value;
-    u.value = Math.min(1, orig + 0.07);
-    setTimeout(() => { if (this._material) u.value = orig; }, 90);
-  };
 
   StickerLayer.prototype._onPointerDown = function (e) {
     if (e.target.closest('a,button,input,select,textarea,[tabindex],[contenteditable]')) return;
@@ -1028,39 +1019,12 @@ import * as THREE from 'three';
   };
 
   StickerLayer.prototype._updateMasks = function () {
-    const ctrl = this._controller;
-    const { tears, residue } = ctrl.flush();
-
-    for (const t of tears) {
-      this._maskPainter.paintTear(t.u, t.v, t.radius);
-    }
-    for (const r of residue) {
-      this._maskPainter.paintResidue(r.u, r.v, r.radius, r.intensity, r.seed);
-    }
-
-    // When actively peeling/tearing: paint peel-front tear on throttled timer
-    if (ctrl.state === 'GRABBED' || ctrl.state === 'TEARING') {
-      this._tearTimer += 0.016;
-      if (this._tearTimer > 0.09) {
-        this._tearTimer = 0;
-        const f = ctrl.peelFrontUV();
-        const spread = 0.05 + ctrl.peelProgress * 0.12;
-        this._maskPainter.paintTear(f.x, f.y, spread);
-
-        if (ctrl.peelProgress > 0.06) {
-          this._maskPainter.paintResidue(
-            f.x + (Math.random() - 0.5) * 0.025,
-            f.y + (Math.random() - 0.5) * 0.025,
-            0.03, 0.22, Math.random() * 100
-          );
-        }
-      }
-    }
+    // Body will be implemented in a later task.
   };
 
   StickerLayer.prototype._updateTearSystem = function (dt) {
     const ctrl = this._controller;
-    if (ctrl.state !== 'GRABBED' && ctrl.state !== 'TEARING') return;
+    if (ctrl.state !== 'PEELING') return;
 
     const f = ctrl.peelFrontUV();
     this._tearSystem.grabNode    = this._tearSystem.nodeAt(ctrl.grabUV.x, ctrl.grabUV.y);
@@ -1092,7 +1056,7 @@ import * as THREE from 'three';
     u.u_peelProgress.value = ctrl.peelProgress;
     u.u_peelDir.value.set(ctrl.peelDir.x, ctrl.peelDir.y);
 
-    if (ctrl.state === 'GRABBED' || ctrl.state === 'TEARING') {
+    if (ctrl.state === 'PEELING') {
       // Map UV [0,1] → clip-space [-1,1] (no Y flip needed; UV y=0 is already bottom)
       u.u_peelCenter.value.set(
         ctrl.grabUV.x * 2 - 1,
@@ -1149,7 +1113,6 @@ import * as THREE from 'three';
     this._controller.state        = 'IDLE';
     this._controller.peelProgress = 0;
     this._controller.peelVelocity = 0;
-    this._controller.activeNotch  = null;
   };
 
   StickerLayer.prototype.dispose = function () {
