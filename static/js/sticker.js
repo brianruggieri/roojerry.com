@@ -140,6 +140,7 @@ import * as THREE from 'three';
   };
 
   MaskPainter.prototype.dispose = function () {
+    this._scene.clear();
     this.tearMaskRT.dispose();
     this._fillMat.dispose();
   };
