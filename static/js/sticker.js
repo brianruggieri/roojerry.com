@@ -79,10 +79,16 @@ import * as THREE from 'three';
     TEAR_JAGGEDNESS: 0.45,
     /** Constraint solver iterations per physics step. */
     CONSTRAINT_ITERS: 7,
+    /** Step size along crack path in normalised UV space. */
+    CRACK_STEP_SIZE:    0.015,
+    /** Crack propagation speed multiplier. */
+    CRACK_SPEED:        2.2,
 
     // ── Edge grab ──────────────────────────────────────────────
     /** CSS pixel distance from viewport edge to count as "edge". */
     EDGE_MARGIN_PX: 90,
+    /** Snap distance in CSS pixels for grab interaction. */
+    GRAB_SNAP_PX:       12,
 
     // ── Residue ────────────────────────────────────────────────
     /** Base rate of residue deposition per tear step. */
