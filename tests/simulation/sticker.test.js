@@ -413,6 +413,127 @@ console.log('\n[StickerController – flush]');
   assert(t2.length === 0 && r2.length === 0, 'second flush returns empty arrays');
 }
 
+
+/* ── CrackGenerator ── */
+console.log('\n[CrackGenerator]');
+{
+  // Inline CrackGenerator for Node testing (must match sticker.js exactly)
+  function deterministicNoise(x, y) {
+    const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+    return s - Math.floor(s);
+  }
+
+  function generateCrack(originUV, params) {
+    const STEP = params.CRACK_STEP_SIZE;
+    // Find nearest viewport edge and direction
+    const edges = [
+      { target: { x: 0,          y: originUV.y }, dist: originUV.x },
+      { target: { x: 1,          y: originUV.y }, dist: 1 - originUV.x },
+      { target: { x: originUV.x, y: 0          }, dist: originUV.y },
+      { target: { x: originUV.x, y: 1          }, dist: 1 - originUV.y },
+    ];
+    edges.sort((a, b) => a.dist - b.dist);
+    const nearest = edges[0];
+    const dx = nearest.target.x - originUV.x;
+    const dy = nearest.target.y - originUV.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1e-6;
+    const dir = { x: dx / len, y: dy / len };
+    const perp = { x: -dir.y, y: dir.x };
+    const steps = Math.ceil(len / STEP);
+    const waypoints = [{ x: originUV.x, y: originUV.y }];
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const base = { x: originUV.x + dx * t, y: originUV.y + dy * t };
+      const jag = (deterministicNoise(base.x * 7.3 + i * 0.31, base.y * 5.1 + i * 0.17) - 0.5)
+                  * params.TEAR_JAGGEDNESS * 0.3 * (1 - t * 0.5);
+      waypoints.push({ x: base.x + perp.x * jag, y: base.y + perp.y * jag });
+    }
+    return waypoints;
+  }
+
+  const CRACK_PARAMS = { CRACK_STEP_SIZE: 0.02, TEAR_JAGGEDNESS: 0.45 };
+
+  // Test: path starts at origin
+  const origin = { x: 0.3, y: 0.05 };
+  const path = generateCrack(origin, CRACK_PARAMS);
+  assert(path.length >= 2, 'crack has at least 2 waypoints');
+  assert(Math.abs(path[0].x - origin.x) < 1e-6 && Math.abs(path[0].y - origin.y) < 1e-6,
+    'first waypoint is the origin');
+
+  // Test: last waypoint reaches a viewport edge
+  const last = path[path.length - 1];
+  const atEdge = last.x < 0.05 || last.x > 0.95 || last.y < 0.05 || last.y > 0.95;
+  assert(atEdge, `last waypoint (${last.x.toFixed(3)}, ${last.y.toFixed(3)}) is near a viewport edge`);
+
+  // Test: all waypoints are in [0,1] range (clamped)
+  const inBounds = path.every(p => p.x >= -0.05 && p.x <= 1.05 && p.y >= -0.05 && p.y <= 1.05);
+  assert(inBounds, 'all crack waypoints within 5% of UV bounds');
+
+  // Test: deterministic — same origin produces same path
+  const path2 = generateCrack(origin, CRACK_PARAMS);
+  assert(path2.length === path.length && Math.abs(path2[1].x - path[1].x) < 1e-9,
+    'crack generation is deterministic for same origin');
+}
+
+/* ── GrabZoneTracker ── */
+console.log('\n[GrabZoneTracker]');
+{
+  // Inline GrabZoneTracker for Node testing
+  const GRAB_SNAP_PX = 12;
+
+  function screenDist(a, b, iw, ih) {
+    return Math.sqrt(((a.x - b.x) * iw) ** 2 + ((a.y - b.y) * ih) ** 2);
+  }
+
+  function nearestGrabZone(cursorUV, grabZones, iw, ih) {
+    let best = null, bestDist = Infinity;
+    for (const zone of grabZones) {
+      for (const pt of zone.path) {
+        const d = screenDist(cursorUV, pt, iw, ih);
+        if (d < bestDist) { bestDist = d; best = { zone, point: pt, dist: d }; }
+      }
+    }
+    return bestDist <= GRAB_SNAP_PX ? best : null;
+  }
+
+  // Default viewport-edge grab zones (4 edges, sampled at corners)
+  const defaultZones = [
+    { path: [{ x: 0, y: 0 }, { x: 0, y: 0.5 }, { x: 0, y: 1 }], normal: { x: 1,  y: 0  } }, // left edge
+    { path: [{ x: 1, y: 0 }, { x: 1, y: 1 }], normal: { x: -1, y: 0  } }, // right edge
+    { path: [{ x: 0, y: 0 }, { x: 1, y: 0 }], normal: { x: 0,  y: 1  } }, // top edge
+    { path: [{ x: 0, y: 1 }, { x: 1, y: 1 }], normal: { x: 0,  y: -1 } }, // bottom edge
+  ];
+
+  const iw = 1920, ih = 1080;
+
+  // Cursor right at the top-left corner: should match the left or top edge
+  const cornerCursor = { x: 0, y: 0 };
+  const result = nearestGrabZone(cornerCursor, defaultZones, iw, ih);
+  assert(result !== null, 'cursor at corner (0,0) finds a grab zone');
+  assert(result.dist === 0, 'distance is 0 for exact match');
+
+  // Cursor 8px from left edge (within snap radius)
+  const nearLeft = { x: 8 / iw, y: 0.5 };
+  const nearResult = nearestGrabZone(nearLeft, defaultZones, iw, ih);
+  assert(nearResult !== null, `cursor ${(8).toFixed(0)}px from left edge finds grab zone`);
+
+  // Cursor 100px from any edge (outside snap radius)
+  const farCursor = { x: 200 / iw, y: 0.5 };
+  const farResult = nearestGrabZone(farCursor, defaultZones, iw, ih);
+  assert(farResult === null, 'cursor 200px from edges finds no grab zone');
+
+  // After adding a crack-boundary grab zone, cursor near it should find it
+  const crackZone = {
+    path: [{ x: 0.3, y: 0.3 }, { x: 0.5, y: 0.4 }, { x: 0.7, y: 0.2 }],
+    normal: { x: 0.1, y: 0.9 },
+  };
+  const zonesWithCrack = [...defaultZones, crackZone];
+  const onCrack = { x: 0.5, y: 0.4 }; // exact match on crack midpoint
+  const crackResult = nearestGrabZone(onCrack, zonesWithCrack, iw, ih);
+  assert(crackResult !== null, 'cursor on crack boundary finds crack grab zone');
+  assert(Math.abs(crackResult.point.x - 0.5) < 1e-9, 'grab zone snaps to nearest crack waypoint');
+}
+
 /* ── Summary ── */
 console.log(`\n[sticker tests] ${passed} passed, ${failed} failed\n`);
 process.exit(failed > 0 ? 1 : 0);

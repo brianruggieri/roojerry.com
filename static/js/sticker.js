@@ -709,6 +709,182 @@ import * as THREE from 'three';
     return { tears: t, residue: r };
   };
 
+
+  /* ═══════════════════════════════════════════════════════════
+     CRACK GENERATOR
+     Produces a jagged polyline from a UV origin to the nearest
+     viewport edge, with optional secondary branches.
+  ═══════════════════════════════════════════════════════════ */
+
+  function CrackGenerator(params) {
+    this.params = params;
+  }
+
+  CrackGenerator.prototype._noise = function (x, y) {
+    const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+    return s - Math.floor(s);
+  };
+
+  /**
+   * Build a primary crack path from originUV toward the nearest viewport edge.
+   * Returns an array of {x, y} UV waypoints.
+   */
+  CrackGenerator.prototype.buildPath = function (originUV) {
+    const P = this.params;
+    const STEP = P.CRACK_STEP_SIZE;
+
+    // Find nearest viewport edge
+    const edges = [
+      { target: { x: 0,            y: originUV.y }, dist: originUV.x },
+      { target: { x: 1,            y: originUV.y }, dist: 1 - originUV.x },
+      { target: { x: originUV.x,   y: 0          }, dist: originUV.y },
+      { target: { x: originUV.x,   y: 1          }, dist: 1 - originUV.y },
+    ];
+    edges.sort((a, b) => a.dist - b.dist);
+    const nearest = edges[0];
+
+    const dx = nearest.target.x - originUV.x;
+    const dy = nearest.target.y - originUV.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1e-6;
+    const dir  = { x: dx / len, y: dy / len };
+    const perp = { x: -dir.y,   y: dir.x   };
+
+    const steps = Math.ceil(len / STEP);
+    const waypoints = [{ x: originUV.x, y: originUV.y }];
+
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const base = {
+        x: originUV.x + dx * t,
+        y: originUV.y + dy * t,
+      };
+      const jag = (this._noise(base.x * 7.3 + i * 0.31, base.y * 5.1 + i * 0.17) - 0.5)
+                  * P.TEAR_JAGGEDNESS * 0.3 * (1 - t * 0.5);
+      waypoints.push({
+        x: Math.max(0, Math.min(1, base.x + perp.x * jag)),
+        y: Math.max(0, Math.min(1, base.y + perp.y * jag)),
+      });
+    }
+
+    return waypoints;
+  };
+
+  /**
+   * Build 1–2 secondary branch paths.
+   * Each starts at a random waypoint on the primary path and deviates 30–60°.
+   * Returns array of waypoint arrays (may be empty).
+   */
+  CrackGenerator.prototype.buildBranches = function (primaryPath) {
+    const P = this.params;
+    const branches = [];
+    const count = this._noise(primaryPath[0].x * 3.1, primaryPath[0].y * 7.9) > 0.4 ? 2 : 1;
+
+    for (let b = 0; b < count; b++) {
+      const startIdx = Math.floor(
+        (0.25 + b * 0.2 + this._noise(b * 0.7, primaryPath[0].x) * 0.2)
+        * primaryPath.length
+      );
+      const start = primaryPath[Math.min(startIdx, primaryPath.length - 2)];
+
+      // Deviate direction 30–60° from primary direction
+      const primaryDir = {
+        x: primaryPath[primaryPath.length - 1].x - primaryPath[0].x,
+        y: primaryPath[primaryPath.length - 1].y - primaryPath[0].y,
+      };
+      const angle = (0.52 + this._noise(b * 1.3, start.x) * 0.52)  // 30–60° in radians
+                    * (b % 2 === 0 ? 1 : -1);
+      const cos = Math.cos(angle), sin = Math.sin(angle);
+      const branchDir = {
+        x: primaryDir.x * cos - primaryDir.y * sin,
+        y: primaryDir.x * sin + primaryDir.y * cos,
+      };
+      const dlen = Math.sqrt(branchDir.x ** 2 + branchDir.y ** 2) || 1e-6;
+      const bdir = { x: branchDir.x / dlen, y: branchDir.y / dlen };
+
+      const branchLen = 0.10 + this._noise(b * 2.1, start.y) * 0.12;
+      const steps = Math.ceil(branchLen / P.CRACK_STEP_SIZE);
+      const branch = [{ x: start.x, y: start.y }];
+
+      for (let i = 1; i <= steps; i++) {
+        const prev = branch[branch.length - 1];
+        const jag = (this._noise(prev.x * 9.1 + i * 0.7, prev.y * 6.3) - 0.5)
+                    * P.TEAR_JAGGEDNESS * 0.15;
+        const perp = { x: -bdir.y, y: bdir.x };
+        branch.push({
+          x: Math.max(0, Math.min(1, prev.x + bdir.x * P.CRACK_STEP_SIZE + perp.x * jag)),
+          y: Math.max(0, Math.min(1, prev.y + bdir.y * P.CRACK_STEP_SIZE + perp.y * jag)),
+        });
+      }
+      branches.push(branch);
+    }
+
+    return branches;
+  };
+
+  /* ═══════════════════════════════════════════════════════════
+     GRAB ZONE TRACKER
+     Maintains the list of interactive UV regions (viewport edges
+     + exposed crack boundaries) and answers proximity queries.
+  ═══════════════════════════════════════════════════════════ */
+
+  function GrabZoneTracker(edgeMarginPx, grabSnapPx) {
+    this.edgeMarginPx = edgeMarginPx;
+    this.grabSnapPx   = grabSnapPx;
+    this.zones = [];
+    this._initViewportEdges();
+  }
+
+  GrabZoneTracker.prototype._initViewportEdges = function () {
+    // Sampled at 9 points along each edge for fine-grained proximity
+    const pts = (ax, ay, bx, by) => {
+      const path = [];
+      for (let i = 0; i <= 8; i++) {
+        path.push({ x: ax + (bx - ax) * i / 8, y: ay + (by - ay) * i / 8 });
+      }
+      return path;
+    };
+    this.zones = [
+      { path: pts(0, 0, 0, 1), normal: { x:  1, y:  0 } },  // left
+      { path: pts(1, 0, 1, 1), normal: { x: -1, y:  0 } },  // right
+      { path: pts(0, 0, 1, 0), normal: { x:  0, y:  1 } },  // top
+      { path: pts(0, 1, 1, 1), normal: { x:  0, y: -1 } },  // bottom
+    ];
+  };
+
+  /**
+   * Add an exposed crack boundary as a new grab zone.
+   * normal: outward direction perpendicular to crack at grab point.
+   */
+  GrabZoneTracker.prototype.addCrackBoundary = function (waypoints, normal) {
+    this.zones.push({ path: waypoints.slice(), normal });
+  };
+
+  /**
+   * Find the nearest grab zone to cursorUV.
+   * Returns { zone, point, dist, normal } or null if beyond grabSnapPx.
+   */
+  GrabZoneTracker.prototype.nearest = function (cursorUV, innerWidth, innerHeight) {
+    let best = null, bestDist = Infinity;
+    const iw = innerWidth, ih = innerHeight;
+    for (const zone of this.zones) {
+      for (const pt of zone.path) {
+        const dx = (cursorUV.x - pt.x) * iw;
+        const dy = (cursorUV.y - pt.y) * ih;
+        const d  = Math.sqrt(dx * dx + dy * dy);
+        if (d < bestDist) {
+          bestDist = d;
+          best = { zone, point: pt, dist: d, normal: zone.normal };
+        }
+      }
+    }
+    return bestDist <= this.grabSnapPx ? best : null;
+  };
+
+  /** Remove all crack boundary zones (used on reset). */
+  GrabZoneTracker.prototype.reset = function () {
+    this._initViewportEdges();
+  };
+
   /* ═══════════════════════════════════════════════════════════
      SHADERS
   ═══════════════════════════════════════════════════════════ */
