@@ -15,9 +15,9 @@
  *   TearSystem        – NxM constraint lattice (Verlet integration); breaks
  *                       spring constraints when strain exceeds local toughness;
  *                       outputs detached-node UVs for mask painting.
- *   StickerController – pointer event state machine (IDLE → NOTCHING →
+ *   StickerController – pointer event state machine (IDLE →
  *                       GRABBED → TEARING); spring-damper peel physics with
- *                       stick-slip stick; notch-damage accumulator.
+ *                       stick-slip stick.
  *   StickerLayer      – facade: creates Three.js renderer/scene/camera/mesh
  *                       with custom ShaderMaterial; orchestrates all subsystems
  *                       inside a single rAF loop.
@@ -521,7 +521,7 @@ import * as THREE from 'three';
     this.params = params;
 
     // State machine
-    /** @type {'IDLE'|'NOTCHING'|'GRABBED'|'TEARING'} */
+    /** @type {'IDLE'|'GRABBED'|'TEARING'} */
     this.state = 'IDLE';
 
     // Peel spring state
@@ -540,8 +540,6 @@ import * as THREE from 'three';
     this.isStuck   = false;
     this.stuckTime = 0;
 
-    // Notch-damage map: quantised UV key → click count
-    this.notchDamage  = new Map();
     this.activeNotch  = null; // { x, y } in UV space
 
     // Pending mask operations flushed each frame
@@ -1081,7 +1079,6 @@ import * as THREE from 'three';
     this._controller.state        = 'IDLE';
     this._controller.peelProgress = 0;
     this._controller.peelVelocity = 0;
-    this._controller.notchDamage  = new Map();
     this._controller.activeNotch  = null;
   };
 
