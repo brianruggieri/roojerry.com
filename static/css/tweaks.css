@@ -130,3 +130,10 @@ div.skills-heading{
     img.qrcode {
   max-width: 300px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .tag {
+    -webkit-transition: none;
+    transition: none;
+  }
+}

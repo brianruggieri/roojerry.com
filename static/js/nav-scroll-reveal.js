@@ -6,6 +6,8 @@
 
   if (!nav || !about) return;
 
+  var reducedMotion = window.FIELD ? window.FIELD.prefersReducedMotion() : window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   // Track scroll velocity via RAF.
   // prevScrollY = position at the frame before lastScrollY was captured.
   // The delta between them approximates pixels/frame (~16ms) at the time of the last scroll event.
@@ -14,6 +16,7 @@
   var rafPending = false;
 
   function onScroll() {
+    if (reducedMotion) return; // velocity tracking unnecessary when transition is disabled
     if (!rafPending) {
       rafPending = true;
       requestAnimationFrame(function () {

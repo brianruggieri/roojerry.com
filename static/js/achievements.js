@@ -140,6 +140,13 @@ const ACHIEVEMENTS = {
   display(achievement) {
     const container = this.getContainer();
     const card = this.createCard(achievement);
+
+    // When reduced motion is preferred, the CSS media query removes the slide animation.
+    // Add a class hook for any future CSS-only targeting.
+    if (window.FIELD && window.FIELD.prefersReducedMotion()) {
+      card.classList.add('ach-no-animation');
+    }
+
     container.appendChild(card);
 
     // Schedule cleanup after animation completes

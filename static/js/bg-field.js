@@ -9,6 +9,7 @@
 
   let active = (document.documentElement.dataset.bgMode || "canvas") === "canvas";
   let running = false;
+  let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let lastScrollY = window.scrollY;
   let scrollVelocity = 0;
@@ -67,6 +68,10 @@
   window.FIELD.spectrum = window.FIELD.spectrum ?? 0.3; // mood selector
   window.FIELD.clusters = window.FIELD.clusters ?? 0.4; // structural separation
   window.FIELD.density = window.FIELD.density ?? CONFIG.POINTS;
+
+  // Reduced-motion utility — shared across all modules via window.FIELD
+  window.FIELD._motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  window.FIELD.prefersReducedMotion = () => window.FIELD._motionQuery.matches;
 
   /* =========================
      COLOR MOODS
@@ -470,7 +475,7 @@
   ========================= */
 
   function draw() {
-    if (!active) {
+    if (!active || reducedMotion) {
       running = false;
       return;
     }
@@ -554,10 +559,20 @@
 
   window.addEventListener("bg-mode-change", (e) => {
     active = e.detail.mode === "canvas";
-    if (active && !running) {
+    if (active && !running && !reducedMotion) {
       requestAnimationFrame(draw);
       running = true;
     }
+  });
+
+  // Sync reducedMotion flag and restart/stop loop on live OS preference changes
+  window.FIELD._motionQuery.addEventListener('change', (e) => {
+    reducedMotion = e.matches;
+    if (!reducedMotion && active && !running) {
+      running = true;
+      requestAnimationFrame(draw);
+    }
+    // When reducedMotion becomes true, draw() exits on next frame and sets running = false
   });
 
   /* =========================
@@ -566,7 +581,7 @@
 
   resize();
   createPoints();
-  if (active && !running) {
+  if (active && !running && !reducedMotion) {
     running = true;
     requestAnimationFrame(draw);
   }
@@ -612,5 +627,5 @@ Current config:
   };
   
   console.log(`✅ Disturbance field ready. Type: window.DISTURBANCE_HELP()`);
-  draw();
+  if (active && !reducedMotion) draw();
 })();
