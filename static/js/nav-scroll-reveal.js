@@ -6,7 +6,18 @@
 
   if (!nav || !about) return;
 
-  var reducedMotion = window.FIELD ? window.FIELD.prefersReducedMotion() : window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var motionQuery = window.FIELD ? window.FIELD._motionQuery : window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reducedMotion = motionQuery.matches;
+
+  // Sync flag on live OS preference changes (mirrors bg-field.js behaviour)
+  motionQuery.addEventListener('change', function (e) {
+    reducedMotion = e.matches;
+    if (!reducedMotion) {
+      // Re-sync scroll positions so velocity is valid on next observer fire
+      lastScrollY = window.scrollY;
+      prevScrollY = window.scrollY;
+    }
+  });
 
   // Track scroll velocity via RAF.
   // prevScrollY = position at the frame before lastScrollY was captured.
