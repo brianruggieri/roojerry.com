@@ -10,6 +10,7 @@
   let active = (document.documentElement.dataset.bgMode || "canvas") === "canvas";
   let running = false;
   let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let paused = false;
 
   let lastScrollY = window.scrollY;
   let scrollVelocity = 0;
@@ -474,8 +475,21 @@
      Main loop
   ========================= */
 
+  function drawStatic() {
+    if (!active) return;
+    ctx.clearRect(0, 0, w, h);
+    drawBackground();
+    const moodIndex = clamp(window.FIELD.spectrum, 0, 1) * (MOODS.length - 1);
+    const i0 = Math.floor(moodIndex);
+    const i1 = Math.min(i0 + 1, MOODS.length - 1);
+    const mood = lerpColor(MOODS[i0], MOODS[i1], moodIndex - i0);
+    const clusterScale = clamp(window.FIELD.clusters, 0, 1);
+    drawConnections(mood, clusterScale);
+    drawNodes(mood, clusterScale);
+  }
+
   function draw() {
-    if (!active || reducedMotion) {
+    if (!active || reducedMotion || paused) {
       running = false;
       return;
     }
@@ -503,23 +517,6 @@
     drawNodes(mood, clusterScale);
 
     requestAnimationFrame(draw);
-  }
-
-  function drawStatic() {
-    if (!active) return;
-    ctx.clearRect(0, 0, w, h);
-    // Call drawBackground() once so the canvas tint matches exactly what the
-    // animated version renders each frame (clearRect → drawBackground → particles).
-    drawBackground();
-
-    const moodIndex = clamp(window.FIELD.spectrum, 0, 1) * (MOODS.length - 1);
-    const i0 = Math.floor(moodIndex);
-    const i1 = Math.min(i0 + 1, MOODS.length - 1);
-    const mood = lerpColor(MOODS[i0], MOODS[i1], moodIndex - i0);
-    const clusterScale = clamp(window.FIELD.clusters, 0, 1);
-
-    drawConnections(mood, clusterScale);
-    drawNodes(mood, clusterScale);
   }
 
   /* =========================
@@ -646,8 +643,7 @@ Current config:
   };
   
   console.log(`✅ Disturbance field ready. Type: window.DISTURBANCE_HELP()`);
-  if (active && !reducedMotion) draw();
-  else if (active && reducedMotion) drawStatic();
+  if (active && reducedMotion) drawStatic();
 
   // Dev helper: preview a fade-in from the browser console.
   // Usage: FIELD.testFade()        — default 400ms
@@ -660,4 +656,40 @@ Current config:
     canvas.style.opacity = '1';
     setTimeout(() => { canvas.style.transition = ''; }, ms + 50);
   };
+
+  /* =========================
+     Playback control API
+     Consumed by bg-controls.js
+  ========================= */
+
+  window.FIELD.pause = () => {
+    if (!paused) {
+      paused = true;
+      drawStatic();
+    }
+  };
+
+  window.FIELD.play = () => {
+    if (paused && active && !reducedMotion) {
+      paused = false;
+      if (!running) {
+        running = true;
+        requestAnimationFrame(draw);
+      }
+    }
+  };
+
+  window.FIELD.reset = () => {
+    createPoints();
+    if (paused) drawStatic();
+    // if running, the loop picks up the new points on its next frame
+  };
+
+  window.FIELD.setVisible = (visible) => {
+    canvas.style.transition = reducedMotion ? 'none' : 'opacity 0.4s ease';
+    canvas.style.opacity = visible ? '1' : '0';
+  };
+
+  window.FIELD.isPlaying = () => !paused && running;
+  window.FIELD.isVisible = () => (canvas.style.opacity || '1') !== '0';
 })();

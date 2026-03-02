@@ -1,0 +1,89 @@
+/* =============================================================
+   Background animation playback controls
+   Fixed bottom-right corner, fades to near-invisible when idle.
+   flex-direction: column-reverse places the primary action
+   (play/pause) at the bottom — first in source/tab order.
+   ============================================================= */
+
+#bg-controls {
+  position: fixed;
+  inset-block-end: 1rem;
+  inset-inline-end: 1rem;
+  z-index: 10;
+
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 5px;
+
+  opacity: 0.18;
+  transition: opacity 0.35s ease;
+}
+
+#bg-controls:hover {
+  opacity: 0.85;
+}
+
+/* ── Button base ── */
+
+.bgc-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(8, 18, 32, 0.5);
+  color: rgba(220, 238, 255, 0.92);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.bgc-btn:hover {
+  background: rgba(8, 18, 32, 0.75);
+}
+
+.bgc-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Tooltips ── */
+
+.bgc-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(8, 18, 32, 0.88);
+  color: rgba(220, 238, 255, 0.95);
+  font-size: 11px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  transition-delay: 0.45s;
+}
+
+.bgc-btn:hover::after {
+  opacity: 1;
+}
+
+/* ── Reduced motion: remove transitions ── */
+
+@media (prefers-reduced-motion: reduce) {
+  #bg-controls {
+    transition: none;
+  }
+  .bgc-btn::after {
+    transition: none;
+    transition-delay: 0s;
+  }
+}
