@@ -20,7 +20,8 @@
   transition: opacity 0.35s ease;
 }
 
-#bg-controls:hover {
+#bg-controls:hover,
+#bg-controls:focus-within {
   opacity: 0.85;
 }
 
@@ -80,6 +81,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   #bg-controls {
+    transition: none;
+  }
+  .bgc-btn {
     transition: none;
   }
   .bgc-btn::after {

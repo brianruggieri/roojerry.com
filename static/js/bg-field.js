@@ -13,6 +13,7 @@
   let paused = false;
   let hidden = false;
   let particleAlpha = 1;
+  let tweenGen = 0;
 
   let lastScrollY = window.scrollY;
   let scrollVelocity = 0;
@@ -678,7 +679,9 @@ Current config:
   window.FIELD.play = () => {
     if (paused && active && !reducedMotion) {
       paused = false;
-      if (!running) {
+      if (hidden) {
+        window.FIELD.setVisible(true);
+      } else if (!running) {
         running = true;
         requestAnimationFrame(draw);
       }
@@ -692,6 +695,7 @@ Current config:
   };
 
   window.FIELD.setVisible = (visible) => {
+    const gen = ++tweenGen; // invalidates any in-flight tween
     if (reducedMotion) {
       hidden = !visible;
       particleAlpha = visible ? 1 : 0;
@@ -711,10 +715,11 @@ Current config:
       }
     }
     function tween(now) {
-      const t = Math.min((now - startTime) / duration, 1);
-      particleAlpha = start + (target - start) * t;
+      if (gen !== tweenGen) return; // superseded by a newer setVisible call
+      const progress = Math.min((now - startTime) / duration, 1);
+      particleAlpha = start + (target - start) * progress;
       if (!running) drawStatic();
-      if (t < 1) {
+      if (progress < 1) {
         requestAnimationFrame(tween);
       } else {
         particleAlpha = target;
