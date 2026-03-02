@@ -180,6 +180,61 @@ async function runTest(name, fn, page) {
     console.log('  ⏭  Canvas reduced-motion test skipped (feature not present on this branch)');
   }
 
+  // ── Test 4: Canvas stops drawing after pause ─────────────────────────────
+  const hasPlaybackControls = await page.evaluate(
+    () => typeof window.FIELD?.pause === 'function'
+  );
+  if (hasPlaybackControls) {
+    await runTest('Canvas stops drawing after FIELD.pause()', async (page) => {
+      await page.reload({ waitUntil: 'networkidle0' });
+      await page.waitForFunction(() => typeof window.FIELD?.pause === 'function', { timeout: 5000 });
+
+      await page.evaluate(() => window.FIELD.pause());
+
+      await page.evaluate((ms) => {
+        window._drawStats = { count: 0, startedAt: null };
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }, 1000);
+
+      const { count } = await page.evaluate(() => window._drawStats);
+
+      console.log(`     Draw count after pause: ${count} (expected 0)`);
+
+      if (count > 0) {
+        throw new Error(
+          `Canvas drew ${count} time(s) after FIELD.pause(). RAF loop should be stopped.`
+        );
+      }
+    }, page);
+
+    // ── Test 5: Canvas stops drawing after setVisible(false) ───────────────
+    await runTest('Canvas stops drawing after FIELD.setVisible(false)', async (page) => {
+      await page.reload({ waitUntil: 'networkidle0' });
+      await page.waitForFunction(() => typeof window.FIELD?.setVisible === 'function', { timeout: 5000 });
+
+      // Trigger hide and wait for the 400ms fade to complete
+      await page.evaluate(() => window.FIELD.setVisible(false));
+      await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 500)));
+
+      await page.evaluate((ms) => {
+        window._drawStats = { count: 0, startedAt: null };
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }, 1000);
+
+      const { count } = await page.evaluate(() => window._drawStats);
+
+      console.log(`     Draw count after setVisible(false): ${count} (expected 0)`);
+
+      if (count > 0) {
+        throw new Error(
+          `Canvas drew ${count} time(s) after setVisible(false) fade completed. RAF loop should be stopped.`
+        );
+      }
+    }, page);
+  } else {
+    console.log('  ⏭  Pause/visibility idle tests skipped (playback controls not present on this branch)');
+  }
+
   // ─── Results ─────────────────────────────────────────────────────────────
   console.log('');
   console.log(`  ${passed} passed, ${failed} failed`);
