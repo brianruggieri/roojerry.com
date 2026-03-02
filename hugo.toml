@@ -2,6 +2,7 @@ baseURL = 'https://roojerry.com/'
 languageCode = 'en-us'
 title = 'Brian Ruggieri'
 theme = 'resume'
+disableKinds = ["taxonomy", "term"]
 PygmentsCodeFences = true
 PygmentsCodeFencesGuessSyntax = true
 PygmentsStyle = "vim"
@@ -64,9 +65,6 @@ trackerID = "G-BNPJM4R4TM"
 
 [outputs]
 home = ["HTML", "JSON"]
-
-[taxonomies]
-tag = "tags"
 
 
 [mediaTypes]
