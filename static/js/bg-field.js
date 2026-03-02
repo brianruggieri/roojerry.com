@@ -11,6 +11,8 @@
   let running = false;
   let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let paused = false;
+  let hidden = false;
+  let particleAlpha = 1;
 
   let lastScrollY = window.scrollY;
   let scrollVelocity = 0;
@@ -484,12 +486,14 @@
     const i1 = Math.min(i0 + 1, MOODS.length - 1);
     const mood = lerpColor(MOODS[i0], MOODS[i1], moodIndex - i0);
     const clusterScale = clamp(window.FIELD.clusters, 0, 1);
+    ctx.globalAlpha = particleAlpha;
     drawConnections(mood, clusterScale);
     drawNodes(mood, clusterScale);
+    ctx.globalAlpha = 1;
   }
 
   function draw() {
-    if (!active || reducedMotion || paused) {
+    if (!active || reducedMotion || paused || hidden) {
       running = false;
       return;
     }
@@ -513,8 +517,10 @@
     const clusterScale = clamp(window.FIELD.clusters, 0, 1);
 
     updatePhysics(energy);
+    ctx.globalAlpha = particleAlpha;
     drawConnections(mood, clusterScale);
     drawNodes(mood, clusterScale);
+    ctx.globalAlpha = 1;
 
     requestAnimationFrame(draw);
   }
@@ -686,10 +692,42 @@ Current config:
   };
 
   window.FIELD.setVisible = (visible) => {
-    canvas.style.transition = reducedMotion ? 'none' : 'opacity 0.4s ease';
-    canvas.style.opacity = visible ? '1' : '0';
+    if (reducedMotion) {
+      hidden = !visible;
+      particleAlpha = visible ? 1 : 0;
+      if (!running) drawStatic();
+      return;
+    }
+    const target = visible ? 1 : 0;
+    const duration = 400;
+    const start = particleAlpha;
+    const startTime = performance.now();
+    if (visible) {
+      // Restart loop before fading in so particles are animating as they appear
+      hidden = false;
+      if (!paused && active && !reducedMotion && !running) {
+        running = true;
+        requestAnimationFrame(draw);
+      }
+    }
+    function tween(now) {
+      const t = Math.min((now - startTime) / duration, 1);
+      particleAlpha = start + (target - start) * t;
+      if (!running) drawStatic();
+      if (t < 1) {
+        requestAnimationFrame(tween);
+      } else {
+        particleAlpha = target;
+        if (!visible) {
+          // Fade complete — kill the loop
+          hidden = true;
+          running = false;
+        }
+      }
+    }
+    requestAnimationFrame(tween);
   };
 
   window.FIELD.isPlaying = () => !paused && running;
-  window.FIELD.isVisible = () => (canvas.style.opacity || '1') !== '0';
+  window.FIELD.isVisible = () => !hidden;
 })();
