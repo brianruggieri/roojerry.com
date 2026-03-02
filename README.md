@@ -18,6 +18,10 @@ npm run dev      # hugo server with drafts enabled
 npm run build    # production build (hugo --minify)
 ```
 
+These commands expect [Hugo](https://gohugo.io/) to be installed. The `package.json` scripts are currently configured to invoke Hugo from the macOS Homebrew path `/opt/homebrew/bin/hugo`. On other platforms (Linux, Windows) or macOS setups where Hugo is available on your `$PATH` but not at that exact location, you may need to either:
+
+- Install Hugo so that the binary is available at `/opt/homebrew/bin/hugo`, **or**
+- Update the `hugo` paths in `package.json` locally so they match where Hugo is installed on your system (for example, using just `hugo` if it’s on your `$PATH`).
 Open [http://localhost:1313](http://localhost:1313).
 
 ## Testing
