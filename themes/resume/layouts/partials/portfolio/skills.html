@@ -18,7 +18,7 @@
                     {{ $iconclass = printf "fas fa-%s" .fa }}
                     {{ $hasIcon = true }}
                 {{ else if isset . "devicon" }}
-                    {{ $iconclass = printf "devicon-%s-plain devicon-%-original" ( lower .devicon ) (lower .devicon ) }}
+                    {{ $iconclass = printf "devicon-%s-plain" ( lower .devicon ) }}
                     {{ $hasIcon = true }}
                 {{ end }}
                 <li class="list-inline-item">

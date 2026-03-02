@@ -115,3 +115,10 @@
   overflow: hidden;
   margin-top: 2px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .ani_div {
+    animation: none;
+    transform: translateY(0);
+  }
+}

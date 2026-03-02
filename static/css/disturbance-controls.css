@@ -180,3 +180,18 @@
     padding: 5px 10px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  #disturbance-panel,
+  .disturbance-toggle,
+  .disturbance-controls,
+  .control-group input[type="range"]::-webkit-slider-thumb,
+  .control-group input[type="range"]::-moz-range-thumb,
+  #disturbance-reset {
+    transition: none;
+  }
+
+  #disturbance-reset:active {
+    transform: none;
+  }
+}

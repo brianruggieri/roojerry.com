@@ -43,3 +43,9 @@ input[type="range"]::-ms-thumb {
 
 /* Provide a base transition for elements that use prefixed versions */
 .transition-base { transition: all 0.2s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-base {
+    transition: none;
+  }
+}

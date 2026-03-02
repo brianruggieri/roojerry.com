@@ -27,10 +27,11 @@ function flipCoin() {
     FIELD.clusters = randomRange(0.2, 0.8);
   }
 
-  // Unlock after animation
+  // Unlock after animation; instant when transition is disabled by reduced motion
+  const lockDuration = (window.FIELD && window.FIELD.prefersReducedMotion()) ? 0 : 600;
   setTimeout(() => {
     flipping = false;
-  }, 600); // must match CSS transition duration
+  }, lockDuration);
 }
 
 // Click handler (count only real clicks; auto-flips don't increment)
@@ -60,8 +61,10 @@ function scheduleAutoFlip() {
   }, delay);
 }
 
-// Start auto-flip on page load
-scheduleAutoFlip();
+// Start auto-flip on page load — skip when reduced motion is preferred
+if (!(window.FIELD && window.FIELD.prefersReducedMotion())) {
+  scheduleAutoFlip();
+}
 
 /* =========================
    Optional UX Enhancements
