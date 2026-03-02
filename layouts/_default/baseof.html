@@ -34,6 +34,7 @@
     <link rel="stylesheet" href="/css/field-controls.css">
     <link rel="stylesheet" href="/css/achievements.css">
     <link rel="stylesheet" href="/css/disturbance-controls.css">
+    <link rel="stylesheet" href="/css/bg-controls.css">
 
   {{ hugo.Generator }}
   {{ block "headfiles" . }}
@@ -48,6 +49,8 @@
    <!-- Name Physics Field -->
   <canvas id="name-field" aria-hidden="true" role="presentation"></canvas>
   {{ partial "field-controls.html" . }}
+  <!-- Background playback controls -->
+  {{ partial "bg-controls.html" . }}
   {{ partial "nav.html" . }}
 
   <div class="container-fluid p-0">
@@ -74,6 +77,8 @@
   <script defer src="/js/resume.js"></script>
   <script defer src="/js/field-controls.js"></script>
   <script defer src="/js/bg-field.js"></script>
+  <script defer src="/js/bg-controls.js"></script>
+  <script defer src="/js/disturbance-controls.js"></script>
   <!-- <script defer src="/js/name-field.js"></script> -->
   <script defer src="/js/name-disturbance.js"></script>
   <script defer src="/js/achievements.js"></script>
