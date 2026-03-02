@@ -505,6 +505,23 @@
     requestAnimationFrame(draw);
   }
 
+  function drawStatic() {
+    if (!active) return;
+    ctx.clearRect(0, 0, w, h);
+    // Call drawBackground() once so the canvas tint matches exactly what the
+    // animated version renders each frame (clearRect → drawBackground → particles).
+    drawBackground();
+
+    const moodIndex = clamp(window.FIELD.spectrum, 0, 1) * (MOODS.length - 1);
+    const i0 = Math.floor(moodIndex);
+    const i1 = Math.min(i0 + 1, MOODS.length - 1);
+    const mood = lerpColor(MOODS[i0], MOODS[i1], moodIndex - i0);
+    const clusterScale = clamp(window.FIELD.clusters, 0, 1);
+
+    drawConnections(mood, clusterScale);
+    drawNodes(mood, clusterScale);
+  }
+
   /* =========================
      Interaction
   ========================= */
@@ -571,8 +588,10 @@
     if (!reducedMotion && active && !running) {
       running = true;
       requestAnimationFrame(draw);
+    } else if (reducedMotion && active) {
+      // Loop will exit on its next frame; render a static frame in its place
+      requestAnimationFrame(drawStatic);
     }
-    // When reducedMotion becomes true, draw() exits on next frame and sets running = false
   });
 
   /* =========================
@@ -628,4 +647,17 @@ Current config:
   
   console.log(`✅ Disturbance field ready. Type: window.DISTURBANCE_HELP()`);
   if (active && !reducedMotion) draw();
+  else if (active && reducedMotion) drawStatic();
+
+  // Dev helper: preview a fade-in from the browser console.
+  // Usage: FIELD.testFade()        — default 400ms
+  //        FIELD.testFade(800)     — custom duration
+  window.FIELD.testFade = (ms = 400) => {
+    canvas.style.transition = 'none';
+    canvas.style.opacity = '0';
+    canvas.getBoundingClientRect(); // force reflow so opacity:0 commits
+    canvas.style.transition = `opacity ${ms}ms ease-in`;
+    canvas.style.opacity = '1';
+    setTimeout(() => { canvas.style.transition = ''; }, ms + 50);
+  };
 })();
