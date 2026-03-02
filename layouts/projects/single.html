@@ -1,4 +1,5 @@
 {{ define "main" }}
+{{/* project detail page */}}
 {{ partial "breadcrumbs" . }}
 
 <section class="resume-section p-3 p-lg-5 d-flex d-column">
@@ -34,9 +35,11 @@
         </a>
         {{ end }}
         {{ with .Params.release }}
+        {{ $icon := $.Params.releaseIcon | default "fas fa-download" }}
+        {{ $label := $.Params.releaseLabel | default "Latest Release" }}
         <a href="{{ . }}" class="project-card__link project-card__link--release"
            target="_blank" rel="noopener noreferrer">
-          <i class="fas fa-download" aria-hidden="true"></i> Latest Release
+          <i class="{{ $icon }}" aria-hidden="true"></i> {{ $label }}
         </a>
         {{ end }}
       </div>
@@ -138,8 +141,8 @@
     {{ if or .Params.github .Params.release }}
     <div class="project-cta">
       <div class="project-cta__text">
-        <h4>Get Daily Digest</h4>
-        <p>Download from the latest release and drop it into your Obsidian vault's plugin folder.</p>
+        <h4>{{ .Params.ctaTitle | default (printf "Get %s" .Title) }}</h4>
+        {{ with .Params.ctaDesc }}<p>{{ . }}</p>{{ end }}
       </div>
       <div class="project-cta__actions">
         {{ with .Params.github }}
@@ -149,9 +152,11 @@
         </a>
         {{ end }}
         {{ with .Params.release }}
+        {{ $icon := $.Params.releaseIcon | default "fas fa-download" }}
+        {{ $label := $.Params.releaseLabel | default "Download Latest" }}
         <a href="{{ . }}" class="project-card__link project-card__link--release"
            target="_blank" rel="noopener noreferrer">
-          <i class="fas fa-download" aria-hidden="true"></i> Download Latest
+          <i class="{{ $icon }}" aria-hidden="true"></i> {{ $label }}
         </a>
         {{ end }}
       </div>

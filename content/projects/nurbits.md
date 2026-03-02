@@ -7,6 +7,10 @@ tags: ["Unity", "C#", "Game Development", "Neuroscience", "Music"]
 statusLabel: "Available on Steam"
 github: ""
 release: "https://store.steampowered.com/app/651010/Nurbits/"
+releaseIcon: "fab fa-steam"
+releaseLabel: "View on Steam"
+ctaTitle: "Play Nurbits"
+ctaDesc: "Available on Steam for Windows and Mac."
 image: "/img/projects/nurbits/nurbits-hero.jpg"
 featured: true
 year: "2017"

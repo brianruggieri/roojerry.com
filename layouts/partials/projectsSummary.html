@@ -38,9 +38,11 @@
       </a>
       {{ end }}
       {{ with .Params.release }}
+      {{ $icon := $.Params.releaseIcon | default "fas fa-download" }}
+      {{ $label := $.Params.releaseLabel | default "Download" }}
       <a href="{{ . }}" class="project-card__link project-card__link--release"
          target="_blank" rel="noopener noreferrer">
-        <i class="fas fa-download" aria-hidden="true"></i> Download
+        <i class="{{ $icon }}" aria-hidden="true"></i> {{ $label }}
       </a>
       {{ end }}
       <a href="{{ .Permalink }}" class="project-card__link project-card__link--details">

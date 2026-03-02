@@ -7,6 +7,10 @@ tags: ["TypeScript", "SQLite / WASM", "Obsidian API", "Anthropic Claude", "Ollam
 statusLabel: "Awaiting Obsidian Community Review"
 github: "https://github.com/brianruggieri/obsidian-daily-digest"
 release: "https://github.com/brianruggieri/obsidian-daily-digest/releases/latest"
+releaseIcon: "fas fa-download"
+releaseLabel: "Download Latest"
+ctaTitle: "Get Daily Digest"
+ctaDesc: "Download from the latest release and drop it into your Obsidian vault's plugin folder."
 image: "/img/projects/daily-digest/digest-hero.png"
 featured: true
 year: "2026"
