@@ -18,5 +18,9 @@ node_modules/
 .claude-flow/
 .playwright-mcp/
 
-# Tests
+# Worktrees
+.worktrees/
+
+# Tests — diffs and snapshots are ephemeral dev artifacts
 tests/visual/diffs/
+tests/visual/snapshots/
