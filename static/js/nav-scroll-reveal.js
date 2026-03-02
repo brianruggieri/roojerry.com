@@ -6,6 +6,19 @@
 
   if (!nav || !about) return;
 
+  var motionQuery = window.FIELD ? window.FIELD._motionQuery : window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reducedMotion = motionQuery.matches;
+
+  // Sync flag on live OS preference changes (mirrors bg-field.js behaviour)
+  motionQuery.addEventListener('change', function (e) {
+    reducedMotion = e.matches;
+    if (!reducedMotion) {
+      // Re-sync scroll positions so velocity is valid on next observer fire
+      lastScrollY = window.scrollY;
+      prevScrollY = window.scrollY;
+    }
+  });
+
   // Track scroll velocity via RAF.
   // prevScrollY = position at the frame before lastScrollY was captured.
   // The delta between them approximates pixels/frame (~16ms) at the time of the last scroll event.
@@ -14,6 +27,7 @@
   var rafPending = false;
 
   function onScroll() {
+    if (reducedMotion) return; // velocity tracking unnecessary when transition is disabled
     if (!rafPending) {
       rafPending = true;
       requestAnimationFrame(function () {

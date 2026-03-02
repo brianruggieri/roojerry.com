@@ -90,3 +90,9 @@
 .hint span {
   color: var(--panel-accent);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .field-controls {
+    transition: none;
+  }
+}

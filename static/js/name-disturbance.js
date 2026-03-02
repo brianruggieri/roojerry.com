@@ -127,19 +127,38 @@
       letterEl.style.transform = `translate(${offset.offsetX.toFixed(1)}px, ${offset.offsetY.toFixed(1)}px)`;
     }
 
-    // Update all letters
+    // Populate window.LETTER_BOUNDS from current letter positions (no animation)
+    function captureBounds() {
+      const letters = nameEl.querySelectorAll('span');
+      window.LETTER_BOUNDS = Array.from(letters).map((letterEl) => {
+        const rect = letterEl.getBoundingClientRect();
+        return {
+          left: rect.left + window.scrollX,
+          right: rect.right + window.scrollX,
+          top: rect.top + window.scrollY,
+          bottom: rect.bottom + window.scrollY,
+          width: rect.width,
+          height: rect.height,
+          centerX: rect.left + rect.width / 2 + window.scrollX,
+          centerY: rect.top + rect.height / 2 + window.scrollY,
+          char: letterEl.textContent
+        };
+      });
+    }
+
+    // Update all letters (animated path — runs continuously via RAF)
     function updateLetters() {
       const letters = nameEl.querySelectorAll('span');
-      
+
       // Expose letter bounding boxes for background field avoidance
       window.LETTER_BOUNDS = [];
-      
+
       letters.forEach((letterEl, idx) => {
         applyDisturbanceToLetter(letterEl);
-        
+
         // Get letter's bounding box and add to LETTER_BOUNDS
         const rect = letterEl.getBoundingClientRect();
-        
+
         window.LETTER_BOUNDS.push({
           left: rect.left + window.scrollX,
           right: rect.right + window.scrollX,
@@ -152,7 +171,7 @@
           char: letterEl.textContent
         });
       });
-      
+
       requestAnimationFrame(updateLetters);
     }
 
@@ -166,7 +185,14 @@
 
     // Initialize
     wrapLetters();
-    updateLetters();
+
+    if (window.FIELD && window.FIELD.prefersReducedMotion()) {
+      // Reduced motion: capture letter positions once without starting the RAF loop.
+      // wrapLetters() still runs so the name renders correctly with inline-block spans.
+      captureBounds();
+    } else {
+      updateLetters();
+    }
   }
 
   initNameDisturbance();

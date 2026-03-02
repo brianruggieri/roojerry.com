@@ -9,6 +9,7 @@
 
   let active = (document.documentElement.dataset.bgMode || "canvas") === "canvas";
   let running = false;
+  let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let lastScrollY = window.scrollY;
   let scrollVelocity = 0;
@@ -67,6 +68,10 @@
   window.FIELD.spectrum = window.FIELD.spectrum ?? 0.3; // mood selector
   window.FIELD.clusters = window.FIELD.clusters ?? 0.4; // structural separation
   window.FIELD.density = window.FIELD.density ?? CONFIG.POINTS;
+
+  // Reduced-motion utility — shared across all modules via window.FIELD
+  window.FIELD._motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  window.FIELD.prefersReducedMotion = () => window.FIELD._motionQuery.matches;
 
   /* =========================
      COLOR MOODS
@@ -470,7 +475,7 @@
   ========================= */
 
   function draw() {
-    if (!active) {
+    if (!active || reducedMotion) {
       running = false;
       return;
     }
@@ -498,6 +503,23 @@
     drawNodes(mood, clusterScale);
 
     requestAnimationFrame(draw);
+  }
+
+  function drawStatic() {
+    if (!active) return;
+    ctx.clearRect(0, 0, w, h);
+    // Call drawBackground() once so the canvas tint matches exactly what the
+    // animated version renders each frame (clearRect → drawBackground → particles).
+    drawBackground();
+
+    const moodIndex = clamp(window.FIELD.spectrum, 0, 1) * (MOODS.length - 1);
+    const i0 = Math.floor(moodIndex);
+    const i1 = Math.min(i0 + 1, MOODS.length - 1);
+    const mood = lerpColor(MOODS[i0], MOODS[i1], moodIndex - i0);
+    const clusterScale = clamp(window.FIELD.clusters, 0, 1);
+
+    drawConnections(mood, clusterScale);
+    drawNodes(mood, clusterScale);
   }
 
   /* =========================
@@ -554,9 +576,21 @@
 
   window.addEventListener("bg-mode-change", (e) => {
     active = e.detail.mode === "canvas";
-    if (active && !running) {
+    if (active && !running && !reducedMotion) {
       requestAnimationFrame(draw);
       running = true;
+    }
+  });
+
+  // Sync reducedMotion flag and restart/stop loop on live OS preference changes
+  window.FIELD._motionQuery.addEventListener('change', (e) => {
+    reducedMotion = e.matches;
+    if (!reducedMotion && active && !running) {
+      running = true;
+      requestAnimationFrame(draw);
+    } else if (reducedMotion && active) {
+      // Loop will exit on its next frame; render a static frame in its place
+      requestAnimationFrame(drawStatic);
     }
   });
 
@@ -566,7 +600,7 @@
 
   resize();
   createPoints();
-  if (active && !running) {
+  if (active && !running && !reducedMotion) {
     running = true;
     requestAnimationFrame(draw);
   }
@@ -612,5 +646,18 @@ Current config:
   };
   
   console.log(`✅ Disturbance field ready. Type: window.DISTURBANCE_HELP()`);
-  draw();
+  if (active && !reducedMotion) draw();
+  else if (active && reducedMotion) drawStatic();
+
+  // Dev helper: preview a fade-in from the browser console.
+  // Usage: FIELD.testFade()        — default 400ms
+  //        FIELD.testFade(800)     — custom duration
+  window.FIELD.testFade = (ms = 400) => {
+    canvas.style.transition = 'none';
+    canvas.style.opacity = '0';
+    canvas.getBoundingClientRect(); // force reflow so opacity:0 commits
+    canvas.style.transition = `opacity ${ms}ms ease-in`;
+    canvas.style.opacity = '1';
+    setTimeout(() => { canvas.style.transition = ''; }, ms + 50);
+  };
 })();
