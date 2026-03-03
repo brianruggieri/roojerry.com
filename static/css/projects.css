@@ -16,7 +16,7 @@
     text-transform: uppercase;
     font-family: "Saira Extra Condensed", sans-serif;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgb(255 255 255 / 0.55);
 }
 
 .project-status--dark {
@@ -28,8 +28,8 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #f0b429;
-    box-shadow: 0 0 0 0 rgba(240, 180, 41, 0.5);
+    background: var(--status-amber);
+    box-shadow: 0 0 0 0 rgb(var(--status-amber-rgb) / 0.5);
     animation: status-pulse 2.4s ease-in-out infinite;
     flex-shrink: 0;
 }
@@ -37,10 +37,10 @@
 @keyframes status-pulse {
     0%,
     100% {
-        box-shadow: 0 0 0 0 rgba(240, 180, 41, 0.5);
+        box-shadow: 0 0 0 0 rgb(var(--status-amber-rgb) / 0.5);
     }
     55% {
-        box-shadow: 0 0 0 6px rgba(240, 180, 41, 0);
+        box-shadow: 0 0 0 6px rgb(var(--status-amber-rgb) / 0);
     }
 }
 
@@ -54,9 +54,9 @@
     font-family: "Saira Extra Condensed", sans-serif;
     padding: 0.22em 0.6em;
     border-radius: 2px;
-    background: rgba(255, 255, 255, 0.09);
-    color: rgba(255, 255, 255, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgb(255 255 255 / 0.09);
+    color: rgb(255 255 255 / 0.65);
+    border: 1px solid rgb(255 255 255 / 0.14);
 }
 
 /* Tags on light background */
@@ -76,7 +76,7 @@
     font-size: 0.9rem;
     letter-spacing: 0.04em;
     padding: 0.45rem 1rem;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     text-decoration: none;
     white-space: nowrap;
     transition:
@@ -88,7 +88,7 @@
 }
 
 /* Restore mobile tap-target minimums (overridden by tweaks.css global rule) */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .project-card__link {
         min-height: 48px;
         min-width: 48px;
@@ -96,13 +96,13 @@
 }
 
 .project-card__link--github {
-    background: rgba(48, 133, 164, 0.08);
+    background: rgb(var(--brand-rgb) / 0.08);
     color: var(--brand-dark);
-    border: 1px solid rgba(48, 133, 164, 0.28);
+    border: 1px solid rgb(var(--brand-rgb) / 0.28);
 }
 .project-card__link--github:hover,
 .project-card__link--github:focus {
-    background: rgba(48, 133, 164, 0.16);
+    background: rgb(var(--brand-rgb) / 0.16);
     color: var(--brand-dark);
     text-decoration: none;
 }
@@ -114,8 +114,8 @@
 }
 .project-card__link--release:hover,
 .project-card__link--release:focus {
-    background: #79b44d;
-    border-color: #79b44d;
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
     color: #fff;
     text-decoration: none;
 }
@@ -123,11 +123,11 @@
 .project-card__link--details {
     background: transparent;
     color: var(--cyan);
-    border: 1px solid rgba(139, 186, 193, 0.35);
+    border: 1px solid rgb(var(--cyan-rgb) / 0.35);
 }
 .project-card__link--details:hover,
 .project-card__link--details:focus {
-    background: rgba(139, 186, 193, 0.1);
+    background: rgb(var(--cyan-rgb) / 0.1);
     color: var(--cyan);
     text-decoration: none;
 }
@@ -139,13 +139,11 @@
 .project-card {
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.45);
-    border-radius: 12px;
+    background: rgb(255 255 255 / 0.45);
+    border-radius: var(--radius-lg);
     overflow: hidden;
     margin-bottom: 2.5rem;
-    box-shadow:
-        0 1px 3px rgba(29, 53, 64, 0.06),
-        0 6px 24px rgba(29, 53, 64, 0.1);
+    box-shadow: var(--shadow-card);
     transition:
         transform 0.25s ease,
         box-shadow 0.25s ease;
@@ -161,14 +159,12 @@
     width: 3px;
     height: 100%;
     background: var(--accent);
-    border-radius: 12px 0 0 12px;
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
 }
 
 .project-card:hover {
     transform: translateY(-4px);
-    box-shadow:
-        0 2px 6px rgba(29, 53, 64, 0.08),
-        0 12px 36px rgba(29, 53, 64, 0.16);
+    box-shadow: var(--shadow-card-hover);
 }
 
 .project-card__body {
@@ -268,7 +264,7 @@
 
 .project-card__desc {
     font-size: 0.85rem;
-    color: #555;
+    color: var(--text-secondary);
     line-height: 1.7;
     margin-bottom: 1.3rem;
     max-width: 42ch;
@@ -304,14 +300,14 @@
 
 .project-simple-card {
     border: 1px solid var(--bg-deep);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     background: var(--bg-mid);
     border-left: 3px solid var(--brand);
     transition: box-shadow 0.2s ease;
 }
 
 .project-simple-card:hover {
-    box-shadow: 0 4px 20px rgba(48, 133, 164, 0.12);
+    box-shadow: 0 4px 20px rgb(var(--brand-rgb) / 0.12);
 }
 
 .project-simple-card__inner {
@@ -360,7 +356,7 @@
     white-space: nowrap;
     padding: 0.3rem 0.75rem;
     border: 1px solid var(--brand);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     transition:
         background 0.15s ease,
         color 0.15s ease;
@@ -369,7 +365,7 @@
 }
 
 /* Restore mobile tap-target minimums (overridden by tweaks.css global rule) */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .project-simple-card__link {
         min-height: 48px;
         min-width: 48px;
@@ -400,7 +396,7 @@
     .project-card__visual {
         flex: 1 1 auto;
         min-height: 320px;
-        margin-left: -90px;
+        margin-left: var(--card-visual-bleed);
     }
 }
 
@@ -444,9 +440,7 @@
 @media (hover: none) {
     .project-card:hover {
         transform: none;
-        box-shadow:
-            0 1px 3px rgba(29, 53, 64, 0.06),
-            0 6px 24px rgba(29, 53, 64, 0.1);
+        box-shadow: var(--shadow-card);
     }
 
     .project-card:hover .project-card__screenshot {
@@ -488,12 +482,12 @@
 
 /* Reuse dark button classes on light bg — override to use brand colors */
 .project-detail .project-card__link--github {
-    background: rgba(48, 133, 164, 0.1);
+    background: rgb(var(--brand-rgb) / 0.1);
     color: var(--brand);
-    border: 1px solid rgba(48, 133, 164, 0.35);
+    border: 1px solid rgb(var(--brand-rgb) / 0.35);
 }
 .project-detail .project-card__link--github:hover {
-    background: rgba(48, 133, 164, 0.18);
+    background: rgb(var(--brand-rgb) / 0.18);
     color: var(--brand-dark);
 }
 
@@ -514,11 +508,11 @@
 
 /* Hero screenshot */
 .project-detail__hero {
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     overflow: hidden;
     box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.06),
-        0 12px 40px rgba(29, 53, 64, 0.14);
+        0 2px 8px rgb(0 0 0 / 0.06),
+        0 12px 40px rgb(var(--shadow-tint-rgb) / 0.14);
     margin: 1.5rem 0 2rem;
     border: 1px solid var(--bg-deep);
 }
@@ -532,7 +526,7 @@
 .project-detail__intro {
     font-size: 0.92rem;
     line-height: 1.75;
-    color: #444;
+    color: var(--text-body);
     max-width: 70ch;
 }
 
@@ -553,14 +547,14 @@
 
 .feature-tile {
     background: var(--bg-mid);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     padding: 1.25rem 1.1rem;
     border-left: 3px solid var(--accent);
     transition: box-shadow 0.2s ease;
 }
 
 .feature-tile:hover {
-    box-shadow: 0 4px 20px rgba(137, 196, 90, 0.12);
+    box-shadow: 0 4px 20px rgb(var(--accent-rgb) / 0.12);
 }
 
 .feature-tile__icon {
@@ -620,7 +614,7 @@
     display: block;
     border-radius: 6px;
     border: 1px solid var(--bg-deep);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 18px rgb(0 0 0 / 0.08);
 }
 
 .gallery-item figcaption {
@@ -659,7 +653,7 @@
 .data-sources-table td {
     padding: 0.65rem 0.8rem;
     border-bottom: 1px solid var(--bg-mid);
-    color: #444;
+    color: var(--text-body);
     vertical-align: top;
     line-height: 1.5;
 }
@@ -683,7 +677,7 @@
     display: flex;
     flex-direction: column;
     border: 1px solid var(--bg-deep);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     overflow: hidden;
     margin-bottom: 2rem;
 }
@@ -703,7 +697,7 @@
 }
 
 .privacy-tier:first-child {
-    background: linear-gradient(90deg, rgba(137, 196, 90, 0.06), transparent);
+    background: linear-gradient(90deg, rgb(var(--accent-rgb) / 0.06), transparent);
 }
 
 .privacy-tier:hover {
@@ -763,8 +757,8 @@
 
 /* CTA block at page bottom */
 .project-cta {
-    background: linear-gradient(135deg, #1a303a 0%, var(--brand-dark) 100%);
-    border-radius: 10px;
+    background: linear-gradient(135deg, var(--cta-bg-deep) 0%, var(--brand-dark) 100%);
+    border-radius: var(--radius-lg);
     padding: 2rem 2.25rem;
     display: flex;
     align-items: center;
@@ -784,7 +778,7 @@
 }
 
 .project-cta__text p {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgb(255 255 255 / 0.6);
     font-size: 0.82rem;
     margin: 0;
     line-height: 1.5;
