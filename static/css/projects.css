@@ -194,10 +194,34 @@
     transition: transform 0.5s ease;
 }
 
-/* Single-ramp mask on the container — one slope = no kinks */
+/* Gradient mask fades the image in from the left */
 .project-card__visual {
-    -webkit-mask-image: linear-gradient(to right, transparent 22%, black 52%);
-    mask-image: linear-gradient(to right, transparent 22%, black 52%);
+    -webkit-mask-image: linear-gradient(to right, transparent 22%, black 37%);
+    mask-image: linear-gradient(to right, transparent 22%, black 37%);
+}
+
+/* Pseudo-element with backdrop-filter scopes blur to the transition zone only */
+.project-card__visual::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    /* Fade the blur in/out so it peaks at the mask transition, not the whole image */
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 20%,
+        black 28%,
+        transparent 45%
+    );
+    mask-image: linear-gradient(
+        to right,
+        transparent 20%,
+        black 28%,
+        transparent 45%
+    );
+    z-index: 2;
+    pointer-events: none;
 }
 
 .project-card:hover .project-card__screenshot {
@@ -369,7 +393,6 @@
         min-height: 320px;
         margin-left: -90px;
     }
-
 }
 
 @media (max-width: 767px) {
@@ -384,7 +407,6 @@
     .project-card__desc {
         max-width: none;
     }
-
 }
 
 /* ---------------------------------------------------------------
