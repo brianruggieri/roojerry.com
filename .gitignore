@@ -21,6 +21,6 @@ node_modules/
 # Worktrees
 .worktrees/
 
-# Tests
+# Tests — diffs and snapshots are ephemeral dev artifacts
 tests/visual/diffs/
 tests/visual/snapshots/
