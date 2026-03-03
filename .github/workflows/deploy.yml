@@ -19,8 +19,20 @@ jobs:
           hugo-version: '0.155.0'
           extended: true
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Build
         run: hugo --minify
+
+      - name: Purge unused CSS
+        run: npx purgecss --config purgecss.config.js
 
       - name: Deploy via rsync
         uses: burnett01/rsync-deployments@7.0.1

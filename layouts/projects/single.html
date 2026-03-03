@@ -54,8 +54,12 @@
 
     {{/* ── Hero screenshot ── */}}
     {{ with .Params.image }}
+    {{ $webp := . | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
     <div class="project-detail__hero">
-      <img src="{{ . }}" alt="{{ $.Title }} — hero screenshot" loading="eager" />
+      <picture>
+        <source srcset="{{ $webp }}" type="image/webp">
+        <img src="{{ . }}" alt="{{ $.Title }} — hero screenshot" loading="eager" />
+      </picture>
     </div>
     {{ end }}
 
@@ -108,8 +112,12 @@
     <h3 class="project-section-heading">Screenshots</h3>
     <div class="screenshots-gallery" role="region" aria-label="Project screenshots">
       {{ range . }}
+      {{ $webp := .src | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
       <figure class="gallery-item">
-        <img src="{{ .src }}" alt="{{ .caption }}" loading="lazy" />
+        <picture>
+          <source srcset="{{ $webp }}" type="image/webp">
+          <img src="{{ .src }}" alt="{{ .caption }}" loading="lazy" />
+        </picture>
         <figcaption>{{ .caption }}</figcaption>
       </figure>
       {{ end }}

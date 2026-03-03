@@ -53,10 +53,17 @@
   </div>
 
   <div class="project-card__visual">
-    <img src="{{ .Params.image }}"
-         alt="{{ .Title }} — screenshot"
-         class="project-card__screenshot"
-         loading="lazy" />
+    {{ $img := .Params.image }}
+    {{ $webp := $img | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+    {{ $ext := $img | replaceRE `^.*\.` "" }}
+    {{ $mime := cond (eq $ext "jpg") "image/jpeg" (printf "image/%s" $ext) }}
+    <picture>
+      <source srcset="{{ $webp }}" type="image/webp">
+      <img src="{{ $img }}"
+           alt="{{ .Title }} — screenshot"
+           class="project-card__screenshot"
+           loading="lazy" />
+    </picture>
   </div>
 
 </article>
