@@ -31,7 +31,7 @@
         {{ with .Params.github }}
         <a href="{{ . }}" class="project-card__link project-card__link--github"
            target="_blank" rel="noopener noreferrer">
-          <i class="fab fa-github" aria-hidden="true"></i> GitHub
+          {{ partial "icon.html" (dict "icon" "fab fa-github") }} GitHub
         </a>
         {{ end }}
         {{ with .Params.release }}
@@ -39,7 +39,7 @@
         {{ $label := $.Params.releaseLabel | default "Latest Release" }}
         <a href="{{ . }}" class="project-card__link project-card__link--release"
            target="_blank" rel="noopener noreferrer">
-          <i class="{{ $icon }}" aria-hidden="true"></i> {{ $label }}
+          {{ partial "icon.html" (dict "icon" $icon) }} {{ $label }}
         </a>
         {{ end }}
       </div>
@@ -74,7 +74,7 @@
     <div class="project-detail__features">
       {{ range . }}
       <div class="feature-tile">
-        <div class="feature-tile__icon"><i class="{{ .icon }}" aria-hidden="true"></i></div>
+        <div class="feature-tile__icon">{{ partial "icon.html" (dict "icon" .icon) }}</div>
         <div class="feature-tile__title">{{ .title }}</div>
         <p class="feature-tile__desc">{{ .desc }}</p>
       </div>
@@ -156,7 +156,7 @@
         {{ with .Params.github }}
         <a href="{{ . }}" class="project-card__link project-card__link--github"
            target="_blank" rel="noopener noreferrer">
-          <i class="fab fa-github" aria-hidden="true"></i> View on GitHub
+          {{ partial "icon.html" (dict "icon" "fab fa-github") }} View on GitHub
         </a>
         {{ end }}
         {{ with .Params.release }}
@@ -164,7 +164,7 @@
         {{ $label := $.Params.releaseLabel | default "Download Latest" }}
         <a href="{{ . }}" class="project-card__link project-card__link--release"
            target="_blank" rel="noopener noreferrer">
-          <i class="{{ $icon }}" aria-hidden="true"></i> {{ $label }}
+          {{ partial "icon.html" (dict "icon" $icon) }} {{ $label }}
         </a>
         {{ end }}
       </div>

@@ -28,9 +28,10 @@
             {{ range .Site.Params.handles }}
                 <li class="list-inline-item">
                   <a href="{{ .link }}" aria-label="{{ .name }}" data-toggle="tooltip" title="{{ .name }}" data-offset="0,10" rel="me">
-                    <span class="fa-stack fa-lg">
-                      <i class="fa fa-circle fa-stack-2x"></i>
-                      <i class="fab {{ if .icon}}fa-{{ .icon }}{{ else }}fa-{{ lower .name }}{{ end }} fa-stack-1x fa-inverse"></i>
+                    <span class="social-icon-wrap">
+                      {{ $iconName := .icon | default (.name | lower) }}
+                      {{ $iconClass := printf "fab fa-%s" $iconName }}
+                      {{ partial "icon.html" (dict "icon" $iconClass "class" "social-icon-svg") }}
                     </span>
                   </a>
                 </li>

@@ -137,3 +137,30 @@ div.skills-heading{
     transition: none;
   }
 }
+
+/* Social icon circles — replaces FA fa-stack pattern */
+.social-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: currentColor;
+  transition: background 0.2s;
+  vertical-align: middle;
+}
+
+.social-icon-svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: white;
+  display: block;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .social-icon-wrap {
+    transition: none;
+  }
+}
