@@ -87,18 +87,25 @@
   padding: 0;
 }
 
-/* Glass-on-glass pills — specificity chain beats Bootstrap's :not(:last-child) */
+/* Filled brand-blue pills, accent-green on hover — mirrors social icon treatment */
 #skills .resume-glass-card ul li.list-inline-item,
 #skills .resume-glass-card ul li.list-inline-item:not(:last-child) {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(45, 74, 82, 0.12);
+  background: var(--brand);
+  color: #fff;
+  border: 1px solid var(--brand);
   border-radius: 6px;
   padding: 0.22rem 0.65rem;
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.5;
   white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#skills .resume-glass-card ul li.list-inline-item:hover {
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 /* Date column — keep it from wrapping too tightly */
