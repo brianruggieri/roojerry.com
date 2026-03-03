@@ -1,5 +1,1 @@
 RewriteEngine On
-
-# Redirect www to bare domain (saves ~927ms redirect penalty)
-RewriteCond %{HTTP_HOST} ^www\.roojerry\.com$ [NC]
-RewriteRule ^(.*)$ https://roojerry.com/$1 [R=301,L]
