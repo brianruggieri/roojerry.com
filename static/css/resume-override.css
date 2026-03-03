@@ -145,7 +145,13 @@ h1 .text-primary {
   display: inline-block;
 }
 
-/* Social icons: trim slightly on narrowest screens */
+/* Social icons: center on mobile, trim on narrowest screens */
+@media (max-width: 767px) {
+  .list-social-icons {
+    text-align: center;
+  }
+}
+
 @media (max-width: 400px) {
   .list-social-icons a .fa-lg {
     font-size: 1.35rem;
@@ -164,12 +170,16 @@ h1 .text-primary {
   margin-top: 0.25rem;
   margin-bottom: 0;
   line-height: 1.8;
+  /* Scale down proportionally so all three chips stay on one line at any width */
+  font-size: clamp(0.62rem, 4vw, 0.9rem);
 }
 
 .tagline-chip {
   color: var(--accent);
   font-style: italic;
   font-weight: 700;
+  /* Prevent mid-phrase word breaks; line breaks fall at separator dots only */
+  white-space: nowrap;
 }
 
 .tagline-sep {
