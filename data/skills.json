@@ -1,5 +1,25 @@
 [
   {
+      "grouping":"AI & Agentic Systems",
+      "skills":[
+          { "name": "LLM Integration", "fa": "robot" },
+          { "name": "Anthropic / Claude API" },
+          { "name": "OpenAI API" },
+          { "name": "Gemini API" },
+          { "name": "Agentic Workflows" },
+          { "name": "Multi-Agent Orchestration" },
+          { "name": "RAG Pipelines" },
+          { "name": "Embeddings" },
+          { "name": "Prompt Orchestration" },
+          { "name": "AI Provider Abstraction" },
+          { "name": "claude-flow" },
+          { "name": "CrewAI" },
+          { "name": "MCP (Model Context Protocol)" },
+          { "name": "Local-First LLM" },
+          { "name": "Claude Code" }
+      ]
+  },
+  {
       "grouping":"Languages",
       "skills":[
           { "name": "TypeScript", "devicon": "typescript" },

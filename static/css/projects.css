@@ -83,12 +83,16 @@
         background 0.15s ease,
         color 0.15s ease,
         border-color 0.15s ease;
-    /* reset the mobile tap-target rule in tweaks.css */
-    min-height: unset;
-    min-width: unset;
-    min-inline-size: unset;
     line-height: 1.4;
     margin: 0;
+}
+
+/* Restore mobile tap-target minimums (overridden by tweaks.css global rule) */
+@media (max-width: 768px) {
+    .project-card__link {
+        min-height: 48px;
+        min-width: 48px;
+    }
 }
 
 .project-card__link--github {
@@ -360,11 +364,16 @@
     transition:
         background 0.15s ease,
         color 0.15s ease;
-    min-height: unset;
-    min-width: unset;
-    min-inline-size: unset;
     line-height: 1.4;
     margin: 0;
+}
+
+/* Restore mobile tap-target minimums (overridden by tweaks.css global rule) */
+@media (max-width: 768px) {
+    .project-simple-card__link {
+        min-height: 48px;
+        min-width: 48px;
+    }
 }
 
 .project-simple-card__link:hover {

@@ -37,8 +37,13 @@ function flipCoin() {
 }
 
 // Click handler (count only real clicks; auto-flips don't increment)
+// Ignore the synthetic click that follows a long-press on touch devices.
 let coinClickCounter = 0;
 function onCoinClick(e) {
+  if (longPressTriggered) {
+    longPressTriggered = false;
+    return;
+  }
   coinClickCounter++;
   flipCoin();
 
@@ -91,10 +96,17 @@ coin?.addEventListener("mouseenter", () => {
 });
 
 // Mobile long-press
+// A flag is set when the long-press timeout fires so that the synthetic
+// click event that touch devices generate on touchend is ignored.
 let pressTimer = null;
+let longPressTriggered = false;
 [coin, mobileCoin].forEach(el => {
   el?.addEventListener("touchstart", () => {
-    pressTimer = setTimeout(() => { flipCoin(); }, 500);
+    longPressTriggered = false;
+    pressTimer = setTimeout(() => {
+      longPressTriggered = true;
+      flipCoin();
+    }, 500);
   });
   el?.addEventListener("touchend", () => {
     clearTimeout(pressTimer);
