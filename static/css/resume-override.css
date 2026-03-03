@@ -57,6 +57,10 @@
   margin-bottom: 0;
 }
 
+.resume-glass-grid .resume-glass-card--wide {
+  grid-column: 1 / -1;
+}
+
 /* Date column — keep it from wrapping too tightly */
 .resume-glass-card .resume-date {
   flex-shrink: 0;

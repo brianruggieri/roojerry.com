@@ -1,6 +1,7 @@
 [
   {
       "grouping":"AI & Agentic Systems",
+      "wide": true,
       "skills":[
           { "name": "LLM Integration", "fa": "robot" },
           { "name": "Anthropic / Claude API" },

@@ -4,7 +4,7 @@
     {{ $data := $.Data }}
     <div class="resume-glass-grid">
     {{ range $data.skills }}
-      <div class="resume-glass-card">
+      <div class="resume-glass-card{{ if .wide }} resume-glass-card--wide{{ end }}">
         <div class="subheading mb-3 skills-heading">{{ .grouping }}</div>
         <ul>
           {{ range .skills }}
