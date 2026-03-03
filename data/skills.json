@@ -3,7 +3,7 @@
       "grouping":"AI & Agentic Systems",
       "wide": true,
       "skills":[
-          { "name": "LLM Integration", "fa": "robot" },
+          { "name": "LLM Integration" },
           { "name": "Anthropic / Claude API" },
           { "name": "OpenAI API" },
           { "name": "Gemini API" },
@@ -23,38 +23,48 @@
   {
       "grouping":"Languages",
       "skills":[
-          { "name": "TypeScript", "devicon": "typescript" },
-          { "name": "JavaScript", "devicon": "javascript" },
-          { "name": "C#", "devicon": "csharp" },
-          { "name": "Python", "devicon": "python" },
-          { "name": "SQL", "devicon": "postgresql" },
-          { "name": "HTML", "devicon": "html5" },
-          { "name": "CSS", "devicon": "css3" }
+          { "name": "TypeScript" },
+          { "name": "JavaScript" },
+          { "name": "C#" },
+          { "name": "Python" },
+          { "name": "SQL" },
+          { "name": "HTML" },
+          { "name": "CSS" }
       ]
   },
   {
-      "grouping":"Frameworks & Platforms",
+      "grouping":"Web & Application Frameworks",
       "skills":[
-          { "name": "Vue.js", "devicon": "vuejs" },
-          { "name": "Angular", "devicon": "angularjs" },
-          { "name": "Node.js", "devicon": "nodejs" },
-          { "name": "Unity", "devicon": "unity" },
-          { "name": "PlayCanvas", "devicon": "javascript" },
-          { "name": "WebGL", "devicon": "javascript" }
+          { "name": "Node.js" },
+          { "name": "Vue.js" },
+          { "name": "Angular" },
+          { "name": "REST APIs" },
+          { "name": "Modular Plugin Architecture" }
       ]
   },
   {
-      "grouping":"Data & Infrastructure",
+      "grouping":"Data, Platforms & Infrastructure",
       "skills":[
-          { "name": "PostgreSQL", "devicon": "postgresql" },
-          { "name": "GraphQL", "devicon": "graphql" },
-          { "name": "AWS", "devicon": "amazonwebservices" },
-          { "name": "Docker", "devicon": "docker" },
-          { "name": "Azure", "devicon": "azure" },
-          { "name": "Git", "devicon": "git" },
-          { "name": "GitHub", "devicon": "github" },
-          { "name": "CI/CD", "devicon": "jenkins" },
-          { "name": "Metabase", "fa": "chart-bar" }
+          { "name": "PostgreSQL" },
+          { "name": "GraphQL" },
+          { "name": "AWS" },
+          { "name": "Docker" },
+          { "name": "Azure" },
+          { "name": "Git" },
+          { "name": "GitHub CI/CD" },
+          { "name": "Metabase" },
+          { "name": "Event/Data Pipelines" }
+      ]
+  },
+  {
+      "grouping":"Interactive & Creative Technologies",
+      "skills":[
+          { "name": "Unity" },
+          { "name": "PlayCanvas" },
+          { "name": "WebGL" },
+          { "name": "Interactive Prototyping" },
+          { "name": "Creative Tooling" },
+          { "name": "AI-Augmented Development Tooling" }
       ]
   },
   {
@@ -62,7 +72,6 @@
       "skills":[
           { "name": "Full-Stack Development" },
           { "name": "Platform Engineering" },
-          { "name": "Creative Tooling" },
           { "name": "Interactive Systems" },
           { "name": "Educational Technology" },
           { "name": "Product Engineering" }
