@@ -2,6 +2,7 @@
 // (wired to real DOM structure in nav.html)
 
 const coin = document.getElementById("profileCoin");
+const mobileCoin = document.getElementById("mobileCoin");
 const frontFace = coin?.querySelector(".coin-front");
 const backFace  = coin?.querySelector(".coin-back");
 
@@ -16,8 +17,9 @@ function flipCoin() {
   if (!coin || flipping) return;
   flipping = true;
 
-  // Trigger CSS flip animation
+  // Trigger CSS flip animation (sync both coins)
   coin.classList.toggle("flipped");
+  mobileCoin?.classList.toggle("flipped");
   showingReal = !showingReal;
 
   // Environment sync
@@ -35,8 +37,13 @@ function flipCoin() {
 }
 
 // Click handler (count only real clicks; auto-flips don't increment)
+// Ignore the synthetic click that follows a long-press on touch devices.
 let coinClickCounter = 0;
 function onCoinClick(e) {
+  if (longPressTriggered) {
+    longPressTriggered = false;
+    return;
+  }
   coinClickCounter++;
   flipCoin();
 
@@ -50,6 +57,9 @@ function onCoinClick(e) {
 
 if (coin) {
   coin.addEventListener("click", onCoinClick);
+}
+if (mobileCoin) {
+  mobileCoin.addEventListener("click", onCoinClick);
 }
 
 // Auto-flip every 3-8 seconds
@@ -86,12 +96,19 @@ coin?.addEventListener("mouseenter", () => {
 });
 
 // Mobile long-press
+// A flag is set when the long-press timeout fires so that the synthetic
+// click event that touch devices generate on touchend is ignored.
 let pressTimer = null;
-coin?.addEventListener("touchstart", () => {
-  pressTimer = setTimeout(() => {
-    flipCoin();
-  }, 500);
-});
-coin?.addEventListener("touchend", () => {
-  clearTimeout(pressTimer);
+let longPressTriggered = false;
+[coin, mobileCoin].forEach(el => {
+  el?.addEventListener("touchstart", () => {
+    longPressTriggered = false;
+    pressTimer = setTimeout(() => {
+      longPressTriggered = true;
+      flipCoin();
+    }, 500);
+  });
+  el?.addEventListener("touchend", () => { clearTimeout(pressTimer); });
+  el?.addEventListener("touchcancel", () => { clearTimeout(pressTimer); });
+  el?.addEventListener("touchmove", () => { clearTimeout(pressTimer); });
 });

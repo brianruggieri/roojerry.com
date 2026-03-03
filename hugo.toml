@@ -15,6 +15,7 @@ email = "brianruggieri@gmail.com"
 favicon = "/favicon.ico"
 firstName = "Brian"
 lastName = "Ruggieri"
+tagline = "Systems Engineer · AI-Integrated Tooling · Interactive Platforms"
 backgroundMode = "canvas"
 profileImage = "img/me-illustration.png"
 showQr = false
@@ -23,7 +24,7 @@ showBoards  = false
 showCertifications = false
 showSocializations = true
 showVcard = false
-sections = ["experience","skills","education"]
+sections = ["projects","experience","skills","education"]
 vcardfields = [
     "name",
     "image",
