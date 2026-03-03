@@ -1,0 +1,60 @@
+<section class="resume-section p-3 p-lg-5 d-flex flex-column" id="skills">
+  <div class="my-auto" id="skills-content">
+    <h2 class="mb-5">{{ i18n "skills" }}</h2>
+    {{ $data := $.Data }}
+
+    {{/* Full-width featured cards (wide: true) sit above the grid */}}
+    {{ range $data.skills }}
+      {{ if index . "wide" }}
+        <div class="resume-glass-card skills-card--featured">
+          <div class="subheading mb-3 skills-heading">{{ .grouping }}</div>
+          <ul>
+            {{ range .skills }}
+              {{ $name := "error" }}
+              {{ if isset . "name" }}
+                {{ $name = .name }}
+              {{ else }}
+                {{ $name = . }}
+              {{ end }}
+              <li class="list-inline-item">
+                {{ if isset . "link" }}
+                  <a href="{{ .link }}">{{ $name }}</a>
+                {{ else }}
+                  {{ $name }}
+                {{ end }}
+              </li>
+            {{ end }}
+          </ul>
+        </div>
+      {{ end }}
+    {{ end }}
+
+    {{/* Remaining cards in 2-column grid */}}
+    <div class="resume-glass-grid">
+      {{ range $data.skills }}
+        {{ if not (index . "wide") }}
+          <div class="resume-glass-card">
+            <div class="subheading mb-3 skills-heading">{{ .grouping }}</div>
+            <ul>
+              {{ range .skills }}
+                {{ $name := "error" }}
+                {{ if isset . "name" }}
+                  {{ $name = .name }}
+                {{ else }}
+                  {{ $name = . }}
+                {{ end }}
+                <li class="list-inline-item">
+                  {{ if isset . "link" }}
+                    <a href="{{ .link }}">{{ $name }}</a>
+                  {{ else }}
+                    {{ $name }}
+                  {{ end }}
+                </li>
+              {{ end }}
+            </ul>
+          </div>
+        {{ end }}
+      {{ end }}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,168 @@
+{{ define "main" }}
+{{/* project detail page */}}
+{{ partial "breadcrumbs" . }}
+
+<section class="resume-section p-3 p-lg-5 d-flex d-column">
+  <div class="my-auto project-detail">
+
+    {{/* ── Header ── */}}
+    <div class="project-detail__header d-flex align-items-start justify-content-between flex-wrap gap-3">
+      <div>
+        {{ with .Params.statusLabel }}
+        <div class="project-status project-status--dark mb-2">
+          <span class="project-status__dot" aria-hidden="true"></span>
+          {{ . }}
+        </div>
+        {{ end }}
+
+        <h2 class="mb-0">
+          <span class="text-primary">{{ .Title }}</span>
+          {{ with .Params.subtitle }}
+          <span class="project-detail__subtitle">{{ . }}</span>
+          {{ end }}
+        </h2>
+
+        {{ with .Params.tagline }}
+        <p class="project-detail__tagline">&ldquo;{{ . }}&rdquo;</p>
+        {{ end }}
+      </div>
+
+      <div class="project-detail__header-links">
+        {{ with .Params.github }}
+        <a href="{{ . }}" class="project-card__link project-card__link--github"
+           target="_blank" rel="noopener noreferrer">
+          <i class="fab fa-github" aria-hidden="true"></i> GitHub
+        </a>
+        {{ end }}
+        {{ with .Params.release }}
+        {{ $icon := $.Params.releaseIcon | default "fas fa-download" }}
+        {{ $label := $.Params.releaseLabel | default "Latest Release" }}
+        <a href="{{ . }}" class="project-card__link project-card__link--release"
+           target="_blank" rel="noopener noreferrer">
+          <i class="{{ $icon }}" aria-hidden="true"></i> {{ $label }}
+        </a>
+        {{ end }}
+      </div>
+    </div>
+
+    {{/* ── Tech tags ── */}}
+    {{ with .Params.tags }}
+    <div class="project-card__tags mt-3 mb-4">
+      {{ range . }}<span class="project-tag project-tag--light">{{ . }}</span>{{ end }}
+    </div>
+    {{ end }}
+
+    {{/* ── Hero screenshot ── */}}
+    {{ with .Params.image }}
+    <div class="project-detail__hero">
+      <img src="{{ . }}" alt="{{ $.Title }} — hero screenshot" loading="eager" />
+    </div>
+    {{ end }}
+
+    {{/* ── Intro body copy ── */}}
+    {{ with .Content }}
+    <div class="project-detail__intro">{{ . }}</div>
+    {{ end }}
+
+    {{/* ── What it does ── */}}
+    {{ with .Params.features }}
+    <h3 class="project-section-heading">What it does</h3>
+    <div class="project-detail__features">
+      {{ range . }}
+      <div class="feature-tile">
+        <div class="feature-tile__icon"><i class="{{ .icon }}" aria-hidden="true"></i></div>
+        <div class="feature-tile__title">{{ .title }}</div>
+        <p class="feature-tile__desc">{{ .desc }}</p>
+      </div>
+      {{ end }}
+    </div>
+    {{ end }}
+
+    {{/* ── Data sources ── */}}
+    {{ with .Params.dataSources }}
+    <h3 class="project-section-heading">Data sources</h3>
+    <div class="table-responsive">
+      <table class="data-sources-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>What it reads</th>
+            <th>How</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ range . }}
+          <tr>
+            <td><strong>{{ .name }}</strong></td>
+            <td>{{ .reads }}</td>
+            <td><code>{{ .how }}</code></td>
+          </tr>
+          {{ end }}
+        </tbody>
+      </table>
+    </div>
+    {{ end }}
+
+    {{/* ── Screenshots ── */}}
+    {{ with .Params.screenshots }}
+    <h3 class="project-section-heading">Screenshots</h3>
+    <div class="screenshots-gallery" role="region" aria-label="Project screenshots">
+      {{ range . }}
+      <figure class="gallery-item">
+        <img src="{{ .src }}" alt="{{ .caption }}" loading="lazy" />
+        <figcaption>{{ .caption }}</figcaption>
+      </figure>
+      {{ end }}
+    </div>
+    {{ end }}
+
+    {{/* ── Privacy architecture ── */}}
+    {{ with .Params.privacyTiers }}
+    <h3 class="project-section-heading">Privacy architecture</h3>
+    <p class="mb-3" style="font-size:0.85rem;color:var(--muted);max-width:65ch;">
+      When Anthropic&rsquo;s cloud API is used, a 4-tier escalation chain controls exactly how
+      much data leaves your machine. The plugin always selects the most private tier available
+      given your configuration.
+    </p>
+    <div class="privacy-chain">
+      {{ range . }}
+      <div class="privacy-tier">
+        <div class="privacy-tier__number" aria-hidden="true">{{ .tier }}</div>
+        <div>
+          <div class="privacy-tier__label">Tier {{ .tier }} &mdash; {{ .label }}</div>
+          <p class="privacy-tier__desc">{{ .desc }}</p>
+        </div>
+      </div>
+      {{ end }}
+    </div>
+    {{ end }}
+
+    {{/* ── CTA ── */}}
+    {{ if or .Params.github .Params.release }}
+    <div class="project-cta">
+      <div class="project-cta__text">
+        <h4>{{ .Params.ctaTitle | default (printf "Get %s" .Title) }}</h4>
+        {{ with .Params.ctaDesc }}<p>{{ . }}</p>{{ end }}
+      </div>
+      <div class="project-cta__actions">
+        {{ with .Params.github }}
+        <a href="{{ . }}" class="project-card__link project-card__link--github"
+           target="_blank" rel="noopener noreferrer">
+          <i class="fab fa-github" aria-hidden="true"></i> View on GitHub
+        </a>
+        {{ end }}
+        {{ with .Params.release }}
+        {{ $icon := $.Params.releaseIcon | default "fas fa-download" }}
+        {{ $label := $.Params.releaseLabel | default "Download Latest" }}
+        <a href="{{ . }}" class="project-card__link project-card__link--release"
+           target="_blank" rel="noopener noreferrer">
+          <i class="{{ $icon }}" aria-hidden="true"></i> {{ $label }}
+        </a>
+        {{ end }}
+      </div>
+    </div>
+    {{ end }}
+
+  </div>
+</section>
+{{ end }}
