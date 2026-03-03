@@ -13,6 +13,7 @@ ctaTitle: "Get Daily Digest"
 ctaDesc: "Download from the latest release and drop it into your Obsidian vault's plugin folder."
 image: "/img/projects/daily-digest/digest-hero.png"
 featured: true
+pinned: true
 year: "2026"
 features:
   - icon: "fas fa-layer-group"

@@ -1,0 +1,30 @@
+{{ define "main" }}
+{{ partial "breadcrumbs" . }}
+<section class="resume-section p-3 p-lg-5 d-flex flex-column">
+  <div class="my-auto" id="projects-content">
+    {{/* Pinned projects first, alphabetical */}}
+    {{ range .Data.Pages.ByTitle }}
+      {{ if and (ne .Type "markdown") .Params.pinned }}
+        {{ partial (printf "%sSummary" .Type) . }}
+      {{ end }}
+    {{ end }}
+
+    {{/* Remaining projects, alphabetical */}}
+    {{ range .Data.Pages.ByTitle }}
+      {{ if and (ne .Type "markdown") (not .Params.pinned) }}
+        {{ partial (printf "%sSummary" .Type) . }}
+      {{ end }}
+    {{ end }}
+
+    {{ range .Sections }}
+      <h2 id="{{ urlize .Title }}"><a href="{{ .Permalink }}">{{ .Title }}</a></h2>
+      <p>{{ .Content }}</p>
+      {{ range .Pages }}
+        {{ if ne .Type "markdown" }}
+          {{ partial (printf "%sSummary" .Type) . }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  </div>
+</section>
+{{ end }}

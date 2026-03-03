@@ -13,6 +13,7 @@ ctaTitle: "Play Nurbits"
 ctaDesc: "Available on Steam for Windows and Mac."
 image: "/img/projects/nurbits/nurbits-hero.jpg"
 featured: true
+pinned: true
 year: "2017"
 
 features:
