@@ -18,5 +18,9 @@ node_modules/
 .claude-flow/
 .playwright-mcp/
 
+# Worktrees
+.worktrees/
+
 # Tests
 tests/visual/diffs/
+tests/visual/snapshots/
