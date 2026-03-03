@@ -18,23 +18,8 @@ lastName = "Ruggieri"
 tagline = "Systems Engineer · AI-Integrated Tooling · Interactive Platforms"
 backgroundMode = "canvas"
 profileImage = "img/me-illustration.png"
-showQr = false
-showContact = false
-showBoards  = false
-showCertifications = false
 showSocializations = true
-showVcard = false
 sections = ["projects","experience","skills","education"]
-vcardfields = [
-    "name",
-    "image",
-    "org",
-    "email",
-    "workemail",
-    "phone",
-    "url",
-    "title"
-]
 
 [params.google]
 
@@ -59,22 +44,5 @@ trackerID = "G-BNPJM4R4TM"
     link = "https://www.facebook.com/josephbrianruggieri/"
     icon = "facebook"
 
-# [[params.handles]]
-#     link = "https://stackoverflow.com/users/82880/eddie"
-#     name = "Stack Overflow"
-#     icon = "stack-overflow"
-
 [outputs]
 home = ["HTML", "JSON"]
-
-
-[mediaTypes]
-  [mediaTypes."text/vcard"]
-    suffixes = ["vcf"]
-
-[outputFormats]
-  [outputFormats.VCard]
-    mediaType = "text/vcard"
-    baseName = "contact"
-    isPlainText = true
-    notAlternative = true

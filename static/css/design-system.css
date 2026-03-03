@@ -1,19 +1,59 @@
 :root {
-  /* Palette */
-  --brand: #3085A4;
+  /* ── Palette ─────────────────────────────────────────────── */
+  --brand:      #3085A4;
   --brand-dark: #2D4A52;
-  --accent: #89C45A;
-  --muted: #7F7D81;
-  --bg-off: #F4F4F2;
-  --bg-mid: #EEF4F6;
-  --bg-deep: #E1ECEF;
-  --cyan: #8BBAC1;
+  --accent:     #89C45A;
+  --muted:      #7F7D81;
+  --bg-off:     #F4F4F2;
+  --bg-mid:     #EEF4F6;
+  --bg-deep:    #E1ECEF;
+  --cyan:       #8BBAC1;
 
-  /* Controls */
-  --panel-bg: rgba(45, 74, 82, 0.85);
+  /* Semantic color extensions */
+  --accent-dark:    #79b44d;   /* accent hover / pressed state */
+  --status-amber:   #f0b429;   /* pulsing status indicator */
+  --cta-bg-deep:    #1a303a;   /* deep-teal gradient stop in CTA block */
+  --text-body:      #444;      /* body copy on light backgrounds */
+  --text-secondary: #555;      /* slightly lighter body copy */
+
+  /* ── RGB channels ────────────────────────────────────────── */
+  /* Usage: rgb(var(--x-rgb) / 0.1)  →  color with alpha */
+  --brand-rgb:        48 133 164;
+  --accent-rgb:       137 196 90;
+  --cyan-rgb:         139 186 193;
+  --shadow-tint-rgb:  29 53 64;    /* shadow tint (darker than brand-dark) */
+  --status-amber-rgb: 240 180 41;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  /* Shared across project cards and resume glass cards */
+  --shadow-card:
+    0 1px 3px  rgb(var(--shadow-tint-rgb) / 0.06),
+    0 6px 24px rgb(var(--shadow-tint-rgb) / 0.10);
+  --shadow-card-hover:
+    0 2px 6px  rgb(var(--shadow-tint-rgb) / 0.08),
+    0 12px 36px rgb(var(--shadow-tint-rgb) / 0.16);
+
+  /* ── Border radius scale ─────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  /* How far the screenshot bleeds left under the card body on desktop */
+  --card-visual-bleed: -90px;
+
+  /* ── Controls (nav panel) ────────────────────────────────── */
+  --panel-bg:     rgba(45, 74, 82, 0.85);
   --panel-border: rgba(139, 186, 193, 0.3);
   --panel-accent: #89C45A;
 }
+
+/*  Breakpoint reference — CSS custom props can't be used in @media queries.
+    Use these values consistently across all stylesheets:
+      --bp-sm: 575px   narrowest phones
+      --bp-md: 767px   mobile/tablet  →  max-width: 767px  /  min-width: 768px
+      --bp-lg: 991px   nav / Bootstrap lg
+*/
 
 /* Small utilities */
 .hidden { display: none; }
@@ -30,15 +70,15 @@ input[type="range"]:focus { outline: none; }
 
 input[type="range"]::-webkit-slider-thumb {
   width: 12px; height: 12px; border-radius: 50%; background: var(--panel-accent);
-  box-shadow: 0 0 8px rgba(137,196,90,0.8); border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 0 8px rgb(var(--accent-rgb) / 0.8); border: 2px solid rgba(255,255,255,0.15);
 }
 input[type="range"]::-moz-range-thumb {
   width: 12px; height: 12px; border-radius: 50%; background: var(--panel-accent);
-  box-shadow: 0 0 8px rgba(137,196,90,0.8); border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 0 8px rgb(var(--accent-rgb) / 0.8); border: 2px solid rgba(255,255,255,0.15);
 }
 input[type="range"]::-ms-thumb {
   width: 12px; height: 12px; border-radius: 50%; background: var(--panel-accent);
-  box-shadow: 0 0 8px rgba(137,196,90,0.8); border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 0 8px rgb(var(--accent-rgb) / 0.8); border: 2px solid rgba(255,255,255,0.15);
 }
 
 /* Provide a base transition for elements that use prefixed versions */

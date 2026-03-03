@@ -7,13 +7,11 @@
 
 .resume-glass-card {
   overflow: hidden; /* clips ::before accent stripe to border-radius corners */
-  background: rgba(255, 255, 255, 0.45);
-  border-radius: 12px;
+  background: rgb(255 255 255 / 0.45);
+  border-radius: var(--radius-lg);
   margin-bottom: 2rem;
   padding: 1.75rem 2rem 1.75rem 2.5rem;
-  box-shadow:
-    0 1px 3px rgba(29, 53, 64, 0.06),
-    0 6px 24px rgba(29, 53, 64, 0.1);
+  box-shadow: var(--shadow-card);
   transition:
     transform 0.25s ease,
     box-shadow 0.25s ease;
@@ -29,14 +27,12 @@
   width: 3px;
   height: 100%;
   background: var(--accent);
-  border-radius: 12px 0 0 12px;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
 }
 
 .resume-glass-card:hover {
   transform: translateY(-4px);
-  box-shadow:
-    0 2px 6px rgba(29, 53, 64, 0.08),
-    0 12px 36px rgba(29, 53, 64, 0.16);
+  box-shadow: var(--shadow-card-hover);
 }
 
 /* 2-column grid for skill group cards */
@@ -145,7 +141,35 @@ h1 .text-primary {
   display: inline-block;
 }
 
-/* Social icons: trim slightly on narrowest screens */
+/* Social icons: center on mobile + tablet, trim on narrowest screens */
+@media (max-width: 991px) {
+  .list-social-icons {
+    text-align: center;
+  }
+}
+
+/* About section: center the name/tagline/address block on mobile.
+   Uses the same 991px boundary as the nav hamburger so "tablet" widths
+   are covered too.
+   Two issues to solve:
+   1. .resume-item is display:flex — text-align doesn't cascade reliably,
+      so we target inner elements directly.
+   2. Bootstrap's flex-md-row fires at ≥768px, keeping .resume-item a row
+      at e.g. 800px. The .mr-auto flex child only takes content width
+      (mr-auto pushes siblings right, it doesn't stretch the div), so
+      text centering is relative to a narrow content-width box.
+      Fix: width:100% makes the wrapper span the full flex container. */
+@media (max-width: 991px) {
+  #about .resume-item .mr-auto {
+    width: 100%;
+  }
+  #about h1,
+  #about .hero-tagline,
+  #about .subheading {
+    text-align: center;
+  }
+}
+
 @media (max-width: 400px) {
   .list-social-icons a .fa-lg {
     font-size: 1.35rem;
@@ -164,12 +188,16 @@ h1 .text-primary {
   margin-top: 0.25rem;
   margin-bottom: 0;
   line-height: 1.8;
+  /* Scale down proportionally so all three chips stay on one line at any width */
+  font-size: clamp(0.62rem, 4vw, 0.9rem);
 }
 
 .tagline-chip {
   color: var(--accent);
   font-style: italic;
   font-weight: 700;
+  /* Prevent mid-phrase word breaks; line breaks fall at separator dots only */
+  white-space: nowrap;
 }
 
 .tagline-sep {
@@ -329,7 +357,7 @@ h1 .text-primary {
   /* Accent glow on open */
   .mobile-nav-toggle[aria-expanded="true"] .mobile-nav-toggle__bar {
     background: var(--accent);
-    box-shadow: 0 0 6px rgba(137, 196, 90, 0.4);
+    box-shadow: 0 0 6px rgb(var(--accent-rgb) / 0.4);
   }
 
   /* --- Expanded menu glass panel --- */
@@ -414,7 +442,7 @@ h1 .text-primary {
     height: 6px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 8px rgba(137, 196, 90, 0.5);
+    box-shadow: 0 0 8px rgb(var(--accent-rgb) / 0.5);
   }
 
   /* --- Accessibility: reduced motion --- */

@@ -9,7 +9,6 @@ Built with [Hugo](https://gohugo.io/), based on [eddiewebb/hugo-resume](https://
 - **Interactive physics background** — canvas-based particle field that reacts to mouse movement and scrolling
 - **Achievement system** — unlockable badges triggered by visitor interactions
 - **Scroll-reveal navigation** — animated sidebar nav
-- **vCard export** — downloadable contact card with phone number injected at build time
 
 ## Local Development
 
@@ -40,7 +39,7 @@ npm run test:visual   # visual regression snapshots
 - `static/img/` — Images
 - `static/css/` — Custom stylesheets (project-level overrides)
 - `static/js/` — Custom scripts (physics background, achievements, nav animations)
-- `layouts/` — Custom layout overrides (baseof.html, partials, vCard)
+- `layouts/` — Custom layout overrides (baseof.html, partials)
 - `tests/` — Puppeteer-based e2e and visual regression tests
 - `themes/resume/` — Vendored upstream theme (eddiewebb/hugo-resume)
 
@@ -54,4 +53,3 @@ Pushes to `main` trigger a GitHub Actions workflow that builds with Hugo and dep
 | `DEPLOY_USER` | SSH user |
 | `DEPLOY_PATH` | Remote path |
 | `DEPLOY_KEY` | SSH private key |
-| `PHONE` | Phone number injected into vCard at build time |
