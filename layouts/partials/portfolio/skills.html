@@ -2,39 +2,59 @@
   <div class="my-auto" id="skills-content">
     <h2 class="mb-5">{{ i18n "skills" }}</h2>
     {{ $data := $.Data }}
-    <div class="resume-glass-grid">
+
+    {{/* Full-width featured cards (wide: true) sit above the grid */}}
     {{ range $data.skills }}
-      <div class="resume-glass-card{{ if index . "wide" }} resume-glass-card--wide{{ end }}">
-        <div class="subheading mb-3 skills-heading">{{ .grouping }}</div>
-        <ul>
-          {{ range .skills }}
-            {{ $name := "error" }}
-            {{ $iconclass := "devicon-bash-plain" }}
-            {{ if isset . "name" }}
-              {{ $name = .name }}
-            {{ else }}
-              {{ $name = . }}
-            {{ end }}
-            {{ $hasIcon := false }}
-            {{ if isset . "fa" }}
-              {{ $iconclass = printf "fas fa-%s" .fa }}
-              {{ $hasIcon = true }}
-            {{ else if isset . "devicon" }}
-              {{ $iconclass = printf "devicon-%s-plain" ( lower .devicon ) }}
-              {{ $hasIcon = true }}
-            {{ end }}
-            <li class="list-inline-item">
-              {{ if $hasIcon }}<i class="{{ $iconclass }}"></i>{{ end }}
-              {{ if isset . "link" }}
-                <a href="{{ .link }}">{{ $name }}</a>
+      {{ if index . "wide" }}
+        <div class="resume-glass-card skills-card--featured">
+          <div class="subheading mb-3 skills-heading">{{ .grouping }}</div>
+          <ul>
+            {{ range .skills }}
+              {{ $name := "error" }}
+              {{ if isset . "name" }}
+                {{ $name = .name }}
               {{ else }}
-                {{ $name }}
+                {{ $name = . }}
               {{ end }}
-            </li>
-          {{ end }}
-        </ul>
-      </div>
+              <li class="list-inline-item">
+                {{ if isset . "link" }}
+                  <a href="{{ .link }}">{{ $name }}</a>
+                {{ else }}
+                  {{ $name }}
+                {{ end }}
+              </li>
+            {{ end }}
+          </ul>
+        </div>
+      {{ end }}
     {{ end }}
+
+    {{/* Remaining cards in 2-column grid */}}
+    <div class="resume-glass-grid">
+      {{ range $data.skills }}
+        {{ if not (index . "wide") }}
+          <div class="resume-glass-card">
+            <div class="subheading mb-3 skills-heading">{{ .grouping }}</div>
+            <ul>
+              {{ range .skills }}
+                {{ $name := "error" }}
+                {{ if isset . "name" }}
+                  {{ $name = .name }}
+                {{ else }}
+                  {{ $name = . }}
+                {{ end }}
+                <li class="list-inline-item">
+                  {{ if isset . "link" }}
+                    <a href="{{ .link }}">{{ $name }}</a>
+                  {{ else }}
+                    {{ $name }}
+                  {{ end }}
+                </li>
+              {{ end }}
+            </ul>
+          </div>
+        {{ end }}
+      {{ end }}
     </div>
   </div>
 </section>

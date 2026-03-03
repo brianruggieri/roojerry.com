@@ -62,12 +62,25 @@
 }
 
 /* =========================
-   Skills Section — Compact padding + glass pills
+   Skills Section — Layout, padding, pills, stripes
 ========================= */
 
-/* Tighter padding for skill cards; experience/education keep standard sizing */
-#skills .resume-glass-card {
+/* Featured (full-width) AI card — sits above the grid, small gap below */
+#skills .skills-card--featured {
   padding: 1.25rem 1.5rem 1.25rem 2rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Compact padding for grid cards */
+#skills .resume-glass-grid .resume-glass-card {
+  padding: 1.25rem 1.5rem 1.25rem 1.5rem;
+}
+
+/* Remove accent stripe from 2-col grid cards — looks odd on right-column cards
+   and creates stripe-in-the-middle-of-the-layout on wide viewports.
+   The featured AI card (outside the grid) keeps its stripe. */
+#skills .resume-glass-grid .resume-glass-card::before {
+  display: none;
 }
 
 /* Pill list reset */
@@ -76,9 +89,10 @@
   line-height: 1;
 }
 
-/* Glass-on-glass pills — one layer lighter than the card itself */
-#skills .list-inline-item,
-#skills .list-inline-item:not(:last-child) {
+/* Glass-on-glass pills — stronger specificity chain beats Bootstrap */
+#skills .resume-glass-card ul li.list-inline-item,
+#skills .resume-glass-card ul li.list-inline-item:not(:last-child) {
+  display: inline-block;
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(45, 74, 82, 0.12);
   border-radius: 6px;
