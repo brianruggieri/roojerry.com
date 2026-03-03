@@ -171,14 +171,6 @@ h1 .text-primary {
 }
 
 @media (max-width: 400px) {
-  .list-social-icons a .social-icon-wrap {
-    width: 2rem;
-    height: 2rem;
-  }
-  .list-social-icons a .social-icon-svg {
-    width: 1rem;
-    height: 1rem;
-  }
   .list-social-icons .list-inline-item {
     margin-right: 0.1rem;
     margin-left: 0.1rem;
