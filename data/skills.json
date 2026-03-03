@@ -66,15 +66,5 @@
           { "name": "Creative Tooling" },
           { "name": "AI-Augmented Development Tooling" }
       ]
-  },
-  {
-      "grouping":"Domains",
-      "skills":[
-          { "name": "Full-Stack Development" },
-          { "name": "Platform Engineering" },
-          { "name": "Interactive Systems" },
-          { "name": "Educational Technology" },
-          { "name": "Product Engineering" }
-      ]
   }
 ]
