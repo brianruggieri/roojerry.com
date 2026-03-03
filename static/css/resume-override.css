@@ -136,6 +136,7 @@ h1 {
    together as one box, and the browser only breaks at the space between names. */
 h1 .text-primary {
   display: inline-block;
+  color: var(--accent) !important;
 }
 
 /* Social icons: trim slightly on narrowest screens */
