@@ -6,6 +6,7 @@
 ========================= */
 
 .resume-glass-card {
+  overflow: hidden; /* clips ::before accent stripe to border-radius corners */
   background: rgba(255, 255, 255, 0.45);
   border-radius: 12px;
   margin-bottom: 2rem;
@@ -71,25 +72,22 @@
   margin-bottom: 1.25rem;
 }
 
-/* Compact padding for grid cards */
+/* Grid cards: less top padding, left padding just clears the 3px stripe */
 #skills .resume-glass-grid .resume-glass-card {
-  padding: 1.25rem 1.5rem 1.25rem 1.5rem;
+  padding: 0.85rem 1.25rem 1.1rem 1.5rem;
 }
 
-/* Remove accent stripe from 2-col grid cards — looks odd on right-column cards
-   and creates stripe-in-the-middle-of-the-layout on wide viewports.
-   The featured AI card (outside the grid) keeps its stripe. */
-#skills .resume-glass-grid .resume-glass-card::before {
-  display: none;
-}
-
-/* Pill list reset */
+/* Pill list — flex for centered wrapping */
 #skills .resume-glass-card ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
   margin-bottom: 0;
-  line-height: 1;
+  padding: 0;
 }
 
-/* Glass-on-glass pills — stronger specificity chain beats Bootstrap */
+/* Glass-on-glass pills — specificity chain beats Bootstrap's :not(:last-child) */
 #skills .resume-glass-card ul li.list-inline-item,
 #skills .resume-glass-card ul li.list-inline-item:not(:last-child) {
   display: inline-block;
@@ -97,7 +95,7 @@
   border: 1px solid rgba(45, 74, 82, 0.12);
   border-radius: 6px;
   padding: 0.22rem 0.65rem;
-  margin: 0.2rem 0.15rem;
+  margin: 0;
   font-size: 0.8rem;
   line-height: 1.5;
   white-space: nowrap;
