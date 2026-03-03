@@ -7,7 +7,12 @@
                 <span class="text-primary">{{ .Site.Params.lastName }}</span>
               </h1>
               {{ if .Site.Params.tagline }}
-              <p class="hero-tagline mb-2">{{ .Site.Params.tagline }}</p>
+              <p class="hero-tagline mb-2">
+                {{ $parts := split .Site.Params.tagline " · " }}
+                {{ range $i, $part := $parts }}
+                  {{ if $i }}<span class="tagline-sep">·</span>{{ end }}<span class="tagline-chip">{{ $part }}</span>
+                {{ end }}
+              </p>
               {{ end }}
               <div class="subheading mb-5">{{ .Site.Params.address }} ·
                 <a href="mailto:{{ .Site.Params.email }}">{{ substr .Site.Params.email 0 5}}<span style="display:none">-remove-</span>{{ substr .Site.Params.email 5 }}</a>
