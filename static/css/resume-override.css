@@ -141,17 +141,31 @@ h1 .text-primary {
   display: inline-block;
 }
 
-/* Social icons: center on mobile, trim on narrowest screens */
-@media (max-width: 767px) {
+/* Social icons: center on mobile + tablet, trim on narrowest screens */
+@media (max-width: 991px) {
   .list-social-icons {
     text-align: center;
   }
 }
 
 /* About section: center the name/tagline/address block on mobile.
-   Social icons are already centered above; this handles the text above them. */
-@media (max-width: 767px) {
-  #about .resume-item {
+   Uses the same 991px boundary as the nav hamburger so "tablet" widths
+   are covered too.
+   Two issues to solve:
+   1. .resume-item is display:flex — text-align doesn't cascade reliably,
+      so we target inner elements directly.
+   2. Bootstrap's flex-md-row fires at ≥768px, keeping .resume-item a row
+      at e.g. 800px. The .mr-auto flex child only takes content width
+      (mr-auto pushes siblings right, it doesn't stretch the div), so
+      text centering is relative to a narrow content-width box.
+      Fix: width:100% makes the wrapper span the full flex container. */
+@media (max-width: 991px) {
+  #about .resume-item .mr-auto {
+    width: 100%;
+  }
+  #about h1,
+  #about .hero-tagline,
+  #about .subheading {
     text-align: center;
   }
 }
