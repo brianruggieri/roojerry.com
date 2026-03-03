@@ -171,9 +171,6 @@ h1 .text-primary {
 }
 
 @media (max-width: 400px) {
-  .list-social-icons a .fa-lg {
-    font-size: 1.35rem;
-  }
   .list-social-icons .list-inline-item {
     margin-right: 0.1rem;
     margin-left: 0.1rem;

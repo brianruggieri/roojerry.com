@@ -34,7 +34,7 @@
       {{ with .Params.github }}
       <a href="{{ . }}" class="project-card__link project-card__link--github"
          target="_blank" rel="noopener noreferrer">
-        <i class="fab fa-github" aria-hidden="true"></i> GitHub
+        {{ partial "icon.html" (dict "icon" "fab fa-github") }} GitHub
       </a>
       {{ end }}
       {{ with .Params.release }}
@@ -42,7 +42,7 @@
       {{ $label := $.Params.releaseLabel | default "Download" }}
       <a href="{{ . }}" class="project-card__link project-card__link--release"
          target="_blank" rel="noopener noreferrer">
-        <i class="{{ $icon }}" aria-hidden="true"></i> {{ $label }}
+        {{ partial "icon.html" (dict "icon" $icon) }} {{ $label }}
       </a>
       {{ end }}
       <a href="{{ .Permalink }}" class="project-card__link project-card__link--details">
@@ -90,7 +90,7 @@
     {{ with .Params.externalLink }}
     <a href="{{ . }}" class="project-simple-card__link"
        target="_blank" rel="noopener noreferrer">
-      Visit <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+      Visit {{ partial "icon.html" (dict "icon" "fas fa-external-link-alt") }}
     </a>
     {{ end }}
   </div>

@@ -137,3 +137,45 @@ div.skills-heading{
     transition: none;
   }
 }
+
+/* Social icon circles — replaces FA fa-stack pattern */
+/* Original FA: .fa-stack.fa-lg with theme override font-size:1.75rem → ~3.5rem circle */
+.social-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: currentColor;
+  transition: background 0.2s;
+  vertical-align: middle;
+}
+
+.social-icon-svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: block;
+  flex-shrink: 0;
+}
+
+.social-icon-svg path {
+  fill: white;
+}
+
+@media (max-width: 400px) {
+  .list-social-icons a .social-icon-wrap {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .list-social-icons a .social-icon-svg {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .social-icon-wrap {
+    transition: none;
+  }
+}
