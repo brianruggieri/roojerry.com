@@ -157,6 +157,19 @@ h1 .text-primary {
 }
 
 /* =========================
+   Hero Tagline
+========================= */
+
+.hero-tagline {
+  color: var(--accent);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+/* =========================
    Name Physics Layer
 ========================= */
 
