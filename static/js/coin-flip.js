@@ -108,7 +108,7 @@ let longPressTriggered = false;
       flipCoin();
     }, 500);
   });
-  el?.addEventListener("touchend", () => {
-    clearTimeout(pressTimer);
-  });
+  el?.addEventListener("touchend", () => { clearTimeout(pressTimer); });
+  el?.addEventListener("touchcancel", () => { clearTimeout(pressTimer); });
+  el?.addEventListener("touchmove", () => { clearTimeout(pressTimer); });
 });
