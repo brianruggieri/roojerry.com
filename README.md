@@ -7,7 +7,7 @@ Personal portfolio and resume site for Brian Ruggieri — [roojerry.com](https:/
 [![Built with Hugo](https://img.shields.io/badge/built%20with-Hugo-FF4088?style=flat-square&logo=hugo&logoColor=white)](https://gohugo.io)
 
 **Lighthouse** (last run: 2026-03-04)
-[![Performance](https://img.shields.io/badge/Performance-78-orange?style=flat-square&logo=lighthouse&logoColor=white)](https://github.com/brianruggieri/roojerry.com/issues)
+[![Performance](https://img.shields.io/badge/Performance-86-yellowgreen?style=flat-square&logo=lighthouse&logoColor=white)](https://github.com/brianruggieri/roojerry.com/issues)
 [![Accessibility](https://img.shields.io/badge/Accessibility-100-brightgreen?style=flat-square&logo=lighthouse&logoColor=white)](https://github.com/brianruggieri/roojerry.com/issues)
 [![Best Practices](https://img.shields.io/badge/Best%20Practices-100-brightgreen?style=flat-square&logo=lighthouse&logoColor=white)](https://github.com/brianruggieri/roojerry.com/issues)
 [![SEO](https://img.shields.io/badge/SEO-100-brightgreen?style=flat-square&logo=lighthouse&logoColor=white)](https://github.com/brianruggieri/roojerry.com/issues)
