@@ -1,5 +1,5 @@
 export default {
-  content: ['public/**/*.html'],
+  content: ['public/**/*.html', 'public/js/**/*.js'],
   css: ['public/css/**/*.css'],
   output: 'public/css',
   safelist: {
@@ -15,10 +15,6 @@ export default {
       'modal', 'modal-backdrop', 'modal-open',
       'was-validated',
       'sr-only', 'sr-only-focusable',
-      // Coin flip — JS-toggled via coin-flip.js; never appears in static HTML
-      'flipped', 'flipping',
-      // Nav scroll-reveal — JS-toggled via nav-scroll-reveal.js; never appears in static HTML
-      'nav-visible',
     ],
     deep: [
       /^(bd-|bs-)/,
