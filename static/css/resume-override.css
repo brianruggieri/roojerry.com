@@ -141,6 +141,11 @@ h1 .text-primary {
   display: inline-block;
 }
 
+/* Projects intro: underline inline links (WCAG link-in-text-block — Bootstrap strips underlines globally) */
+#projects .my-auto p a {
+  text-decoration: underline;
+}
+
 /* Social icons: spacing + center on mobile + tablet, trim on narrowest screens */
 .list-social-icons .list-inline-item:not(:last-child) {
   margin-right: 2rem;
