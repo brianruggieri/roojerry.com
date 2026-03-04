@@ -19,9 +19,11 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <!-- Bootstrap core CSS (self-hosted so PurgeCSS can strip unused rules at build) -->
   <link rel="stylesheet" href="/css/bootstrap.min.css">
-  <!-- Custom fonts for this template -->
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&family=Saira+Extra+Condensed:wght@100;200;300;400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&family=Saira+Extra+Condensed:wght@100;200;300;400;500;600;700;800;900&display=swap"></noscript>
+  <!-- Self-hosted fonts: preload woff2 files so browser fetches them before CSS is parsed -->
+  <link rel="preload" href="/fonts/open-sans.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/open-sans-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/saira-extra-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/fonts.css">
   <!-- Custom styles for this template -->
   <link rel="stylesheet" href="/css/design-system.css">
   <link rel="stylesheet" href="/css/resume.css">
@@ -66,9 +68,9 @@
       {{ end }}
     {{ end }}
   </div>
-  <!-- Bootstrap core JavaScript -->
-  <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js" integrity="sha256-a2yjHM4jnF9f54xUQakjZGaqYs/V1CYvWpoqZzC2/Bw=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+  <!-- Bootstrap core JavaScript (deferred — no render-blocking) -->
+  <script defer src="https://code.jquery.com/jquery-3.6.4.slim.min.js" integrity="sha256-a2yjHM4jnF9f54xUQakjZGaqYs/V1CYvWpoqZzC2/Bw=" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
   <!-- Polyfills for Smooth Scrolling (deferred) -->
   <script defer src="https://unpkg.com/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js" integrity="sha384-EYn4rWu1DHvYD0sSSSbMEtXQmMl58CFJd897806+RT1jJVYbhuZlZMN6yG9nCyFa" crossorigin="anonymous"></script>
   <script defer src="https://unpkg.com/smoothscroll-anchor-polyfill@1.3.2/dist/index.min.js" integrity="sha384-EY9NBEHCFbZANmPcTm7CgG8OhsFILy0VBLG85pF6OIpP42NVbZVNsFOc23PYTCkB" crossorigin="anonymous"></script>

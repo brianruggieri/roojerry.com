@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "/opt/homebrew/bin/hugo server -D",
-    "build": "/opt/homebrew/bin/hugo --minify && npx purgecss --config purgecss.config.js",
+    "build": "/opt/homebrew/bin/hugo --minify && npx purgecss --config purgecss.config.js && npx terser public/js/bg-field.js -o public/js/bg-field.js -c -m",
     "build:check": "/opt/homebrew/bin/hugo --minify --renderToMemory",
     "preview": "/opt/homebrew/bin/hugo server --disableFastRender",
     "clean": "rm -rf public/",
@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "puppeteer": "^24.0.0",
-    "purgecss": "^8.0.0"
+    "purgecss": "^8.0.0",
+    "terser": "^5.0.0"
   }
 }
