@@ -235,6 +235,60 @@ async function runTest(name, fn, page) {
     console.log('  ⏭  Pause/visibility idle tests skipped (playback controls not present on this branch)');
   }
 
+  // ── Test N: getBoundingClientRect not called per animation frame ─────────
+  // Regression guard for the forced-reflow fix in applyElementDisturbance().
+  // After init the element bounds cache is built; getBoundingClientRect on
+  // [data-particle-disturbance] elements must never be called during the RAF
+  // loop — only at cache-build time (init / resize).
+  //
+  // Spy is installed on each disturbance element's own getBoundingClientRect
+  // (not on Element.prototype) so calls from unrelated scripts — e.g.
+  // name-disturbance.js's per-frame letter animation — don't pollute the count.
+  await runTest('getBoundingClientRect not called per animation frame (reflow regression guard)', async (page) => {
+    await page.reload({ waitUntil: 'networkidle0' });
+    await page.waitForFunction(() => window.FIELD !== undefined, { timeout: 5000 });
+
+    // Allow init (including buildElementBoundsCache) to finish before installing
+    // the spy — we only want to count post-init calls.
+    await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 200)));
+
+    // Install BCR spy on each [data-particle-disturbance] element individually.
+    const elementCount = await page.evaluate(() => {
+      const elements = document.querySelectorAll('[data-particle-disturbance]');
+      window._bcrCalls = 0;
+      elements.forEach(el => {
+        const origBCR = el.getBoundingClientRect.bind(el);
+        el.getBoundingClientRect = function () {
+          window._bcrCalls++;
+          return origBCR();
+        };
+      });
+      return elements.length;
+    });
+
+    // Wait for exactly 60 animation frames
+    await page.evaluate(() => new Promise(resolve => {
+      let frames = 0;
+      function tick() {
+        if (++frames >= 60) return resolve();
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }));
+
+    const calls = await page.evaluate(() => window._bcrCalls);
+
+    console.log(`     [data-particle-disturbance] elements: ${elementCount}`);
+    console.log(`     getBoundingClientRect calls during 60 frames: ${calls} (expected 0)`);
+
+    if (calls > 0) {
+      throw new Error(
+        `getBoundingClientRect called ${calls} time(s) during 60 animation frames. ` +
+        `Expected 0 — element bounds must be cached at init, not queried per frame.`
+      );
+    }
+  }, page);
+
   // ─── Results ─────────────────────────────────────────────────────────────
   console.log('');
   console.log(`  ${passed} passed, ${failed} failed`);
