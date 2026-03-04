@@ -32,7 +32,6 @@
     <link rel="stylesheet" href="/css/background.css">
     <link rel="stylesheet" href="/css/field-controls.css">
     <link rel="stylesheet" href="/css/achievements.css">
-    <link rel="stylesheet" href="/css/disturbance-controls.css">
     <link rel="stylesheet" href="/css/bg-controls.css">
     <link rel="stylesheet" href="/css/projects.css">
 
@@ -44,8 +43,6 @@
 <body id="page-top">
     <!-- GLOBAL GENERATIVE BACKGROUND LAYER -->
   {{ partial "background.html" . }}
-  <!-- Disturbance Field Controls -->
-  {{ partial "disturbance-controls.html" . }}
    <!-- Name Physics Field -->
   <canvas id="name-field" aria-hidden="true" role="presentation"></canvas>
   {{ partial "field-controls.html" . }}
@@ -80,7 +77,6 @@
   <script defer src="/js/field-controls.js"></script>
   <script defer src="/js/bg-field.js"></script>
   <script defer src="/js/bg-controls.js"></script>
-  <script defer src="/js/disturbance-controls.js"></script>
   <!-- <script defer src="/js/name-field.js"></script> -->
   <script defer src="/js/name-disturbance.js"></script>
   <script defer src="/js/achievements.js"></script>
