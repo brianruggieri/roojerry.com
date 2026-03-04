@@ -645,6 +645,10 @@
     border-collapse: collapse;
     font-size: 0.82rem;
     margin: 0.5rem 0 2rem;
+    /* Scroll rather than overflow on narrow viewports */
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .data-sources-table th {
