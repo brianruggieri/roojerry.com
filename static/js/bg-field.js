@@ -649,7 +649,6 @@ Current config:
     console.table(window.DISTURBANCE_CONFIG);
   };
   
-  console.log(`✅ Disturbance field ready. Type: window.DISTURBANCE_HELP()`);
   if (active && reducedMotion) drawStatic();
 
   // Dev helper: preview a fade-in from the browser console.
