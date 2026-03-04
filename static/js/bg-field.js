@@ -15,6 +15,10 @@
   let particleAlpha = 1;
   let tweenGen = 0;
 
+  // Cache of world-space expanded bounds for [data-particle-disturbance] elements.
+  // Built once at init and on resize — never queried per-frame.
+  let cachedElementBounds = [];
+
   let lastScrollY = window.scrollY;
   let scrollVelocity = 0;
   let scrollForce = 0;
@@ -257,12 +261,52 @@
     }
   }
 
-  // Generic element disturbance - applies to any element with bounding box
+  // Build (or rebuild) the world-space bounds cache for all [data-particle-disturbance]
+  // elements. World-space = viewport-relative rect + scrollOffset. This value is
+  // scroll-invariant: as the user scrolls, rect.top and scrollY change by the same
+  // ΔY, so their sum stays constant. The cache therefore only needs invalidating on
+  // resize (when layout reflows). Called once at init and on every resize event.
+  function buildElementBoundsCache() {
+    const elements = document.querySelectorAll('[data-particle-disturbance]');
+    cachedElementBounds = [];
+
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+    for (const element of elements) {
+      const rect = element.getBoundingClientRect();
+
+      // Derive per-element config from data attributes / classList (same logic as before)
+      let padding = 8;
+      let pushForce = 0.3;
+
+      if (element.dataset.particleDisturbancePadding !== undefined) {
+        padding = parseInt(element.dataset.particleDisturbancePadding, 10);
+      } else if (element.classList.contains('resume-item')) {
+        padding = 12;
+      }
+
+      if (element.dataset.particleDisturbanceForce !== undefined) {
+        pushForce = parseFloat(element.dataset.particleDisturbanceForce);
+      } else if (element.classList.contains('resume-item')) {
+        pushForce = 0.25;
+      }
+
+      // Store pre-expanded world-space bounds so the hot path needs no arithmetic
+      cachedElementBounds.push({
+        left:      rect.left   + scrollX - padding,
+        right:     rect.right  + scrollX + padding,
+        top:       rect.top    + scrollY - padding,
+        bottom:    rect.bottom + scrollY + padding,
+        pushForce
+      });
+    }
+  }
+
+  // Generic element disturbance - applies to any element with bounding box.
+  // Uses cachedElementBounds — no DOM queries or getBoundingClientRect per frame.
   function applyElementDisturbance(point) {
-    // Query all elements marked for disturbance OR all resume items
-    const disturbanceElements = document.querySelectorAll('[data-particle-disturbance]');
-    
-    if (disturbanceElements.length === 0) return;
+    if (cachedElementBounds.length === 0) return;
 
     // Convert canvas-relative point to document-space coordinates
     const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
@@ -270,101 +314,61 @@
     const pointWorldX = point.x + scrollX;
     const pointWorldY = point.y + scrollY;
 
-    for (const element of disturbanceElements) {
-      const rect = element.getBoundingClientRect();
-      
-      // Get current scroll position
-      const elemScrollX = window.pageXOffset || document.documentElement.scrollLeft;
-      const elemScrollY = window.pageYOffset || document.documentElement.scrollTop;
-      
-      // Convert viewport-relative to world space (with scroll offset)
-      const bounds = {
-        left: rect.left + elemScrollX,
-        right: rect.right + elemScrollX,
-        top: rect.top + elemScrollY,
-        bottom: rect.bottom + elemScrollY
-      };
-
-      // Get padding from data attribute or use defaults based on element type
-      let padding = 8;
-      let pushForce = 0.3;
-      
-      if (element.dataset.particleDisturbancePadding !== undefined) {
-        padding = parseInt(element.dataset.particleDisturbancePadding, 10);
-      } else if (element.classList.contains('resume-item')) {
-        padding = 12;  // Slightly larger padding for resume items
-      }
-      
-      if (element.dataset.particleDisturbanceForce !== undefined) {
-        pushForce = parseFloat(element.dataset.particleDisturbanceForce);
-      } else if (element.classList.contains('resume-item')) {
-        pushForce = 0.25;  // Slightly gentler for resume items
-      }
-
-      const expandedBounds = {
-        left: bounds.left - padding,
-        right: bounds.right + padding,
-        top: bounds.top - padding,
-        bottom: bounds.bottom + padding
-      };
+    for (const bounds of cachedElementBounds) {
+      const { left, right, top, bottom, pushForce } = bounds;
 
       // Check if particle is near or inside the expanded bounding box
-      if (pointWorldX > expandedBounds.left && pointWorldX < expandedBounds.right &&
-          pointWorldY > expandedBounds.top && pointWorldY < expandedBounds.bottom) {
-        
+      if (pointWorldX > left && pointWorldX < right &&
+          pointWorldY > top  && pointWorldY < bottom) {
+
         // Calculate distance to each edge
-        const distLeft = pointWorldX - expandedBounds.left;
-        const distRight = expandedBounds.right - pointWorldX;
-        const distTop = pointWorldY - expandedBounds.top;
-        const distBottom = expandedBounds.bottom - pointWorldY;
+        const distLeft   = pointWorldX - left;
+        const distRight  = right  - pointWorldX;
+        const distTop    = pointWorldY - top;
+        const distBottom = bottom - pointWorldY;
 
         const minDist = Math.min(distLeft, distRight, distTop, distBottom);
-        
+
         // Determine push direction based on nearest edge
         let pushX = 0, pushY = 0;
 
-        if (minDist === distLeft) {
-          pushX = -pushForce;
-        } else if (minDist === distRight) {
-          pushX = pushForce;
-        } else if (minDist === distTop) {
-          pushY = -pushForce;
-        } else if (minDist === distBottom) {
-          pushY = pushForce;
-        }
+        if      (minDist === distLeft)   pushX = -pushForce;
+        else if (minDist === distRight)  pushX =  pushForce;
+        else if (minDist === distTop)    pushY = -pushForce;
+        else if (minDist === distBottom) pushY =  pushForce;
 
         // Apply push with bounce effect - particles bounce off the element
         point.x += pushX;
         point.y += pushY;
         // Bounce: preserve existing velocity direction but add repulsion
         // This creates a bouncy, scattered effect instead of clustering
-        const bounceStrength = 0.8;  // How much the push contributes to bounce
+        const bounceStrength = 0.8;
         point.vx = point.vx * 0.92 + pushX * bounceStrength;
         point.vy = point.vy * 0.92 + pushY * bounceStrength;
       } else {
         // Particle is outside bounds - check if moving toward element and apply preventative force
         // Find closest point on element to particle
-        const closestX = Math.max(expandedBounds.left, Math.min(pointWorldX, expandedBounds.right));
-        const closestY = Math.max(expandedBounds.top, Math.min(pointWorldY, expandedBounds.bottom));
-        
-        const dx = closestX - pointWorldX;
-        const dy = closestY - pointWorldY;
+        const closestX = Math.max(left, Math.min(pointWorldX, right));
+        const closestY = Math.max(top,  Math.min(pointWorldY, bottom));
+
+        const dx   = closestX - pointWorldX;
+        const dy   = closestY - pointWorldY;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         // Only apply if particle is reasonably close (within influence radius)
         if (dist < 60 && dist > 0) {
           // Check if particle is moving toward element
           const velDotProduct = point.vx * dx + point.vy * dy;
-          
+
           if (velDotProduct > 0) {
             // Particle is moving toward element - apply repulsive force
             const nx = dx / dist;
             const ny = dy / dist;
-            
+
             // Falloff: stronger when closer
             const distanceFalloff = Math.max(0, 1 - (dist / 60));
-            const repelForce = pushForce * distanceFalloff * 0.35;  // Increased preventative force to keep particles further away
-            
+            const repelForce = pushForce * distanceFalloff * 0.35;
+
             // Apply repulsion to push particle away
             point.vx += -nx * repelForce;
             point.vy += -ny * repelForce;
@@ -576,6 +580,7 @@
   window.addEventListener("resize", () => {
     resize();
     createPoints();
+    buildElementBoundsCache();
   });
 
   window.addEventListener("bg-mode-change", (e) => {
@@ -604,6 +609,7 @@
 
   resize();
   createPoints();
+  buildElementBoundsCache();
   if (active && !running && !reducedMotion) {
     running = true;
     requestAnimationFrame(draw);
