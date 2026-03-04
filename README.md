@@ -1,6 +1,16 @@
 # roojerry
 
-Personal portfolio and resume site for Brian Ruggieri — [roojerry.com](https://roojerry.com)
+Personal portfolio and resume site for Brian Ruggieri — [roojerry.com](https://www.roojerry.com)
+
+[![Deploy](https://img.shields.io/github/actions/workflow/status/brianruggieri/roojerry.com/deploy.yml?branch=main&label=deploy&style=flat-square)](https://github.com/brianruggieri/roojerry.com/actions)
+[![Last commit](https://img.shields.io/github/last-commit/brianruggieri/roojerry.com?style=flat-square)](https://github.com/brianruggieri/roojerry.com/commits/main)
+[![Built with Hugo](https://img.shields.io/badge/built%20with-Hugo-FF4088?style=flat-square&logo=hugo&logoColor=white)](https://gohugo.io)
+
+**Lighthouse** (last run: 2026-03-04)
+[![Performance](https://img.shields.io/badge/Performance-69-orange?style=flat-square&logo=lighthouse&logoColor=white)](https://github.com/brianruggieri/roojerry.com/issues)
+[![Accessibility](https://img.shields.io/badge/Accessibility-92-brightgreen?style=flat-square&logo=lighthouse&logoColor=white)](https://github.com/brianruggieri/roojerry.com/issues)
+[![Best Practices](https://img.shields.io/badge/Best%20Practices-100-brightgreen?style=flat-square&logo=lighthouse&logoColor=white)](https://github.com/brianruggieri/roojerry.com/issues)
+[![SEO](https://img.shields.io/badge/SEO-100-brightgreen?style=flat-square&logo=lighthouse&logoColor=white)](https://github.com/brianruggieri/roojerry.com/issues)
 
 ![Site screenshot](docs/img/readme/about-hero.png)
 
