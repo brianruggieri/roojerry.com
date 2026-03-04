@@ -176,6 +176,62 @@ test('all expected nav sections are in the DOM', async page => {
   assert(sections.length === 0, `missing sections: ${sections.join(', ')}`);
 });
 
+// 8. Coin flip — .flipped CSS must change the coin-front transform.
+//    Catches PurgeCSS stripping #profileCoin.flipped rules (the flip state CSS
+//    is never in static HTML, only added by coin-flip.js at runtime).
+//    #profileCoin is inside d-none d-lg-block (hidden at 800px), so we test
+//    #mobileCoin which is visible at the mobile breakpoint instead.
+test('coin flip: .flipped class changes coin-front transform', async page => {
+  await page.setViewport({ width: 375, height: 812 });
+  const result = await page.evaluate(() => {
+    const coin = document.getElementById('mobileCoin');
+    if (!coin) throw new Error('#mobileCoin not found');
+    const front = coin.querySelector('.coin-front');
+    if (!front) throw new Error('.coin-front not found');
+    const before = getComputedStyle(front).transform;
+    // Suppress the 0.6s coin-side transition so getComputedStyle returns the
+    // target value immediately (Chromium returns the animated value at t=0
+    // for 3D→3D transitions, which equals the start value — indistinguishable
+    // from the CSS rule not applying at all).
+    front.style.transition = 'none';
+    coin.classList.add('flipped');
+    const after = getComputedStyle(front).transform;
+    front.style.transition = '';
+    coin.classList.remove('flipped');
+    return { before, after, same: before === after };
+  });
+  await page.setViewport({ width: 800, height: 600 });
+  assert(
+    !result.same,
+    `coin-front transform did not change after adding .flipped — CSS likely purged\n       before: ${result.before}\n       after:  ${result.after}`
+  );
+});
+
+// 9. Mobile nav hamburger X-morph — [aria-expanded="true"] CSS must change bar transform.
+//    Catches PurgeCSS stripping attribute-selector rules that are only active at runtime
+//    (Bootstrap sets aria-expanded="true" on the toggler when the menu opens).
+//    Run at a mobile viewport so the toggler is visible.
+test('mobile nav toggle: aria-expanded="true" changes bar transform', async page => {
+  // Switch to mobile viewport for this test, restore afterward
+  await page.setViewport({ width: 375, height: 812 });
+  const result = await page.evaluate(() => {
+    const toggle = document.querySelector('.mobile-nav-toggle');
+    if (!toggle) throw new Error('.mobile-nav-toggle not found');
+    const bar = toggle.querySelector('.mobile-nav-toggle__bar');
+    if (!bar) throw new Error('.mobile-nav-toggle__bar not found');
+    const before = getComputedStyle(bar).transform;
+    toggle.setAttribute('aria-expanded', 'true');
+    const after = getComputedStyle(bar).transform;
+    toggle.setAttribute('aria-expanded', 'false');
+    return { before, after, same: before === after };
+  });
+  await page.setViewport({ width: 800, height: 600 });
+  assert(
+    !result.same,
+    `nav bar transform did not change after aria-expanded="true" — CSS likely purged\n       before: ${result.before}\n       after:  ${result.after}`
+  );
+});
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------

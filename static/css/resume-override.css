@@ -141,7 +141,11 @@ h1 .text-primary {
   display: inline-block;
 }
 
-/* Social icons: center on mobile + tablet, trim on narrowest screens */
+/* Social icons: spacing + center on mobile + tablet, trim on narrowest screens */
+.list-social-icons .list-inline-item:not(:last-child) {
+  margin-right: 2rem;
+}
+
 @media (max-width: 991px) {
   .list-social-icons {
     text-align: center;
@@ -171,9 +175,6 @@ h1 .text-primary {
 }
 
 @media (max-width: 400px) {
-  .list-social-icons a .fa-lg {
-    font-size: 1.35rem;
-  }
   .list-social-icons .list-inline-item {
     margin-right: 0.1rem;
     margin-left: 0.1rem;

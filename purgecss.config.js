@@ -15,12 +15,17 @@ export default {
       'modal', 'modal-backdrop', 'modal-open',
       'was-validated',
       'sr-only', 'sr-only-focusable',
+      // Coin flip — JS-toggled via coin-flip.js; never appears in static HTML
+      'flipped', 'flipping',
     ],
     deep: [
       /^(bd-|bs-)/,
       /tooltip/,
       /popover/,
       /carousel/,
+      // Mobile nav hamburger X-morph uses [aria-expanded="true"] selector —
+      // Bootstrap JS sets this attribute at runtime, not in static HTML
+      /aria-expanded/,
     ],
   },
 };
