@@ -86,16 +86,8 @@
   <script defer src="/js/nav-scroll-reveal.js"></script>
   <script defer src="/js/external-links.js"></script>
 
-  {{ if .Site.Params.google.analytics.trackerID }}
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ .Site.Params.google.analytics.trackerID }}"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', '{{ .Site.Params.google.analytics.trackerID }}');
-    </script>
-  {{ end }}
+  <script data-goatcounter="https://roojerry.goatcounter.com/count"
+          async src="//gc.zgo.at/count.js"></script>
 
   {{ block "footerfiles" . }}
 

@@ -1,9 +1,9 @@
 :root {
   /* ── Palette ─────────────────────────────────────────────── */
-  --brand:      #3085A4;
+  --brand:      #23759E;
   --brand-dark: #2D4A52;
   --accent:     #89C45A;
-  --muted:      #7F7D81;
+  --muted:      #6E6C70;
   --bg-off:     #F4F4F2;
   --bg-mid:     #EEF4F6;
   --bg-deep:    #E1ECEF;
@@ -18,7 +18,7 @@
 
   /* ── RGB channels ────────────────────────────────────────── */
   /* Usage: rgb(var(--x-rgb) / 0.1)  →  color with alpha */
-  --brand-rgb:        48 133 164;
+  --brand-rgb:        35 117 158;
   --accent-rgb:       137 196 90;
   --cyan-rgb:         139 186 193;
   --shadow-tint-rgb:  29 53 64;    /* shadow tint (darker than brand-dark) */
