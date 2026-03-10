@@ -1,0 +1,273 @@
+/* =============================================================
+   Dog Playground — Interactive embed & fullscreen takeover
+   ============================================================= */
+
+/* ---------------------------------------------------------------
+   Preview container: faked canvas with play button
+--------------------------------------------------------------- */
+
+.dp-preview {
+  position: relative;
+  width: 100%;
+  max-width: 820px;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  margin: 1.5rem 0 2rem;
+  background: linear-gradient(135deg, #e8f0e4 0%, #d4e8d0 40%, #c5dcc0 100%);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--bg-deep);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.dp-preview:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+@media (hover: none) {
+  .dp-preview:hover {
+    box-shadow: var(--shadow-card);
+    transform: none;
+  }
+}
+
+/* Subtle grid pattern overlay for the preview */
+.dp-preview::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgb(var(--brand-rgb) / 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Play button */
+.dp-preview__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgb(var(--brand-rgb) / 0.9);
+  border: 3px solid rgb(255 255 255 / 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 20px rgb(0 0 0 / 0.15),
+    0 0 0 0 rgb(var(--brand-rgb) / 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.dp-preview__play svg {
+  width: 28px;
+  height: 28px;
+  fill: #fff;
+  margin-left: 4px; /* optical center for play triangle */
+}
+
+.dp-preview:hover .dp-preview__play {
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow:
+    0 6px 28px rgb(0 0 0 / 0.2),
+    0 0 0 8px rgb(var(--brand-rgb) / 0.15);
+  background: var(--brand);
+}
+
+.dp-preview__label {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-family: "Saira Extra Condensed", sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand-dark);
+  opacity: 0.6;
+}
+
+/* Decorative paw emoji scattered on the preview */
+.dp-preview__deco {
+  position: absolute;
+  font-size: 1.6rem;
+  opacity: 0.12;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dp-preview__deco:nth-child(2) { top: 18%; left: 14%; transform: rotate(-15deg); }
+.dp-preview__deco:nth-child(3) { top: 30%; right: 18%; transform: rotate(25deg); }
+.dp-preview__deco:nth-child(4) { bottom: 22%; left: 22%; transform: rotate(10deg); }
+.dp-preview__deco:nth-child(5) { bottom: 30%; right: 12%; transform: rotate(-20deg); }
+
+/* ---------------------------------------------------------------
+   Iframe container (hidden until play is clicked)
+--------------------------------------------------------------- */
+
+.dp-frame-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 820px;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin: 1.5rem 0 2rem;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--bg-deep);
+  display: none; /* shown by JS */
+}
+
+.dp-frame-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* ---------------------------------------------------------------
+   Fullscreen takeover overlay
+--------------------------------------------------------------- */
+
+.dp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  pointer-events: none;
+  /* The vignette that fades out everything */
+}
+
+.dp-overlay.is-active {
+  display: block;
+  pointer-events: auto;
+}
+
+/* Radial wipe that originates from the preview rect center */
+.dp-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.dp-overlay.is-expanded .dp-overlay__backdrop {
+  opacity: 1;
+}
+
+/* The interactive iframe in fullscreen */
+.dp-overlay__frame {
+  position: absolute;
+  border: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 48px rgb(0 0 0 / 0.12);
+  opacity: 0;
+  transition:
+    top 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    left 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.35s ease,
+    opacity 0.3s ease;
+}
+
+.dp-overlay.is-expanded .dp-overlay__frame {
+  opacity: 1;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Close button */
+.dp-overlay__close {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10001;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgb(var(--brand-rgb) / 0.85);
+  border: 2px solid rgb(255 255 255 / 0.3);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.25s ease 0.3s, transform 0.25s ease 0.3s, background 0.15s ease;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.2);
+}
+
+.dp-overlay__close svg {
+  width: 18px;
+  height: 18px;
+  fill: #fff;
+}
+
+.dp-overlay.is-expanded .dp-overlay__close {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.dp-overlay__close:hover {
+  background: var(--brand);
+}
+
+/* ---------------------------------------------------------------
+   Accessibility: reduced motion
+--------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .dp-preview {
+    transition: none;
+  }
+  .dp-preview__play {
+    transition: none;
+  }
+  .dp-overlay__backdrop {
+    transition: opacity 0.1s ease;
+  }
+  .dp-overlay__frame {
+    transition: opacity 0.1s ease;
+  }
+  .dp-overlay__close {
+    transition: opacity 0.1s ease;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Mobile overrides
+--------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .dp-preview__play {
+    width: 64px;
+    height: 64px;
+  }
+  .dp-preview__play svg {
+    width: 22px;
+    height: 22px;
+  }
+  .dp-overlay__close {
+    top: 10px;
+    right: 10px;
+    width: 42px;
+    height: 42px;
+  }
+  .dp-overlay__close svg {
+    width: 16px;
+    height: 16px;
+  }
+}
