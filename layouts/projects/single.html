@@ -57,7 +57,11 @@
     <div class="ie-preview" data-src="{{ .src }}" role="button" tabindex="0"
          aria-label="Launch {{ .title | default "interactive" }}">
       <span class="ie-preview__deco" aria-hidden="true"></span>
-      {{ with .deco }}{{ range . }}<span class="ie-preview__deco" aria-hidden="true">{{ . }}</span>{{ end }}{{ else }}
+      {{ with .deco }}
+        {{ range . }}
+        <span class="ie-preview__deco" aria-hidden="true">{{ . }}</span>
+        {{ end }}
+      {{ else }}
       <span class="ie-preview__deco" aria-hidden="true">🐾</span>
       <span class="ie-preview__deco" aria-hidden="true">🐾</span>
       <span class="ie-preview__deco" aria-hidden="true">🐾</span>
