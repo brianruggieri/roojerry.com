@@ -1,18 +1,23 @@
 /* =============================================================
-   Dog Playground — Interactive embed controller
-   Manages play/close, iframe lifecycle, and fullscreen takeover.
+   Interactive Embed — Reusable fullscreen takeover controller
+   Manages play/close, iframe lifecycle, fullscreen takeover,
+   and hides site chrome (nav, background controls, etc.)
+   when the interactive is active.
+
+   Any project with an `interactive` front-matter param gets
+   this behavior automatically.
    ============================================================= */
 
 (function () {
   "use strict";
 
-  var preview = document.querySelector(".dp-preview");
-  if (!preview) return; // not on a dog-playground page
+  var preview = document.querySelector(".ie-preview");
+  if (!preview) return; // not on an interactive-embed page
 
-  var overlay = document.getElementById("dp-overlay");
-  var backdrop = overlay && overlay.querySelector(".dp-overlay__backdrop");
-  var closeBtn = overlay && overlay.querySelector(".dp-overlay__close");
-  var frame = overlay && overlay.querySelector(".dp-overlay__frame");
+  var overlay = document.getElementById("ie-overlay");
+  var backdrop = overlay && overlay.querySelector(".ie-overlay__backdrop");
+  var closeBtn = overlay && overlay.querySelector(".ie-overlay__close");
+  var frame = overlay && overlay.querySelector(".ie-overlay__frame");
   var src = preview.dataset.src;
   if (!overlay || !frame || !src) return;
 
@@ -58,6 +63,9 @@
     // Show the overlay container
     overlay.classList.add("is-active");
 
+    // Hide site chrome (nav, bg controls, field controls, etc.)
+    document.body.classList.add("ie-fullscreen-active");
+
     // Force layout before expanding
     void overlay.offsetHeight;
 
@@ -84,6 +92,9 @@
 
     setFrameRect(rect);
 
+    // Restore site chrome
+    document.body.classList.remove("ie-fullscreen-active");
+
     // Wait for transition, then tear down
     var onEnd = function () {
       frame.removeEventListener("transitionend", onEnd);
@@ -96,17 +107,26 @@
 
     frame.addEventListener("transitionend", onEnd);
 
-    // Fallback timeout if transitionend doesn't fire
+    // Fallback timeout if transitionend doesn't fire (matches slowest CSS transition)
     setTimeout(function () {
       if (isOpen) {
         onEnd();
       }
-    }, 600);
+    }, 1000);
   }
 
   /* ── Event bindings ── */
 
   preview.addEventListener("click", open);
+
+  // Also handle Enter/Space for keyboard accessibility
+  preview.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      open();
+    }
+  });
+
   closeBtn.addEventListener("click", close);
 
   // Escape key closes the overlay
