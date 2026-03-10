@@ -52,8 +52,29 @@
     </div>
     {{ end }}
 
+    {{/* ── Interactive preview (if present, replaces static hero) ── */}}
+    {{ with .Params.interactive }}
+    <div class="ie-preview" data-src="{{ .src }}" role="button" tabindex="0"
+         aria-label="Launch {{ .title | default "interactive" }}">
+      <span class="ie-preview__deco" aria-hidden="true"></span>
+      {{ with .deco }}
+        {{ range . }}
+        <span class="ie-preview__deco" aria-hidden="true">{{ . }}</span>
+        {{ end }}
+      {{ else }}
+      <span class="ie-preview__deco" aria-hidden="true">🐾</span>
+      <span class="ie-preview__deco" aria-hidden="true">🐾</span>
+      <span class="ie-preview__deco" aria-hidden="true">🐾</span>
+      <span class="ie-preview__deco" aria-hidden="true">🐾</span>
+      {{ end }}
+      <div class="ie-preview__play" aria-hidden="true">
+        {{ partial "icon.html" (dict "icon" "fas fa-play") }}
+      </div>
+      <span class="ie-preview__label">Click to play</span>
+    </div>
+    {{ else }}
     {{/* ── Hero screenshot ── */}}
-    {{ with .Params.image }}
+    {{ with $.Params.image }}
     {{ $webp := . | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
     <div class="project-detail__hero">
       <picture>
@@ -61,6 +82,7 @@
         <img src="{{ . }}" alt="{{ $.Title }} — hero screenshot" loading="eager" />
       </picture>
     </div>
+    {{ end }}
     {{ end }}
 
     {{/* ── Intro body copy ── */}}
@@ -173,4 +195,20 @@
 
   </div>
 </section>
+
+{{/* ── Fullscreen interactive overlay (only for interactive projects) ── */}}
+{{ with .Params.interactive }}
+<div id="ie-overlay" class="ie-overlay" aria-modal="true" role="dialog"
+     aria-label="{{ .title | default "Interactive" }} — fullscreen">
+  <div class="ie-overlay__backdrop"></div>
+  <iframe class="ie-overlay__frame" src="about:blank"
+          title="{{ .title | default "Interactive" }}"
+          allow="autoplay" loading="lazy"
+          sandbox="allow-scripts allow-same-origin"></iframe>
+  <button class="ie-overlay__close" type="button"
+          aria-label="Close interactive">
+    {{ partial "icon.html" (dict "icon" "fas fa-times") }}
+  </button>
+</div>
+{{ end }}
 {{ end }}
