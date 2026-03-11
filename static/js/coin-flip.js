@@ -14,6 +14,10 @@ let showingReal = true; // front = real, back = generative
 const coinImages = JSON.parse(coin?.dataset?.coinImages || '[]');
 let currentBackImage = coinImages.length > 0 ? coinImages[0] : null;
 
+if (coinImages.length < 2) {
+  console.warn('[coin-flip] fewer than 2 coin-face images — back-to-back repeats are unavoidable.');
+}
+
 function randomRange(min, max) {
   return Math.random() * (max - min) + min;
 }
