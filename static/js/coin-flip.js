@@ -37,8 +37,9 @@ function pickRandomImage(excludePath) {
 function setFaceImage(face, imgPath) {
   if (!face || !imgPath) return;
   const webpPath = imgPath.replace(/\.(png|jpg|jpeg)$/, '.webp');
+  const mimeType = /\.jpe?g$/i.test(imgPath) ? 'image/jpeg' : 'image/png';
   face.style.backgroundImage =
-    `image-set(url('${webpPath}') type('image/webp'), url('${imgPath}') type('image/png'))`;
+    `image-set(url('${webpPath}') type('image/webp'), url('${imgPath}') type('${mimeType}'))`;
 }
 
 // Randomise the initial back face on every page load
