@@ -5,7 +5,8 @@
 {{ range readDir "static/img/coin-faces" }}
   {{ if not .IsDir }}
     {{ $name := .Name }}
-    {{ if or (strings.HasSuffix $name ".png") (strings.HasSuffix $name ".jpg") (strings.HasSuffix $name ".jpeg") }}
+    {{ $lower := $name | lower }}
+    {{ if or (strings.HasSuffix $lower ".png") (strings.HasSuffix $lower ".jpg") (strings.HasSuffix $lower ".jpeg") }}
       {{ $coinFaces = $coinFaces | append (printf "/img/coin-faces/%s" $name) }}
     {{ end }}
   {{ end }}
