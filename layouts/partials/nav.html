@@ -1,18 +1,33 @@
 {{ $frontImg := .Site.Params.profileImage | relURL }}
 {{ $frontWebp := $frontImg | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+{{/* Discover coin-face images from the coin-faces folder */}}
+{{ $coinFaces := slice }}
+{{ range readDir "static/img/coin-faces" }}
+  {{ if not .IsDir }}
+    {{ $name := .Name }}
+    {{ if or (strings.HasSuffix $name ".png") (strings.HasSuffix $name ".jpg") (strings.HasSuffix $name ".jpeg") }}
+      {{ $coinFaces = $coinFaces | append (printf "/img/coin-faces/%s" $name) }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{ $backImg := "" }}
+{{ if gt (len $coinFaces) 0 }}
+  {{ $backImg = index $coinFaces 0 }}
+{{ end }}
+{{ $backWebp := $backImg | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
   <a class="navbar-brand js-scroll-trigger" href="{{ "#about" | relURL }}">
     <div class="d-block d-lg-none mobile-brand">
-      <div id="mobileCoin" class="mobile-brand__coin">
+      <div id="mobileCoin" class="mobile-brand__coin" data-coin-images='{{ $coinFaces | jsonify }}'>
         <div class="coin-side coin-front" style="background-image: image-set(url('{{ $frontWebp }}') type('image/webp'), url('{{ $frontImg }}') type('image/png'))"></div>
-        <div class="coin-side coin-back" style="background-image: image-set(url('/img/me-photo.webp') type('image/webp'), url('/img/me-photo.png') type('image/png'))"></div>
+        <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/png'))"></div>
       </div>
       <span class="mobile-brand__name">{{ .Site.Params.firstName }} {{ .Site.Params.lastName }}</span>
     </div>
     <div class="d-none d-lg-block">
-      <div id="profileCoin" class="mx-auto mb-2">
+      <div id="profileCoin" class="mx-auto mb-2" data-coin-images='{{ $coinFaces | jsonify }}'>
         <div class="coin-side coin-front" style="background-image: image-set(url('{{ $frontWebp }}') type('image/webp'), url('{{ $frontImg }}') type('image/png'))"></div>
-        <div class="coin-side coin-back" style="background-image: image-set(url('/img/me-photo.webp') type('image/webp'), url('/img/me-photo.png') type('image/png'))"></div>
+        <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/png'))"></div>
       </div>
     </div>
   </a>
