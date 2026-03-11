@@ -50,6 +50,7 @@ async function collectImages(dir) {
     if (!entry.isFile()) continue;
     const ext = extname(entry.name).toLowerCase();
     if (!IMAGE_EXTS.has(ext)) continue;
+    // parentPath is the canonical property (Node ≥20.12); path is the legacy alias
     const full = join(entry.parentPath ?? entry.path, entry.name);
     entries.push(full);
   }
@@ -253,7 +254,7 @@ async function cmdClean() {
   const manifest = await loadManifest();
   let removed = 0;
 
-  for (const [, entry] of Object.entries(manifest)) {
+  for (const [_relPath, entry] of Object.entries(manifest)) {
     for (const output of entry.outputs ?? []) {
       const outPath = join(OUTPUT_DIR, output.file);
       if (existsSync(outPath)) {
