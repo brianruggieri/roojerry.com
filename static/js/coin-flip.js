@@ -5,12 +5,53 @@ const coin = document.getElementById("profileCoin");
 const mobileCoin = document.getElementById("mobileCoin");
 const frontFace = coin?.querySelector(".coin-front");
 const backFace  = coin?.querySelector(".coin-back");
+const mobileBackFace = mobileCoin?.querySelector(".coin-back");
 
 let flipping = false;
 let showingReal = true; // front = real, back = generative
 
+// Coin face image rotation — images discovered at build time by Hugo
+const coinImages = JSON.parse(coin?.dataset?.coinImages || '[]');
+let currentBackImage = coinImages.length > 0 ? coinImages[0] : null;
+
+if (coinImages.length < 2) {
+  console.warn('[coin-flip] fewer than 2 coin-face images — back-to-back repeats are unavoidable.');
+}
+
 function randomRange(min, max) {
   return Math.random() * (max - min) + min;
+}
+
+/**
+ * Pick a random image from the pool, different from the current one if possible.
+ */
+function pickRandomImage(excludePath) {
+  if (coinImages.length === 0) return null;
+  if (coinImages.length === 1) return coinImages[0];
+  let pick;
+  do {
+    pick = coinImages[Math.floor(Math.random() * coinImages.length)];
+  } while (pick === excludePath);
+  return pick;
+}
+
+/**
+ * Update a coin face's background-image with WebP + fallback via image-set().
+ */
+function setFaceImage(face, imgPath) {
+  if (!face || !imgPath) return;
+  const webpPath = imgPath.replace(/\.(png|jpg|jpeg)$/, '.webp');
+  const mimeType = /\.jpe?g$/i.test(imgPath) ? 'image/jpeg' : 'image/png';
+  face.style.backgroundImage =
+    `image-set(url('${webpPath}') type('image/webp'), url('${imgPath}') type('${mimeType}'))`;
+}
+
+// Randomise the initial back face on every page load
+if (coinImages.length > 0) {
+  const initialImg = pickRandomImage(null);
+  currentBackImage = initialImg;
+  setFaceImage(backFace, initialImg);
+  setFaceImage(mobileBackFace, initialImg);
 }
 
 function flipCoin() {
@@ -33,6 +74,17 @@ function flipCoin() {
   const lockDuration = (window.FIELD && window.FIELD.prefersReducedMotion()) ? 0 : 600;
   setTimeout(() => {
     flipping = false;
+
+    // When the back face is hidden again, swap it to a new random image
+    // so the next reveal shows a fresh picture.
+    if (coinImages.length > 1 && showingReal) {
+      const newImg = pickRandomImage(currentBackImage);
+      if (newImg) {
+        currentBackImage = newImg;
+        setFaceImage(backFace, newImg);
+        setFaceImage(mobileBackFace, newImg);
+      }
+    }
   }, lockDuration);
 }
 
