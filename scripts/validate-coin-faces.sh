@@ -16,8 +16,9 @@ MIN_REQUIRED=2
 
 # Count only source images (png/jpg/jpeg) — not webp companions.
 count=$(find "$COIN_DIR" -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) | wc -l)
+count=$((count + 0))  # trim whitespace from wc
 
-if [ "$count" -lt "$MIN_REQUIRED" ]; then
+if (( count < MIN_REQUIRED )); then
   echo "❌  coin-faces validation failed"
   echo "    Found $count image(s) in $COIN_DIR (need at least $MIN_REQUIRED)."
   echo "    Add more headshot .png/.jpg files so the coin never repeats."
