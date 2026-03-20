@@ -11,6 +11,7 @@ ctaDesc: "One install script. No sudo. No telemetry. Works in 30 seconds."
 image: "/img/projects/claude-code-pulse/demo-4pane.gif"
 featured: true
 year: "2026"
+featureColumns: 3
 features:
   - icon: "fas fa-plug"
     title: "Hook Architecture"

@@ -71,7 +71,7 @@
     {{/* ── What it does ── */}}
     {{ with .Params.features }}
     <h3 class="project-section-heading">What it does</h3>
-    <div class="project-detail__features">
+    <div class="project-detail__features"{{ with $.Params.featureColumns }} style="--feature-cols: {{ . }}"{{ end }}>
       {{ range . }}
       <div class="feature-tile">
         <div class="feature-tile__icon">{{ partial "icon.html" (dict "icon" .icon) }}</div>
