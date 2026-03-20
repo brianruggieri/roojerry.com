@@ -82,6 +82,21 @@
     </div>
     {{ end }}
 
+    {{/* ── How it works ── */}}
+    {{ with .Params.pipeline }}
+    <h3 class="project-section-heading">How it works</h3>
+    <div class="pipeline-flow">
+      {{ range $i, $step := . }}
+      {{ if $i }}<div class="pipeline-flow__arrow" aria-hidden="true"></div>{{ end }}
+      <div class="pipeline-flow__step">
+        <div class="pipeline-flow__icon">{{ partial "icon.html" (dict "icon" .icon) }}</div>
+        <div class="pipeline-flow__title">{{ .title }}</div>
+        <p class="pipeline-flow__desc">{{ .desc }}</p>
+      </div>
+      {{ end }}
+    </div>
+    {{ end }}
+
     {{/* ── Data sources ── */}}
     {{ with .Params.dataSources }}
     <h3 class="project-section-heading">Data sources</h3>
