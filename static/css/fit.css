@@ -81,6 +81,9 @@
 .fit-nav__links a:hover,
 .fit-nav__links a:focus {
 	color: white;
+}
+
+.fit-nav__links a:focus:not(:focus-visible) {
 	outline: none;
 }
 

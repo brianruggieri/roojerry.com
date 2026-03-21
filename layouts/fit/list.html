@@ -38,7 +38,7 @@
 		{{ if or (eq $grade "A+") (eq $grade "A") (eq $grade "A-") }}{{ $gradeClass = "a" }}{{ end }}
 		{{ if or (eq $grade "B+") (eq $grade "B") (eq $grade "B-") }}{{ $gradeClass = "b" }}{{ end }}
 
-		<a href="{{ .Permalink }}" class="fit-skill-card status-strong_match" style="text-decoration: none; cursor: pointer;">
+		<a href="{{ .Permalink }}" class="fit-skill-card status-strong_match fit-grade--{{ $gradeClass }}" style="text-decoration: none; cursor: pointer;">
 			<div class="fit-skill-card__header">
 				<span class="fit-skill-card__name">{{ .Params.company }}</span>
 				<span class="fit-skill-card__status" style="background: var(--grade-color, var(--accent));">{{ $grade }}</span>
