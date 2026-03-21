@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /fit/
+
+Sitemap: https://www.roojerry.com/sitemap.xml
