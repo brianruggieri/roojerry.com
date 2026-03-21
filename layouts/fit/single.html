@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ .Params.company }} — {{ .Title }} | Brian Ruggieri</title>
+	<meta name="description" content="{{ .Params.description | default .Params.overall_summary }}">
+	{{ if not .Params.public }}
+	<meta name="robots" content="noindex, nofollow">
+	{{ end }}
+
+	{{/* Fonts — preload for performance */}}
+	<link rel="preload" href="/fonts/saira-extra-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="preload" href="/fonts/open-sans.woff2" as="font" type="font/woff2" crossorigin>
+
+	<link rel="stylesheet" href="/css/fonts.css">
+	<link rel="stylesheet" href="/css/design-system.css">
+	<link rel="stylesheet" href="/css/fit.css">
+
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body style="background: var(--bg-off); color: var(--brand-dark); font-family: 'Open Sans', sans-serif; margin: 0; -webkit-font-smoothing: antialiased;">
+
+{{/* ── Nav ── */}}
+<nav class="fit-nav">
+	<div class="fit-nav__inner">
+		<a href="https://www.roojerry.com" class="fit-nav__brand">Brian Ruggieri</a>
+		<ul class="fit-nav__links">
+			<li><a href="#match">Match</a></li>
+			<li><a href="#skills">Skills</a></li>
+			<li><a href="#evidence">Evidence</a></li>
+			<li><a href="#projects">Projects</a></li>
+			<li><a href="#gaps">Gaps</a></li>
+		</ul>
+		<a href="{{ .Params.cal_link }}" class="fit-nav__cta" target="_blank" rel="noopener">Let's Talk</a>
+	</div>
+</nav>
+
+{{/* ── Hero ── */}}
+<main>
+<section class="fit-page fit-section" id="match">
+	{{/* Derive grade class */}}
+	{{ $grade := .Params.overall_grade }}
+	{{ $gradeClass := "c" }}
+	{{ if or (eq $grade "A+") (eq $grade "A") (eq $grade "A-") }}{{ $gradeClass = "a" }}{{ end }}
+	{{ if or (eq $grade "B+") (eq $grade "B") (eq $grade "B-") }}{{ $gradeClass = "b" }}{{ end }}
+
+	{{/* Derive should_apply display */}}
+	{{ $verdict := "Maybe" }}
+	{{ if eq .Params.should_apply "strong_yes" }}{{ $verdict = "Strong Yes" }}{{ end }}
+	{{ if eq .Params.should_apply "yes" }}{{ $verdict = "Yes" }}{{ end }}
+	{{ if eq .Params.should_apply "probably_not" }}{{ $verdict = "Probably Not" }}{{ end }}
+	{{ if eq .Params.should_apply "no" }}{{ $verdict = "No" }}{{ end }}
+
+	{{/* Derive must-have coverage */}}
+	{{ $mustTotal := 0 }}{{ $mustMet := 0 }}
+	{{ range .Params.skill_matches }}
+		{{ if eq .priority "must_have" }}
+			{{ $mustTotal = add $mustTotal 1 }}
+			{{ if ne .status "no_evidence" }}{{ $mustMet = add $mustMet 1 }}{{ end }}
+		{{ end }}
+	{{ end }}
+
+	<div class="fit-hero">
+		<div>
+			<div class="fit-hero__context">
+				<span class="fit-hero__context-dot"></span>
+				Targeting {{ .Params.company }} — {{ .Title }}
+			</div>
+			<h1 class="fit-hero__heading">
+				{{ .Title }}<br>at {{ .Params.company }}
+			</h1>
+			<p class="fit-hero__summary">{{ .Params.overall_summary }}</p>
+			<div class="fit-hero__stats">
+				<div>
+					<div class="fit-hero__stat-label">Confidence</div>
+					<div class="fit-hero__stat-value">{{ $verdict }}</div>
+				</div>
+				<div class="fit-hero__divider"></div>
+				<div>
+					<div class="fit-hero__stat-label">Must-Haves</div>
+					<div class="fit-hero__stat-value">{{ $mustMet }}/{{ $mustTotal }} met</div>
+				</div>
+			</div>
+		</div>
+		<div class="fit-grade fit-grade--{{ $gradeClass }}" aria-label="Overall grade: {{ $grade }}">
+			<div class="fit-grade__ring"></div>
+			<div class="fit-grade__ring--fill"></div>
+			<span class="fit-grade__letter">{{ $grade }}</span>
+			<span class="fit-grade__label">Overall Grade</span>
+		</div>
+	</div>
+</section>
+
+{{/* ── Skills ── */}}
+{{ with .Params.skill_matches }}
+<section class="fit-page fit-section" id="skills">
+	<div class="fit-section__title">Skill Match Matrix</div>
+	<div class="fit-section__subtitle">Technical proficiency validated through session data and corroboration.</div>
+	<div class="fit-skills-grid">
+		{{ range . }}
+		{{ $statusDisplay := replace .status "_" " " | title }}
+		<div class="fit-skill-card status-{{ .status }}">
+			<div class="fit-skill-card__header">
+				<span class="fit-skill-card__name">{{ .skill }}</span>
+				<span class="fit-skill-card__status">{{ $statusDisplay }}</span>
+			</div>
+			<div class="fit-skill-card__row">
+				<span class="fit-skill-card__row-label">Priority</span>
+				<span class="fit-skill-card__row-value">{{ replace .priority "_" " " | title }}</span>
+			</div>
+			<div class="fit-skill-card__row">
+				<span class="fit-skill-card__row-label">Depth</span>
+				<span class="fit-skill-card__row-value">{{ .depth }}</span>
+			</div>
+			{{ with .sessions }}
+			<div class="fit-skill-card__row">
+				<span class="fit-skill-card__row-label">Sessions</span>
+				<span class="fit-skill-card__row-value" style="font-variant-numeric: tabular-nums; color: var(--brand);">{{ . }}</span>
+			</div>
+			{{ end }}
+			<div class="fit-skill-card__row">
+				<span class="fit-skill-card__row-label">Source</span>
+				<span class="fit-skill-card__row-value">{{ replace .source "_" " " | title }}</span>
+			</div>
+			{{ if .discovery }}
+			<div class="fit-skill-card__discovery">✦ Found in sessions, not on resume</div>
+			{{ end }}
+		</div>
+		{{ end }}
+	</div>
+</section>
+{{ end }}
+
+{{/* ── Evidence ── */}}
+{{ with .Params.evidence_highlights }}
+<section class="fit-page fit-section" id="evidence" style="background: var(--bg-mid); padding: 5rem 0; margin: 0 calc(-50vw + 50%); width: 100vw;">
+	<div style="max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;">
+		<div style="text-align: center; margin-bottom: 3rem;">
+			<div class="fit-section__subtitle" style="color: var(--brand); margin-bottom: 0.5rem;">Evidence & Documentation</div>
+			<div class="fit-section__title">Technical Decision Logs</div>
+		</div>
+		{{ range . }}
+		<div class="fit-evidence-card">
+			<div class="fit-evidence-card__meta">
+				<div class="fit-evidence-card__heading">{{ .heading }}</div>
+				<div class="fit-evidence-card__date">{{ .date }}</div>
+				{{ with .tags }}
+				<div style="margin-top: 0.75rem;">
+					{{ range . }}<span class="fit-tag">{{ . }}</span>{{ end }}
+				</div>
+				{{ end }}
+			</div>
+			<div>
+				<blockquote class="fit-evidence-card__quote">"{{ .quote }}"</blockquote>
+				<div class="fit-evidence-card__project">{{ .project }}</div>
+			</div>
+		</div>
+		{{ end }}
+	</div>
+</section>
+{{ end }}
+
+{{/* ── Patterns ── */}}
+{{ with .Params.patterns }}
+<section class="fit-page fit-section">
+	<div class="fit-section__title">Behavioral Fingerprint</div>
+	<div class="fit-section__subtitle">Frequency analysis of professional instincts and workflow patterns.</div>
+	<div class="fit-patterns-grid">
+		{{ range . }}
+		<div class="fit-pattern-card">
+			<div class="fit-pattern-card__name">{{ .name }}</div>
+			<div class="fit-pattern-card__strength">{{ .strength }}</div>
+			<div class="fit-pattern-card__frequency">{{ .frequency }}</div>
+		</div>
+		{{ end }}
+	</div>
+</section>
+{{ end }}
+
+{{/* ── Projects ── */}}
+{{ with .Params.projects }}
+<section class="fit-page fit-section" id="projects">
+	<div class="fit-section__title">Flagship Implementations</div>
+	<div style="height: 3px; width: 4rem; background: var(--brand); border-radius: 2px; margin-bottom: 2.5rem;"></div>
+	<div class="fit-timeline">
+		{{ range . }}
+		<div class="fit-project">
+			<div class="fit-project__dot"></div>
+			<div class="fit-project__date">{{ .date_range }}</div>
+			<div class="fit-project__name">{{ .name }}</div>
+			<div class="fit-project__techs">
+				{{ range .technologies }}
+				<span class="fit-project__tech">{{ . }}</span>
+				{{ end }}
+			</div>
+			<div class="fit-project__body">
+				<p class="fit-project__desc">{{ .description }}</p>
+				{{ with .callout }}
+				<div class="fit-project__callout">
+					<div class="fit-project__callout-label">Key Decision</div>
+					<p class="fit-project__callout-text">"{{ . }}"</p>
+				</div>
+				{{ end }}
+			</div>
+		</div>
+		{{ end }}
+	</div>
+</section>
+{{ end }}
+
+{{/* ── Gaps ── */}}
+{{ with .Params.gaps }}
+<section class="fit-page fit-section" id="gaps">
+	<div class="fit-gaps">
+		<div class="fit-gaps__icon">↑</div>
+		<div style="position: relative; z-index: 1; max-width: 42rem;">
+			<div class="fit-section__title">Where I'm Growing</div>
+			<p class="fit-section__subtitle" style="font-size: 1rem; margin-bottom: 2.5rem;">Transparent view of my current development areas and active plans.</p>
+			{{ range . }}
+			<div class="fit-gap-card">
+				<div class="fit-gap-card__header">
+					<div>
+						<div class="fit-gap-card__action-label">Gap Analysis</div>
+						<div class="fit-gap-card__requirement">{{ .requirement }}</div>
+					</div>
+					<div class="fit-gap-card__status-tag">{{ .status }}</div>
+				</div>
+				<div class="fit-gap-card__action">
+					<div>
+						<div class="fit-gap-card__action-label">Action Plan</div>
+						<div class="fit-gap-card__action-text">{{ .action }}</div>
+					</div>
+				</div>
+			</div>
+			{{ end }}
+		</div>
+	</div>
+</section>
+{{ end }}
+</main>
+
+{{/* ── Footer ── */}}
+<footer class="fit-footer">
+	<h3 style="font-family: 'Saira Extra Condensed', sans-serif; font-weight: 700; font-size: 1.5rem; color: var(--brand-dark); text-transform: uppercase; margin: 0 0 1.5rem;">Let's talk about this role</h3>
+	<a href="{{ .Params.cal_link }}" class="fit-footer__cta" target="_blank" rel="noopener">Schedule a Conversation</a>
+	<ul class="fit-footer__links">
+		<li><a href="https://linkedin.com/in/roojerry" target="_blank" rel="noopener">LinkedIn</a></li>
+		<li><a href="https://github.com/brianruggieri" target="_blank" rel="noopener">GitHub</a></li>
+		<li><a href="https://www.roojerry.com" target="_blank" rel="noopener">Portfolio</a></li>
+	</ul>
+	<p class="fit-footer__credit">Generated by claude-candidate — an evidence-backed fit assessment engine.</p>
+	<p class="fit-footer__credit">© {{ now.Year }} Brian Ruggieri</p>
+</footer>
+
+</body>
+</html>
