@@ -24,6 +24,9 @@ export default {
       // Mobile nav hamburger X-morph uses [aria-expanded="true"] selector —
       // Bootstrap JS sets this attribute at runtime, not in static HTML
       /aria-expanded/,
+      // Fit page dynamic classes (status-strong_match, fit-grade--a, etc.)
+      /^status-/,
+      /^fit-grade--/,
     ],
   },
 };
