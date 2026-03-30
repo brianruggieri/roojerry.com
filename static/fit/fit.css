@@ -35,6 +35,32 @@
 .match-no_evidence   { --bar-width: 10%; }
 .match-gap           { --bar-width: 5%; }
 
+/* ── Skip to content link — visible only on focus ── */
+.visually-hidden:focus,
+.visually-hidden:focus-visible {
+	position: fixed !important;
+	top: 0.75rem;
+	left: 50%;
+	transform: translateX(-50%);
+	width: auto;
+	height: auto;
+	overflow: visible;
+	clip: auto;
+	white-space: normal;
+	background: var(--brand-dark);
+	color: white;
+	font-family: 'Saira Extra Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 0.85rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	padding: 0.6rem 1.5rem;
+	border-radius: var(--radius-lg);
+	z-index: 9999;
+	text-decoration: none;
+	margin: 0;
+}
+
 /* ── Layout wrapper ── */
 .fit-page {
 	max-width: 1200px;
