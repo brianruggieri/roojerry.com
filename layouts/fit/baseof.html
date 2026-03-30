@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ .Params.company }} — {{ .Title }} | Brian Ruggieri</title>
+	<meta name="description" content="{{ .Params.description | default .Params.overall_summary }}">
+
+	{{/* Fit pages are never indexed — they contain private assessment data */}}
+	<meta name="robots" content="noindex, nofollow">
+
+	{{/* OpenGraph */}}
+	<meta property="og:type" content="profile">
+	<meta property="og:title" content="{{ .Params.company }} — {{ .Title }} | Brian Ruggieri">
+	<meta property="og:description" content="{{ .Params.description | default .Params.overall_summary }}">
+	<meta property="og:url" content="{{ .Permalink }}">
+	<meta property="og:image" content="{{ "/img/me-illustration.png" | absURL }}">
+
+	{{/* Fonts — preload critical woff2 files before CSS is parsed */}}
+	<link rel="preload" href="/fonts/saira-extra-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="preload" href="/fonts/open-sans.woff2" as="font" type="font/woff2" crossorigin>
+
+	<link rel="stylesheet" href="/css/fonts.css">
+	<link rel="stylesheet" href="/css/design-system.css">
+	<link rel="stylesheet" href="/fit/fit.css">
+
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+	{{/* GoatCounter analytics — conditionally loaded */}}
+	{{ with .Site.Params.google.analytics.trackerID }}
+	<script data-goatcounter="https://roojerry.goatcounter.com/count"
+	        async src="//gc.zgo.at/count.js"></script>
+	{{ end }}
+</head>
+<body style="background: var(--bg-off); color: var(--brand-dark); font-family: 'Open Sans', sans-serif; margin: 0; -webkit-font-smoothing: antialiased;">
+
+	<a class="visually-hidden" href="#main-content">Skip to main content</a>
+
+	{{ block "main" . }}{{ end }}
+
+</body>
+</html>
