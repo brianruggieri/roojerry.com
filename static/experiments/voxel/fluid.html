@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Voxel Fluid</title>
+	<style>
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html, body {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			background: hsl(220, 60%, 5%);
+		}
+		canvas {
+			display: block;
+			width: 100dvw;
+			height: 100dvh;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="c"></canvas>
+	<script type="module">
+		// --- Constants ---
+		const TILE = 40
+		const MAX_DEPTH = 7
+		const OBL_DX = 12
+		const OBL_DY = -16
+		const STROKE_COLOR = 'hsl(215, 40%, 6%)'
+
+		// --- Canvas setup ---
+		const canvas = document.getElementById('c')
+		const ctx = canvas.getContext('2d')
+
+		function resizeCanvas() {
+			canvas.width = window.innerWidth * devicePixelRatio
+			canvas.height = window.innerHeight * devicePixelRatio
+			ctx.scale(devicePixelRatio, devicePixelRatio)
+		}
+		resizeCanvas()
+
+		// --- Colors: liquid palette (deep blue → cyan → white) ---
+		const PALETTE = [
+			[220, 60,  8],   // z=0: near-black deep ocean
+			[215, 65, 18],   // z=1: dark navy
+			[210, 60, 30],   // z=2: deep blue
+			[200, 55, 42],   // z=3: blue
+			[190, 55, 55],   // z=4: teal-blue
+			[180, 50, 65],   // z=5: cyan
+			[175, 45, 78],   // z=6: light cyan
+			[170, 30, 92],   // z=7: near-white foam
+		]
+		const topColors = []
+		const frontColors = []
+		const rightColors = []
+		for (let z = 0; z <= MAX_DEPTH; z++) {
+			const [h, s, l] = PALETTE[z]
+			topColors[z] = `hsl(${h}, ${s}%, ${l}%)`
+			frontColors[z] = `hsl(${h}, ${s}%, ${l * 0.5}%)`
+			rightColors[z] = `hsl(${h}, ${s}%, ${l * 0.65}%)`
+		}
+
+		// --- State ---
+		let cols = Math.ceil(window.innerWidth / TILE) + 2
+		let rows = Math.ceil(window.innerHeight / TILE) + 2
+		let eta = new Float64Array(cols * rows)
+		let Mx = new Float64Array(cols * rows)
+		let My = new Float64Array(cols * rows)
+		let eta_new = new Float64Array(cols * rows)
+		let Mx_new = new Float64Array(cols * rows)
+		let My_new = new Float64Array(cols * rows)
+		let smoothBuf = new Float64Array(cols * rows)
+		let sponge = new Float64Array(cols * rows)
+
+		// --- Sim constants ---
+		const G = 4.0
+		const FRICTION = 0.035
+		const ETA_DECAY = 0.003
+		const SIM_DT = 0.015
+		const SUB_STEPS = 3
+		const BASE_DEPTH = 1.0
+		const SMOOTH = 0.12          // isotropic blur strength (circular waves)
+		const SPONGE_MARGIN = 5      // absorbing border width in cells
+		const SPONGE_MIN = 0.80      // damping multiplier at the very edge
+
+		// Precompute the sponge (absorbing border) damping field.
+		// 1.0 in the interior, ramping down to SPONGE_MIN at the edges so
+		// waves are absorbed before they can reflect and form a standing lattice.
+		function buildSponge() {
+			for (let r = 0; r < rows; r++) {
+				for (let c = 0; c < cols; c++) {
+					const distEdge = Math.min(r, c, rows - 1 - r, cols - 1 - c)
+					let s = 1
+					if (distEdge < SPONGE_MARGIN) {
+						const t = distEdge / SPONGE_MARGIN
+						s = SPONGE_MIN + (1 - SPONGE_MIN) * t
+					}
+					sponge[r * cols + c] = s
+				}
+			}
+		}
+		buildSponge()
+
+		// --- Mouse state ---
+		let mouseGridX = -100
+		let mouseGridY = -100
+		let prevMouseX = -100
+		let prevMouseY = -100
+		let smoothVelX = 0
+		let smoothVelY = 0
+		let mouseActive = false
+
+		// --- Interaction constants ---
+		const DROP_RATE = 50.0
+		const FORCE_SCALE = 4.0
+
+		// --- Shallow Water Equations step ---
+		function fluidStep() {
+			const n = cols * rows
+
+			for (let r = 1; r < rows - 1; r++) {
+				for (let c = 1; c < cols - 1; c++) {
+					const idx = r * cols + c
+					const depth = BASE_DEPTH + eta[idx]
+					if (depth <= 0) {
+						eta_new[idx] = 0
+						Mx_new[idx] = 0
+						My_new[idx] = 0
+						continue
+					}
+
+					// Continuity: update height from flux divergence
+					eta_new[idx] = eta[idx] - SIM_DT * (
+						(Mx[idx + 1] - Mx[idx - 1]) / 2 +
+						(My[idx + cols] - My[idx - cols]) / 2
+					)
+
+					// Momentum X: pressure gradient drives horizontal flow
+					Mx_new[idx] = Mx[idx] - SIM_DT * G * depth * (eta[idx + 1] - eta[idx - 1]) / 2
+					Mx_new[idx] *= (1 - FRICTION)
+
+					// Momentum Y: pressure gradient drives vertical flow
+					My_new[idx] = My[idx] - SIM_DT * G * depth * (eta[idx + cols] - eta[idx - cols]) / 2
+					My_new[idx] *= (1 - FRICTION)
+				}
+			}
+
+			// Boundary conditions: reflective walls
+			for (let c = 0; c < cols; c++) {
+				eta_new[c] = eta_new[cols + c]                                  // top edge
+				eta_new[(rows - 1) * cols + c] = eta_new[(rows - 2) * cols + c] // bottom edge
+				My_new[c] = -My_new[cols + c]                                   // reflect Y at top
+				My_new[(rows - 1) * cols + c] = -My_new[(rows - 2) * cols + c]  // reflect Y at bottom
+			}
+			for (let r = 0; r < rows; r++) {
+				eta_new[r * cols] = eta_new[r * cols + 1]                       // left edge
+				eta_new[r * cols + cols - 1] = eta_new[r * cols + cols - 2]     // right edge
+				Mx_new[r * cols] = -Mx_new[r * cols + 1]                        // reflect X at left
+				Mx_new[r * cols + cols - 1] = -Mx_new[r * cols + cols - 2]      // reflect X at right
+			}
+
+			// Drain toward zero (settles back to flat), apply absorbing
+			// sponge border, and clamp to valid range
+			for (let i = 0; i < n; i++) {
+				const s = sponge[i]
+				eta_new[i] = Math.max(0, Math.min(MAX_DEPTH, eta_new[i] * (1 - ETA_DECAY) * s))
+				Mx_new[i] *= s
+				My_new[i] *= s
+			}
+
+			// Swap buffers
+			;[eta, eta_new] = [eta_new, eta]
+			;[Mx, Mx_new] = [Mx_new, Mx]
+			;[My, My_new] = [My_new, My]
+		}
+
+		// Isotropic 9-point blur: blends each cell toward a Gaussian-weighted
+		// average of its 8 neighbors. Including the diagonals counteracts the
+		// grid anisotropy that makes ripples spread in a plus/diamond shape,
+		// so waves read as smooth circles instead.
+		function smoothEta() {
+			for (let r = 1; r < rows - 1; r++) {
+				for (let c = 1; c < cols - 1; c++) {
+					const idx = r * cols + c
+					const blurred = (
+						4 * eta[idx] +
+						2 * (eta[idx - 1] + eta[idx + 1] + eta[idx - cols] + eta[idx + cols]) +
+						(eta[idx - 1 - cols] + eta[idx + 1 - cols] + eta[idx - 1 + cols] + eta[idx + 1 + cols])
+					) / 16
+					smoothBuf[idx] = eta[idx] + (blurred - eta[idx]) * SMOOTH
+				}
+			}
+			for (let r = 1; r < rows - 1; r++) {
+				for (let c = 1; c < cols - 1; c++) {
+					const idx = r * cols + c
+					eta[idx] = smoothBuf[idx]
+				}
+			}
+		}
+
+		// --- Mouse interaction: fountain + thrust ---
+		function injectMouse(dt) {
+			if (!mouseActive) return
+			if (mouseGridX < 0 || mouseGridY < 0) return
+
+			const mc = Math.floor(mouseGridX)
+			const mr = Math.floor(mouseGridY)
+			if (mc < 1 || mc >= cols - 1 || mr < 1 || mr >= rows - 1) return
+
+			// Compute smoothed mouse velocity
+			const rawVelX = (mouseGridX - prevMouseX)
+			const rawVelY = (mouseGridY - prevMouseY)
+			smoothVelX = smoothVelX * 0.7 + rawVelX * 0.3
+			smoothVelY = smoothVelY * 0.7 + rawVelY * 0.3
+
+			const idx = mr * cols + mc
+
+			// Fountain: add height at cursor + neighbors
+			eta[idx] += DROP_RATE * dt
+			eta[idx - 1] += DROP_RATE * dt * 0.5
+			eta[idx + 1] += DROP_RATE * dt * 0.5
+			eta[idx - cols] += DROP_RATE * dt * 0.5
+			eta[idx + cols] += DROP_RATE * dt * 0.5
+
+			// Thrust: inject momentum from mouse velocity
+			Mx[idx] += smoothVelX * FORCE_SCALE
+			My[idx] += smoothVelY * FORCE_SCALE
+
+			prevMouseX = mouseGridX
+			prevMouseY = mouseGridY
+		}
+
+		// --- Render: Canvas 2D oblique projection ---
+		function drawFace(pts, fill) {
+			ctx.beginPath()
+			ctx.moveTo(pts[0], pts[1])
+			for (let i = 2; i < pts.length; i += 2) {
+				ctx.lineTo(pts[i], pts[i + 1])
+			}
+			ctx.closePath()
+			ctx.fillStyle = fill
+			ctx.fill()
+			ctx.strokeStyle = STROKE_COLOR
+			ctx.lineWidth = 1
+			ctx.stroke()
+		}
+
+		function heightAt(idx) {
+			return Math.round(Math.max(0, Math.min(MAX_DEPTH, eta[idx])))
+		}
+
+		function render() {
+			const w = window.innerWidth
+			const h = window.innerHeight
+			ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0)
+			ctx.clearRect(0, 0, w, h)
+			ctx.lineJoin = 'round'
+
+			// Pass 1: Draw ground plane
+			for (let r = 0; r < rows; r++) {
+				for (let c = 0; c < cols; c++) {
+					const x0 = c * TILE
+					const y0 = r * TILE
+					drawFace([
+						x0, y0,
+						x0 + TILE, y0,
+						x0 + TILE, y0 + TILE,
+						x0, y0 + TILE
+					], topColors[0])
+				}
+			}
+
+			// Pass 2: Draw raised columns back-to-front
+			for (let r = 0; r < rows; r++) {
+				for (let c = cols - 1; c >= 0; c--) {
+					const idx = r * cols + c
+					const ih = heightAt(idx)
+					if (ih <= 0) continue
+
+					const x0 = c * TILE
+					const y0 = r * TILE
+					const hOffset = ih * OBL_DY
+					const wOffset = ih * OBL_DX
+
+					const leftNeighbor = c > 0 ? heightAt(idx - 1) : 0
+					const frontNeighbor = r < rows - 1 ? heightAt(idx + cols) : 0
+					const rightNeighbor = c < cols - 1 ? heightAt(idx + 1) : 0
+
+					if (ih > leftNeighbor) {
+						drawFace([
+							x0, y0,
+							x0, y0 + TILE,
+							x0 + wOffset, y0 + TILE + hOffset,
+							x0 + wOffset, y0 + hOffset
+						], rightColors[ih])
+					}
+
+					if (ih > frontNeighbor) {
+						drawFace([
+							x0, y0 + TILE,
+							x0 + TILE, y0 + TILE,
+							x0 + TILE + wOffset, y0 + TILE + hOffset,
+							x0 + wOffset, y0 + TILE + hOffset
+						], frontColors[ih])
+					}
+
+					if (ih > rightNeighbor) {
+						drawFace([
+							x0 + TILE, y0,
+							x0 + TILE, y0 + TILE,
+							x0 + TILE + wOffset, y0 + TILE + hOffset,
+							x0 + TILE + wOffset, y0 + hOffset
+						], rightColors[ih])
+					}
+
+					drawFace([
+						x0 + wOffset, y0 + hOffset,
+						x0 + TILE + wOffset, y0 + hOffset,
+						x0 + TILE + wOffset, y0 + TILE + hOffset,
+						x0 + wOffset, y0 + TILE + hOffset
+					], topColors[ih])
+				}
+			}
+		}
+
+		// --- Loop ---
+		let lastTime = performance.now()
+
+		function loop() {
+			const now = performance.now()
+			const frameDT = Math.min((now - lastTime) / 1000, 0.05)
+			lastTime = now
+
+			injectMouse(frameDT)
+			for (let s = 0; s < SUB_STEPS; s++) {
+				fluidStep()
+			}
+			smoothEta()
+			render()
+			requestAnimationFrame(loop)
+		}
+
+		// --- Events ---
+		document.addEventListener('mousemove', (e) => {
+			const newX = e.clientX / TILE
+			const newY = e.clientY / TILE
+			if (!mouseActive) {
+				prevMouseX = newX
+				prevMouseY = newY
+			}
+			mouseGridX = newX
+			mouseGridY = newY
+			mouseActive = true
+		})
+
+		document.addEventListener('mouseleave', () => {
+			mouseActive = false
+			mouseGridX = -100
+			mouseGridY = -100
+			smoothVelX = 0
+			smoothVelY = 0
+		})
+
+		let resizeTimer
+		window.addEventListener('resize', () => {
+			clearTimeout(resizeTimer)
+			resizeTimer = setTimeout(() => {
+				resizeCanvas()
+				cols = Math.ceil(window.innerWidth / TILE) + 2
+				rows = Math.ceil(window.innerHeight / TILE) + 2
+				const n = cols * rows
+				eta = new Float64Array(n)
+				Mx = new Float64Array(n)
+				My = new Float64Array(n)
+				eta_new = new Float64Array(n)
+				Mx_new = new Float64Array(n)
+				My_new = new Float64Array(n)
+				smoothBuf = new Float64Array(n)
+				sponge = new Float64Array(n)
+				buildSponge()
+			}, 250)
+		})
+
+		// --- Start ---
+		loop()
+	</script>
+</body>
+</html>
