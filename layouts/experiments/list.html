@@ -4,7 +4,7 @@
 		<h1>{{ .Title }}</h1>
 		<p>{{ .Content }}</p>
 		<div class="exp-grid exp-grid--toys">
-			{{- range .Data.Pages.ByWeight -}}
+			{{- range .Pages.ByWeight -}}
 				{{ partial "experimentTile.html" (dict "page" . "kind" .Params.kind) }}
 			{{- end -}}
 		</div>
