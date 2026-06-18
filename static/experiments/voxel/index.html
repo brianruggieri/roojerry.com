@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Voxel Field</title>
+	<style>
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html, body {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			background: hsl(245, 70%, 6%);
+		}
+		canvas {
+			display: block;
+			width: 100dvw;
+			height: 100dvh;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="c"></canvas>
+	<script type="module">
+		// --- Constants ---
+		const TILE = 60
+		const MAX_DEPTH = 7
+		const RADIUS = 5
+		const DEAD_ZONE = 0.01
+		const STIFFNESS = 0.08
+		const DAMPING = 0.6
+		const FALL_RATE = 0.03
+		const DX = 12
+		const DY = -16
+		const STROKE_COLOR = 'hsl(250, 50%, 8%)'
+
+		// --- Canvas setup ---
+		const canvas = document.getElementById('c')
+		const ctx = canvas.getContext('2d')
+
+		function resizeCanvas() {
+			canvas.width = window.innerWidth * devicePixelRatio
+			canvas.height = window.innerHeight * devicePixelRatio
+			ctx.scale(devicePixelRatio, devicePixelRatio)
+		}
+		resizeCanvas()
+
+		// --- Colors (precomputed per Z level) ---
+		const topColors = []
+		const frontColors = []
+		const rightColors = []
+		for (let z = 0; z <= MAX_DEPTH; z++) {
+			const t = z / MAX_DEPTH
+			const h = 245 + t * 65
+			const s = 70 - t * 5
+			const l = 15 + t * 55
+			topColors[z] = `hsl(${h}, ${s}%, ${l}%)`
+			frontColors[z] = `hsl(${h}, ${s}%, ${l * 0.55}%)`
+			rightColors[z] = `hsl(${h}, ${s}%, ${l * 0.7}%)`
+		}
+
+		// --- State ---
+		let cols = Math.ceil(window.innerWidth / TILE) + 2
+		let rows = Math.ceil(window.innerHeight / TILE) + 2
+		let mouseGridX = -100
+		let mouseGridY = -100
+		let targetHeights = new Float64Array(cols * rows)
+		let currentHeights = new Float64Array(cols * rows)
+		let velocities = new Float64Array(cols * rows)
+
+		// --- Gaussian ---
+		function updateTargets() {
+			const twoRSq = 2 * RADIUS * RADIUS
+			for (let r = 0; r < rows; r++) {
+				for (let c = 0; c < cols; c++) {
+					const dx = c - mouseGridX
+					const dy = r - mouseGridY
+					targetHeights[r * cols + c] = MAX_DEPTH * Math.exp(-(dx * dx + dy * dy) / twoRSq)
+				}
+			}
+		}
+
+		// --- Animation: spring rise, slow decay ---
+		function animate() {
+			const n = cols * rows
+			for (let i = 0; i < n; i++) {
+				const target = targetHeights[i]
+				const current = currentHeights[i]
+				const diff = target - current
+
+				if (Math.abs(diff) < DEAD_ZONE) {
+					currentHeights[i] = target
+					velocities[i] = 0
+					continue
+				}
+
+				if (diff > 0) {
+					velocities[i] += diff * STIFFNESS - velocities[i] * DAMPING
+					currentHeights[i] += velocities[i]
+				} else {
+					currentHeights[i] += diff * FALL_RATE
+					velocities[i] = 0
+				}
+			}
+		}
+
+		// --- Render: Canvas 2D oblique projection ---
+		function drawFace(pts, fill) {
+			ctx.beginPath()
+			ctx.moveTo(pts[0], pts[1])
+			for (let i = 2; i < pts.length; i += 2) {
+				ctx.lineTo(pts[i], pts[i + 1])
+			}
+			ctx.closePath()
+			ctx.fillStyle = fill
+			ctx.fill()
+			ctx.strokeStyle = STROKE_COLOR
+			ctx.lineWidth = 1
+			ctx.stroke()
+		}
+
+		function render() {
+			const w = window.innerWidth
+			const h = window.innerHeight
+			ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0)
+			ctx.clearRect(0, 0, w, h)
+
+			ctx.lineJoin = 'round'
+
+			// Pass 1: Draw ground plane
+			for (let r = 0; r < rows; r++) {
+				for (let c = 0; c < cols; c++) {
+					const x0 = c * TILE
+					const y0 = r * TILE
+					drawFace([
+						x0, y0,
+						x0 + TILE, y0,
+						x0 + TILE, y0 + TILE,
+						x0, y0 + TILE
+					], topColors[0])
+				}
+			}
+
+			// Pass 2: Draw raised columns back-to-front
+			// Row 0 = top of screen = farthest, drawn first
+			// Within each row, right columns first (oblique shifts right)
+			for (let r = 0; r < rows; r++) {
+				for (let c = cols - 1; c >= 0; c--) {
+					const ih = Math.round(currentHeights[r * cols + c])
+					if (ih <= 0) continue
+
+					const x0 = c * TILE
+					const y0 = r * TILE
+					const hOffset = ih * DY
+					const wOffset = ih * DX
+
+					// Only draw side faces where this cell is taller than its neighbor
+					const leftNeighbor = c > 0 ? Math.round(currentHeights[r * cols + c - 1]) : 0
+					const frontNeighbor = r < rows - 1 ? Math.round(currentHeights[(r + 1) * cols + c]) : 0
+					const rightNeighbor = c < cols - 1 ? Math.round(currentHeights[r * cols + c + 1]) : 0
+
+					if (ih > leftNeighbor) {
+						drawFace([
+							x0, y0,
+							x0, y0 + TILE,
+							x0 + wOffset, y0 + TILE + hOffset,
+							x0 + wOffset, y0 + hOffset
+						], rightColors[ih])
+					}
+
+					if (ih > frontNeighbor) {
+						drawFace([
+							x0, y0 + TILE,
+							x0 + TILE, y0 + TILE,
+							x0 + TILE + wOffset, y0 + TILE + hOffset,
+							x0 + wOffset, y0 + TILE + hOffset
+						], frontColors[ih])
+					}
+
+					if (ih > rightNeighbor) {
+						drawFace([
+							x0 + TILE, y0,
+							x0 + TILE, y0 + TILE,
+							x0 + TILE + wOffset, y0 + TILE + hOffset,
+							x0 + TILE + wOffset, y0 + hOffset
+						], rightColors[ih])
+					}
+
+					// Top face (cap) — always drawn
+					drawFace([
+						x0 + wOffset, y0 + hOffset,
+						x0 + TILE + wOffset, y0 + hOffset,
+						x0 + TILE + wOffset, y0 + TILE + hOffset,
+						x0 + wOffset, y0 + TILE + hOffset
+					], topColors[ih])
+				}
+			}
+		}
+
+		// --- Loop ---
+		function loop() {
+			updateTargets()
+			animate()
+			render()
+			requestAnimationFrame(loop)
+		}
+
+		// --- Events ---
+		document.addEventListener('mousemove', (e) => {
+			mouseGridX = e.clientX / TILE
+			mouseGridY = e.clientY / TILE
+		})
+
+		document.addEventListener('mouseleave', () => {
+			mouseGridX = -100
+			mouseGridY = -100
+		})
+
+		let resizeTimer
+		window.addEventListener('resize', () => {
+			clearTimeout(resizeTimer)
+			resizeTimer = setTimeout(() => {
+				resizeCanvas()
+				cols = Math.ceil(window.innerWidth / TILE) + 2
+				rows = Math.ceil(window.innerHeight / TILE) + 2
+				const n = cols * rows
+				targetHeights = new Float64Array(n)
+				currentHeights = new Float64Array(n)
+				velocities = new Float64Array(n)
+			}, 250)
+		})
+
+		// --- Start ---
+		loop()
+	</script>
+</body>
+</html>

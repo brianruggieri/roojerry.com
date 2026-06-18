@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Voxel Fire</title>
+	<style>
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html, body {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			background: hsl(18, 45%, 3%);
+			cursor: crosshair;
+		}
+		canvas {
+			display: block;
+			width: 100dvw;
+			height: 100dvh;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="c"></canvas>
+	<script type="module">
+		// --- Constants ---
+		const TILE = 40
+		const MAX_DEPTH = 7
+		const OBL_DX = 12
+		const OBL_DY = -16
+		const STROKE_COLOR = 'hsl(15, 50%, 5%)'
+
+		// --- Canvas setup ---
+		const canvas = document.getElementById('c')
+		const ctx = canvas.getContext('2d')
+
+		function resizeCanvas() {
+			canvas.width = window.innerWidth * devicePixelRatio
+			canvas.height = window.innerHeight * devicePixelRatio
+			ctx.scale(devicePixelRatio, devicePixelRatio)
+		}
+		resizeCanvas()
+
+		// --- Colors: classic fire palette (ember red → orange → yellow → white) ---
+		const PALETTE = [
+			[10, 75,  8],   // z=0: near-black ember
+			[14, 88, 22],   // z=1: dark red
+			[18, 92, 34],   // z=2: red-orange
+			[24, 95, 45],   // z=3: orange
+			[32, 96, 52],   // z=4: bright orange
+			[42, 96, 58],   // z=5: amber
+			[50, 95, 66],   // z=6: yellow
+			[52, 85, 88],   // z=7: near-white hot core
+		]
+		const topColors = []
+		const frontColors = []
+		const rightColors = []
+		for (let z = 0; z <= MAX_DEPTH; z++) {
+			const [h, s, l] = PALETTE[z]
+			topColors[z] = `hsl(${h}, ${s}%, ${l}%)`
+			frontColors[z] = `hsl(${h}, ${s}%, ${l * 0.5}%)`
+			rightColors[z] = `hsl(${h}, ${s}%, ${l * 0.7}%)`
+		}
+
+		// --- Grid dimensions ---
+		let cols = Math.ceil(window.innerWidth / TILE) + 2
+		let rows = Math.ceil(window.innerHeight / TILE) + 2
+
+		// --- Sim fields (Stam stable fluids + temperature) ---
+		let u, v, u0, v0, temp, temp0, p, div, curl
+		function allocFields() {
+			const n = cols * rows
+			u = new Float64Array(n)
+			v = new Float64Array(n)
+			u0 = new Float64Array(n)
+			v0 = new Float64Array(n)
+			temp = new Float64Array(n)
+			temp0 = new Float64Array(n)
+			p = new Float64Array(n)
+			div = new Float64Array(n)
+			curl = new Float64Array(n)
+		}
+		allocFields()
+
+		// --- Sim constants ---
+		const SIM_DT = 0.09
+		const LIN_ITERS = 12
+		const VISC = 0.0
+		const DIFF = 0.0
+		const COOLING = 0.90        // temperature decay per frame (flames fade)
+		const BUOY = 1.2            // buoyancy: heat rises toward top of screen
+		const VORT = 3.0            // vorticity confinement (turbulent curls)
+		const HEIGHT_SCALE = 1.4    // temperature → voxel height
+
+		// --- Interaction constants ---
+		const HEAT_RATE = 45        // continuous flame heat injection
+		const EMIT_UP = 18          // upward velocity kick from the cursor
+		const BURST_HEAT = 55       // click-burst heat injected per active frame
+		const BURST_VEL = 10        // click-burst radial velocity
+		const BURST_RADIUS = 3      // click-burst radius in cells
+		const BURST_FRAMES = 10     // how many frames a burst keeps erupting
+
+		// --- Mouse state ---
+		let mouseGridX = -100
+		let mouseGridY = -100
+		let prevMouseX = -100
+		let prevMouseY = -100
+		let mouseActive = false
+		let burstTimer = 0
+		let burstX = 0
+		let burstY = 0
+
+		// --- Stam solver primitives ---
+		function setBnd(b, x) {
+			for (let j = 1; j < rows - 1; j++) {
+				x[j * cols] = b === 1 ? -x[j * cols + 1] : x[j * cols + 1]
+				x[j * cols + cols - 1] = b === 1 ? -x[j * cols + cols - 2] : x[j * cols + cols - 2]
+			}
+			for (let i = 1; i < cols - 1; i++) {
+				x[i] = b === 2 ? -x[cols + i] : x[cols + i]
+				x[(rows - 1) * cols + i] = b === 2 ? -x[(rows - 2) * cols + i] : x[(rows - 2) * cols + i]
+			}
+			x[0] = 0.5 * (x[1] + x[cols])
+			x[cols - 1] = 0.5 * (x[cols - 2] + x[2 * cols - 1])
+			x[(rows - 1) * cols] = 0.5 * (x[(rows - 1) * cols + 1] + x[(rows - 2) * cols])
+			x[(rows - 1) * cols + cols - 1] = 0.5 * (x[(rows - 1) * cols + cols - 2] + x[(rows - 2) * cols + cols - 1])
+		}
+
+		function linSolve(b, x, x0, a, c) {
+			const invC = 1 / c
+			for (let k = 0; k < LIN_ITERS; k++) {
+				for (let j = 1; j < rows - 1; j++) {
+					for (let i = 1; i < cols - 1; i++) {
+						const idx = j * cols + i
+						x[idx] = (x0[idx] + a * (x[idx - 1] + x[idx + 1] + x[idx - cols] + x[idx + cols])) * invC
+					}
+				}
+				setBnd(b, x)
+			}
+		}
+
+		function diffuse(b, x, x0, diff) {
+			if (diff <= 0) {
+				x.set(x0)
+				setBnd(b, x)
+				return
+			}
+			const a = SIM_DT * diff * (cols - 2) * (rows - 2)
+			linSolve(b, x, x0, a, 1 + 4 * a)
+		}
+
+		function advect(b, d, d0, velU, velV) {
+			const xMax = cols - 1.5
+			const yMax = rows - 1.5
+			for (let j = 1; j < rows - 1; j++) {
+				for (let i = 1; i < cols - 1; i++) {
+					const idx = j * cols + i
+					let x = i - SIM_DT * velU[idx]
+					let y = j - SIM_DT * velV[idx]
+					if (x < 0.5) x = 0.5; else if (x > xMax) x = xMax
+					if (y < 0.5) y = 0.5; else if (y > yMax) y = yMax
+					const i0 = Math.floor(x), i1 = i0 + 1
+					const j0 = Math.floor(y), j1 = j0 + 1
+					const s1 = x - i0, s0 = 1 - s1
+					const t1 = y - j0, t0 = 1 - t1
+					d[idx] =
+						s0 * (t0 * d0[j0 * cols + i0] + t1 * d0[j1 * cols + i0]) +
+						s1 * (t0 * d0[j0 * cols + i1] + t1 * d0[j1 * cols + i1])
+				}
+			}
+			setBnd(b, d)
+		}
+
+		function project(velU, velV, pp, dv) {
+			for (let j = 1; j < rows - 1; j++) {
+				for (let i = 1; i < cols - 1; i++) {
+					const idx = j * cols + i
+					dv[idx] = -0.5 * (velU[idx + 1] - velU[idx - 1] + velV[idx + cols] - velV[idx - cols])
+					pp[idx] = 0
+				}
+			}
+			setBnd(0, dv)
+			setBnd(0, pp)
+			linSolve(0, pp, dv, 1, 4)
+			for (let j = 1; j < rows - 1; j++) {
+				for (let i = 1; i < cols - 1; i++) {
+					const idx = j * cols + i
+					velU[idx] -= 0.5 * (pp[idx + 1] - pp[idx - 1])
+					velV[idx] -= 0.5 * (pp[idx + cols] - pp[idx - cols])
+				}
+			}
+			setBnd(1, velU)
+			setBnd(2, velV)
+		}
+
+		// --- Fire-specific forces ---
+		function applyBuoyancy() {
+			// Hot cells get pushed toward the top of the screen (negative v).
+			for (let j = 1; j < rows - 1; j++) {
+				for (let i = 1; i < cols - 1; i++) {
+					const idx = j * cols + i
+					v0[idx] -= BUOY * temp[idx]
+				}
+			}
+		}
+
+		function applyVorticity() {
+			// Curl of the velocity field
+			for (let j = 1; j < rows - 1; j++) {
+				for (let i = 1; i < cols - 1; i++) {
+					const idx = j * cols + i
+					curl[idx] = 0.5 * (
+						(v[idx + 1] - v[idx - 1]) -
+						(u[idx + cols] - u[idx - cols])
+					)
+				}
+			}
+			// Confinement force pushes velocity back toward curl maxima
+			for (let j = 1; j < rows - 1; j++) {
+				for (let i = 1; i < cols - 1; i++) {
+					const idx = j * cols + i
+					const dwdx = 0.5 * (Math.abs(curl[idx + 1]) - Math.abs(curl[idx - 1]))
+					const dwdy = 0.5 * (Math.abs(curl[idx + cols]) - Math.abs(curl[idx - cols]))
+					const len = Math.sqrt(dwdx * dwdx + dwdy * dwdy) + 1e-5
+					const nx = dwdx / len
+					const ny = dwdy / len
+					u0[idx] += VORT * ny * curl[idx]
+					v0[idx] -= VORT * nx * curl[idx]
+				}
+			}
+		}
+
+		// --- Input injection (into the source/force buffers) ---
+		function injectInput() {
+			// Continuous flame: emit heat + upward kick at the cursor
+			if (mouseActive) {
+				const mc = Math.floor(mouseGridX)
+				const mr = Math.floor(mouseGridY)
+				if (mc >= 1 && mc < cols - 1 && mr >= 1 && mr < rows - 1) {
+					const idx = mr * cols + mc
+					temp0[idx] += HEAT_RATE
+					temp0[idx - 1] += HEAT_RATE * 0.5
+					temp0[idx + 1] += HEAT_RATE * 0.5
+					temp0[idx - cols] += HEAT_RATE * 0.5
+					temp0[idx + cols] += HEAT_RATE * 0.5
+					v0[idx] -= EMIT_UP
+					// Momentum from mouse motion (flame trail)
+					u0[idx] += (mouseGridX - prevMouseX) * 30
+					v0[idx] += (mouseGridY - prevMouseY) * 30
+					prevMouseX = mouseGridX
+					prevMouseY = mouseGridY
+				}
+			}
+
+			// Click burst: sustained eruption of heat + radial velocity over
+			// several frames, so it reads as a dramatic whoosh rather than a
+			// single-frame flash. Ramps down as the timer runs out.
+			if (burstTimer > 0) {
+				const strength = burstTimer / BURST_FRAMES
+				burstTimer--
+				const bc = Math.floor(burstX)
+				const br = Math.floor(burstY)
+				for (let dj = -BURST_RADIUS; dj <= BURST_RADIUS; dj++) {
+					for (let di = -BURST_RADIUS; di <= BURST_RADIUS; di++) {
+						const ci = bc + di
+						const cj = br + dj
+						if (ci < 1 || ci >= cols - 1 || cj < 1 || cj >= rows - 1) continue
+						const dist = Math.sqrt(di * di + dj * dj)
+						if (dist > BURST_RADIUS) continue
+						const falloff = 1 - dist / BURST_RADIUS
+						const idx = cj * cols + ci
+						temp0[idx] += BURST_HEAT * falloff * strength
+						if (dist > 0.001) {
+							u0[idx] += (di / dist) * BURST_VEL * falloff
+							v0[idx] += (dj / dist) * BURST_VEL * falloff
+						}
+					}
+				}
+			}
+		}
+
+		// --- Full sim step (canonical Stam operator splitting) ---
+		function simStep() {
+			u0.fill(0)
+			v0.fill(0)
+			temp0.fill(0)
+
+			injectInput()
+			applyBuoyancy()
+			applyVorticity()
+
+			let tmp
+
+			// Velocity step
+			addSource(u, u0)                              // u0/v0 hold forces
+			addSource(v, v0)
+			tmp = u0; u0 = u; u = tmp                      // swap(u0, u)
+			diffuse(1, u, u0, VISC)
+			tmp = v0; v0 = v; v = tmp                      // swap(v0, v)
+			diffuse(2, v, v0, VISC)
+			project(u, v, p, div)
+			tmp = u0; u0 = u; u = tmp                      // swap(u0, u)
+			tmp = v0; v0 = v; v = tmp                      // swap(v0, v)
+			advect(1, u, u0, u0, v0)
+			advect(2, v, v0, u0, v0)
+			project(u, v, p, div)
+
+			// Temperature step
+			addSource(temp, temp0)
+			tmp = temp0; temp0 = temp; temp = tmp          // swap(temp0, temp)
+			diffuse(0, temp, temp0, DIFF)
+			tmp = temp0; temp0 = temp; temp = tmp          // swap(temp0, temp)
+			advect(0, temp, temp0, u, v)
+
+			// Cooling
+			for (let idx = 0; idx < cols * rows; idx++) {
+				temp[idx] *= COOLING
+			}
+		}
+
+		function addSource(x, s) {
+			for (let idx = 0; idx < cols * rows; idx++) {
+				x[idx] += SIM_DT * s[idx]
+			}
+		}
+
+		// --- Render: Canvas 2D oblique projection ---
+		function drawFace(pts, fill) {
+			ctx.beginPath()
+			ctx.moveTo(pts[0], pts[1])
+			for (let i = 2; i < pts.length; i += 2) {
+				ctx.lineTo(pts[i], pts[i + 1])
+			}
+			ctx.closePath()
+			ctx.fillStyle = fill
+			ctx.fill()
+			ctx.strokeStyle = STROKE_COLOR
+			ctx.lineWidth = 1
+			ctx.stroke()
+		}
+
+		function heightAt(idx) {
+			const h = temp[idx] * HEIGHT_SCALE
+			return Math.round(h < 0 ? 0 : (h > MAX_DEPTH ? MAX_DEPTH : h))
+		}
+
+		function render() {
+			const w = window.innerWidth
+			const h = window.innerHeight
+			ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0)
+			ctx.clearRect(0, 0, w, h)
+			ctx.lineJoin = 'round'
+
+			// Pass 1: ground plane
+			for (let r = 0; r < rows; r++) {
+				for (let c = 0; c < cols; c++) {
+					const x0 = c * TILE
+					const y0 = r * TILE
+					drawFace([
+						x0, y0,
+						x0 + TILE, y0,
+						x0 + TILE, y0 + TILE,
+						x0, y0 + TILE
+					], topColors[0])
+				}
+			}
+
+			// Pass 2: raised columns back-to-front
+			for (let r = 0; r < rows; r++) {
+				for (let c = cols - 1; c >= 0; c--) {
+					const idx = r * cols + c
+					const ih = heightAt(idx)
+					if (ih <= 0) continue
+
+					const x0 = c * TILE
+					const y0 = r * TILE
+					const hOffset = ih * OBL_DY
+					const wOffset = ih * OBL_DX
+
+					const leftNeighbor = c > 0 ? heightAt(idx - 1) : 0
+					const frontNeighbor = r < rows - 1 ? heightAt(idx + cols) : 0
+					const rightNeighbor = c < cols - 1 ? heightAt(idx + 1) : 0
+
+					if (ih > leftNeighbor) {
+						drawFace([
+							x0, y0,
+							x0, y0 + TILE,
+							x0 + wOffset, y0 + TILE + hOffset,
+							x0 + wOffset, y0 + hOffset
+						], rightColors[ih])
+					}
+
+					if (ih > frontNeighbor) {
+						drawFace([
+							x0, y0 + TILE,
+							x0 + TILE, y0 + TILE,
+							x0 + TILE + wOffset, y0 + TILE + hOffset,
+							x0 + wOffset, y0 + TILE + hOffset
+						], frontColors[ih])
+					}
+
+					if (ih > rightNeighbor) {
+						drawFace([
+							x0 + TILE, y0,
+							x0 + TILE, y0 + TILE,
+							x0 + TILE + wOffset, y0 + TILE + hOffset,
+							x0 + TILE + wOffset, y0 + hOffset
+						], rightColors[ih])
+					}
+
+					drawFace([
+						x0 + wOffset, y0 + hOffset,
+						x0 + TILE + wOffset, y0 + hOffset,
+						x0 + TILE + wOffset, y0 + TILE + hOffset,
+						x0 + wOffset, y0 + TILE + hOffset
+					], topColors[ih])
+				}
+			}
+		}
+
+		// --- Loop ---
+		function loop() {
+			simStep()
+			render()
+			requestAnimationFrame(loop)
+		}
+
+		// --- Events ---
+		document.addEventListener('mousemove', (e) => {
+			const newX = e.clientX / TILE
+			const newY = e.clientY / TILE
+			if (!mouseActive) {
+				prevMouseX = newX
+				prevMouseY = newY
+			}
+			mouseGridX = newX
+			mouseGridY = newY
+			mouseActive = true
+		})
+
+		document.addEventListener('mouseleave', () => {
+			mouseActive = false
+			mouseGridX = -100
+			mouseGridY = -100
+		})
+
+		document.addEventListener('mousedown', (e) => {
+			burstX = e.clientX / TILE
+			burstY = e.clientY / TILE
+			burstTimer = BURST_FRAMES
+		})
+
+		let resizeTimer
+		window.addEventListener('resize', () => {
+			clearTimeout(resizeTimer)
+			resizeTimer = setTimeout(() => {
+				resizeCanvas()
+				cols = Math.ceil(window.innerWidth / TILE) + 2
+				rows = Math.ceil(window.innerHeight / TILE) + 2
+				allocFields()
+			}, 250)
+		})
+
+		// --- Start ---
+		loop()
+	</script>
+</body>
+</html>

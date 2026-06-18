@@ -78,7 +78,7 @@
     {{ $webp := . | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
     <div class="project-detail__hero">
       <picture>
-        <source srcset="{{ $webp }}" type="image/webp">
+        {{ if ne $webp . }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
         <img src="{{ . }}" alt="{{ $.Title }} — hero screenshot" loading="eager" />
       </picture>
     </div>
@@ -93,12 +93,30 @@
     {{/* ── What it does ── */}}
     {{ with .Params.features }}
     <h3 class="project-section-heading">What it does</h3>
-    <div class="project-detail__features">
+    {{ $featureCols := 0 }}
+    {{ with $.Params.featureColumns }}{{ $featureCols = int . }}{{ end }}
+    {{ if lt $featureCols 1 }}{{ $featureCols = 0 }}{{ else if gt $featureCols 6 }}{{ $featureCols = 6 }}{{ end }}
+    <div class="project-detail__features"{{ if gt $featureCols 0 }} style="--feature-cols: {{ $featureCols }}"{{ end }}>
       {{ range . }}
       <div class="feature-tile">
         <div class="feature-tile__icon">{{ partial "icon.html" (dict "icon" .icon) }}</div>
         <div class="feature-tile__title">{{ .title }}</div>
         <p class="feature-tile__desc">{{ .desc }}</p>
+      </div>
+      {{ end }}
+    </div>
+    {{ end }}
+
+    {{/* ── How it works ── */}}
+    {{ with .Params.pipeline }}
+    <h3 class="project-section-heading">How it works</h3>
+    <div class="pipeline-flow">
+      {{ range $i, $step := . }}
+      {{ if $i }}<div class="pipeline-flow__arrow" aria-hidden="true"></div>{{ end }}
+      <div class="pipeline-flow__step">
+        <div class="pipeline-flow__icon">{{ partial "icon.html" (dict "icon" .icon) }}</div>
+        <div class="pipeline-flow__title">{{ .title }}</div>
+        <p class="pipeline-flow__desc">{{ .desc }}</p>
       </div>
       {{ end }}
     </div>
@@ -137,7 +155,7 @@
       {{ $webp := .src | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
       <figure class="gallery-item">
         <picture>
-          <source srcset="{{ $webp }}" type="image/webp">
+          {{ if ne $webp .src }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
           <img src="{{ .src }}" alt="{{ .caption }}" loading="lazy" />
         </picture>
         <figcaption>{{ .caption }}</figcaption>
