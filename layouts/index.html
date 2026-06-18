@@ -11,10 +11,7 @@
         {{ partial "sectionSummary" . }}
       {{ end }}
     {{ else if eq . "projects" }}
-      {{ with $site.GetPage "section" "projects" }}
-        {{ .Scratch.Set "sectionId" "projects" }}
-        {{ partial "sectionSummary" . }}
-      {{ end }}
+      {{ partial "experimentsWall.html" $site }}
     {{ else if in $sections . }}
       {{ with $site.GetPage "section" . }}
         {{ .Scratch.Set "sectionId" $sectionName }}
