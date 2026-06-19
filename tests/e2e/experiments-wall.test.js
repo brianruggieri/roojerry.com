@@ -32,6 +32,20 @@ await runTest('Escape closes the overlay and unloads the iframe', async () => {
 	if (src !== 'about:blank') throw new Error(`frame not unloaded: ${src}`);
 });
 
+await runTest('live tile has no iframe until interaction', async () => {
+	await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
+	const count = await page.$$eval('.exp-tile--live iframe', els => els.length);
+	if (count !== 0) throw new Error(`live iframe present at load: ${count}`);
+});
+
+await runTest('hovering a live tile boots its toy inline', async () => {
+	const tile = await page.$('.exp-tile--live');
+	await tile.hover();
+	await page.waitForSelector('.exp-tile--live.is-live .exp-tile__slot iframe', { timeout: 3000 });
+	const src = await page.$eval('.exp-tile--live.is-live .exp-tile__slot iframe', f => f.getAttribute('src'));
+	if (!src || !src.includes('/experiments/')) throw new Error(`inline src wrong: ${src}`);
+});
+
 await browser.close();
 if (failures) process.exit(1);
 console.log('experiments-wall: all passed');
