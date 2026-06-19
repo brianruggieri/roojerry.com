@@ -59,7 +59,7 @@
     // Position iframe exactly over the preview
     setFrameRect(rect);
 
-    // Load the iframe src (lazy — only on first open)
+    // Load the iframe src (deferred until open)
     if (!frame.src || frame.src === "about:blank") {
       frame.src = src;
     }
@@ -107,6 +107,7 @@
       frame.src = "about:blank";
       unlockScroll();
       isOpen = false;
+      activeOrigin = null;
     };
 
     frame.addEventListener("transitionend", onEnd);

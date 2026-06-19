@@ -20,6 +20,7 @@
     var frame = document.createElement("iframe");
     frame.setAttribute("title", tile.getAttribute("aria-label") || "Experiment");
     frame.setAttribute("loading", "lazy");
+    frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
     frame.src = tile.dataset.liveSrc;
     slot.appendChild(frame);
     tile.classList.add("is-live");
@@ -44,6 +45,13 @@
         boot(tile);
       });
     }
+    // Keyboard activation: Enter/Space boot inline regardless of reduce preference.
+    tile.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        boot(tile);
+      }
+    });
   });
 
   if ("IntersectionObserver" in window) {
