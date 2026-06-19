@@ -20,12 +20,5 @@
 	</div>
 
 	{{/* Single shared fullscreen overlay for all play/live tiles on this page */}}
-	<div id="ie-overlay" class="ie-overlay" aria-modal="true" role="dialog" aria-label="Interactive experiment">
-		<div class="ie-overlay__backdrop"></div>
-		<iframe class="ie-overlay__frame" src="about:blank" title="Interactive experiment"
-		        allow="accelerometer; gyroscope; fullscreen"></iframe>
-		<button class="ie-overlay__close" type="button" aria-label="Close interactive">
-			{{ partial "icon.html" (dict "icon" "fas fa-times") }}
-		</button>
-	</div>
+	{{ partial "ieOverlay.html" . }}
 </section>

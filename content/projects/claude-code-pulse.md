@@ -9,6 +9,7 @@ github: "https://github.com/brianruggieri/claude-code-pulse"
 ctaTitle: "Get Claude Code Pulse"
 ctaDesc: "One install script. No sudo. No telemetry. Works in 30 seconds."
 image: "/img/projects/claude-code-pulse/demo-4pane.gif"
+poster: "/img/projects/claude-code-pulse/after.webp"
 featured: true
 year: "2026"
 featureColumns: 3

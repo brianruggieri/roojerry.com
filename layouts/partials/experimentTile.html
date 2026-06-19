@@ -5,10 +5,13 @@
 {{- $blurb := $p.Params.blurb | default $p.Params.subtitle | default $p.Description -}}
 
 {{- if eq $kind "project" -}}
+{{- $webp := $poster | replaceRE `\.(png|jpg|jpeg)$` ".webp" -}}
 <a class="exp-tile exp-tile--project" href="{{ $p.Permalink }}">
 	<span class="exp-tile__media">
-		<img class="exp-tile__poster" src="{{ $poster }}" alt="{{ $title }} — preview"
-		     width="640" height="400" loading="lazy">
+		<picture>
+			<source srcset="{{ $webp }}" type="image/webp">
+			<img class="exp-tile__poster" src="{{ $poster }}" alt="{{ $title }} — preview" width="640" height="400" loading="lazy">
+		</picture>
 		<span class="exp-tile__badge exp-tile__badge--project">project</span>
 	</span>
 	<span class="exp-tile__cap"><b>{{ $title }}</b><span>{{ $blurb }}</span></span>
