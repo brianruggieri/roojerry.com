@@ -156,9 +156,9 @@
       <figure class="gallery-item">
         <picture>
           {{ if ne $webp .src }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
-          <img src="{{ .src }}" alt="{{ .caption }}" loading="lazy" />
+          <img src="{{ .src }}" alt="{{ .caption | default (printf "%s — screenshot" $.Title) }}" loading="lazy" />
         </picture>
-        <figcaption>{{ .caption }}</figcaption>
+        {{ with .caption }}<figcaption>{{ . }}</figcaption>{{ end }}
       </figure>
       {{ end }}
     </div>

@@ -22,7 +22,7 @@
     <p class="project-card__tagline">&ldquo;{{ . }}&rdquo;</p>
     {{ end }}
 
-    <p class="project-card__desc">{{ .Description }}</p>
+    {{ with .Description }}<p class="project-card__desc">{{ . }}</p>{{ end }}
 
     {{ with .Params.tags }}
     <div class="project-card__tags">
@@ -80,7 +80,7 @@
           {{ .Title }}
         </a>
       </h3>
-      <p class="project-simple-card__desc">{{ .Description }}</p>
+      {{ with .Description }}<p class="project-simple-card__desc">{{ . }}</p>{{ end }}
       {{ with .Params.tags }}
       <div class="project-card__tags mt-2">
         {{ range . }}<span class="project-tag project-tag--light">{{ . }}</span>{{ end }}
