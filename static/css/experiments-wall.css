@@ -31,6 +31,10 @@
 	color: inherit;
 	cursor: pointer;
 	outline: none;
+	/* The wall sits below the fold — skip rendering (incl. the shimmer
+	   animation) for tiles that aren't near the viewport. */
+	content-visibility: auto;
+	contain-intrinsic-size: auto 300px;
 }
 .exp-tile__media {
 	position: relative;
@@ -57,20 +61,29 @@
 	display: block;
 }
 
-/* Shimmer overlay so live tiles read as "alive" at rest */
+/* Shimmer overlay so live tiles read as "alive" at rest. Animates `transform`
+   (GPU-composited) rather than background-position, so it costs ~no main-thread
+   repaint while it loops. */
 .exp-tile--live .exp-tile__media::after {
 	content: "";
 	position: absolute;
-	inset: 0;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 60%;
 	background: linear-gradient(115deg,
-		transparent 30%,
-		rgb(var(--accent-rgb) / 0.18) 50%,
-		transparent 70%);
-	background-size: 250% 100%;
+		transparent 0%,
+		rgb(var(--accent-rgb) / 0.20) 50%,
+		transparent 100%);
+	transform: translateX(-120%);
 	animation: exp-shimmer 4.5s linear infinite;
 	pointer-events: none;
 }
-@keyframes exp-shimmer { to { background-position: -250% 0; } }
+@keyframes exp-shimmer {
+	0%   { transform: translateX(-120%); }
+	60%  { transform: translateX(280%); }
+	100% { transform: translateX(280%); }
+}
 
 /* Inline live iframe injected by live-tile-waker.js */
 .exp-tile__slot {
