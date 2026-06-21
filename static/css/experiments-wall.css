@@ -131,27 +131,34 @@
 	background: rgb(var(--shadow-tint-rgb) / 0.5);
 	pointer-events: none;
 }
+/* Clean icon-only fullscreen control (top-right). Visible at rest so the tile
+   reads as expandable; brightens with the tile. Triggers the same grow-to-
+   fullscreen animation as the Play tiles (via .ie-preview + data-ie-origin). */
 .exp-tile__expand {
-	top: 8px;
-	right: 8px;
-	gap: 5px;
-	padding: 5px 9px;
+	top: 10px;
+	right: 10px;
+	width: 34px;
+	height: 34px;
 	border: 0;
-	border-radius: var(--radius-sm);
-	background: rgb(var(--shadow-tint-rgb) / 0.72);
+	border-radius: 50%;
+	background: rgb(var(--shadow-tint-rgb) / 0.5);
 	color: #fff;
-	font-size: 0.62rem;
-	font-weight: 700;
-	letter-spacing: 0.5px;
-	text-transform: uppercase;
 	cursor: pointer;
-	transition: background 0.2s ease, transform 0.2s ease;
+	opacity: 0.8;
+	box-shadow: none;
+	backdrop-filter: blur(2px);
+	transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.exp-tile--live:hover .exp-tile__expand,
+.exp-tile--live:focus-within .exp-tile__expand {
+	opacity: 1;
+	background: rgb(var(--shadow-tint-rgb) / 0.78);
 }
 .exp-tile__expand:hover {
-	background: rgb(var(--shadow-tint-rgb) / 0.92);
-	transform: translateY(-1px);
+	transform: scale(1.1);
+	background: rgb(var(--shadow-tint-rgb) / 0.9);
 }
-.exp-tile__expand svg { width: 12px; height: 12px; }
+.exp-tile__expand svg { width: 15px; height: 15px; }
 
 /* Wall tiles reuse PR #15's .ie-preview only for its click-to-fullscreen
    behavior. Strip its standalone-preview cosmetics (green gradient, outer
