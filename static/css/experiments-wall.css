@@ -81,11 +81,20 @@
 .exp-tile.is-live .exp-tile__slot { display: block; }
 .exp-tile.is-live .exp-tile__poster { visibility: hidden; }
 .exp-tile.is-live .exp-tile__media::after { display: none; }
+/* Render the live toy at a fullscreen-sized viewport, then scale it down to
+   fit the tile. The toys size their voxel grid by pixel, so a small viewport
+   yields a few huge cells — rendering at ~fullscreen gives the fine
+   composition, and live-tile-waker.js sets the scale to shrink it into the box. */
 .exp-tile__slot iframe {
-	width: 100%;
-	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1440px;
+	height: 900px;
 	border: 0;
 	display: block;
+	transform-origin: top left;
+	/* transform: scale(...) is set by live-tile-waker.js */
 }
 
 .exp-tile__badge {
@@ -125,13 +134,48 @@
 .exp-tile__expand {
 	top: 8px;
 	right: 8px;
-	width: 30px;
-	height: 30px;
+	gap: 5px;
+	padding: 5px 9px;
 	border: 0;
 	border-radius: var(--radius-sm);
-	background: rgb(var(--shadow-tint-rgb) / 0.55);
+	background: rgb(var(--shadow-tint-rgb) / 0.72);
+	color: #fff;
+	font-size: 0.62rem;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
 	cursor: pointer;
+	transition: background 0.2s ease, transform 0.2s ease;
 }
+.exp-tile__expand:hover {
+	background: rgb(var(--shadow-tint-rgb) / 0.92);
+	transform: translateY(-1px);
+}
+.exp-tile__expand svg { width: 12px; height: 12px; }
+
+/* Wall tiles reuse PR #15's .ie-preview only for its click-to-fullscreen
+   behavior. Strip its standalone-preview cosmetics (green gradient, outer
+   margin, dot-grid ::before, fixed aspect/size) so they don't bleed behind
+   the tile/caption. These compound selectors outrank bare .ie-preview. */
+.exp-tile.ie-preview {
+	margin: 0;
+	max-width: none;
+	aspect-ratio: auto;
+	background: none;
+	border: 0;
+	box-shadow: none;
+	border-radius: 0;
+}
+.exp-tile.ie-preview::before { display: none; }
+/* Neutralize only the inherited layout bleed on the expand button; its
+   background/hover come from the .exp-tile__expand rules above (this sheet
+   now loads after interactive-embed.css, so those win the cascade). */
+.exp-tile__expand.ie-preview {
+	margin: 0;
+	max-width: none;
+	aspect-ratio: auto;
+}
+.exp-tile__expand.ie-preview::before { display: none; }
 
 .exp-tile__cap {
 	display: block;

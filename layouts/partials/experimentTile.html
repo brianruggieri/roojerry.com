@@ -38,8 +38,9 @@
 		<span class="exp-tile__slot" aria-hidden="true"></span>
 		<span class="exp-tile__badge exp-tile__badge--live">live</span>
 		<button class="exp-tile__expand ie-preview" data-src="{{ $p.Params.src }}" data-ie-origin
-		        type="button" aria-label="Open {{ $title }} fullscreen">
+		        type="button" title="Open {{ $title }} fullscreen" aria-label="Open {{ $title }} fullscreen">
 			{{ partial "icon.html" (dict "icon" "fas fa-arrows-alt") }}
+			<span class="exp-tile__expand-label">Fullscreen</span>
 		</button>
 	</span>
 	<span class="exp-tile__cap"><b>{{ $title }}</b><span>{{ $blurb }}</span></span>

@@ -13,6 +13,19 @@
   var reduce = window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // The toys size their voxel grid by pixel, so a tile-sized viewport yields a
+  // few huge cells. Boot the iframe at a fullscreen-sized viewport and scale it
+  // down to the tile, so the inline preview matches the fullscreen composition.
+  var BASE_W = 1440;
+
+  function fitFrame(slot) {
+    var frame = slot.querySelector("iframe");
+    if (!frame) return;
+    var w = slot.clientWidth;
+    if (!w) return;
+    frame.style.transform = "scale(" + (w / BASE_W) + ")";
+  }
+
   function boot(tile) {
     if (tile.classList.contains("is-live")) return;
     var slot = tile.querySelector(".exp-tile__slot");
@@ -24,6 +37,7 @@
     frame.src = tile.dataset.liveSrc;
     slot.appendChild(frame);
     tile.classList.add("is-live");
+    fitFrame(slot);
   }
 
   function unboot(tile) {
@@ -62,4 +76,14 @@
     }, { rootMargin: "100px" });
     tiles.forEach(function (tile) { io.observe(tile); });
   }
+
+  // Keep booted previews scaled correctly as the grid reflows.
+  window.addEventListener("resize", function () {
+    tiles.forEach(function (tile) {
+      if (tile.classList.contains("is-live")) {
+        var slot = tile.querySelector(".exp-tile__slot");
+        if (slot) fitFrame(slot);
+      }
+    });
+  });
 })();
