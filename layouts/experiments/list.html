@@ -1,0 +1,14 @@
+{{ define "main" }}
+<section class="resume-section p-3 p-lg-5 d-flex flex-column">
+	<div class="my-auto">
+		<h1>{{ .Title }}</h1>
+		<p>{{ .Content }}</p>
+		<div class="exp-grid exp-grid--toys">
+			{{- range .Pages.ByWeight -}}
+				{{ partial "experimentTile.html" (dict "page" . "kind" .Params.kind) }}
+			{{- end -}}
+		</div>
+	</div>
+	{{ partial "ieOverlay.html" . }}
+</section>
+{{ end }}

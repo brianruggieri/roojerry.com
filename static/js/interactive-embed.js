@@ -11,22 +11,23 @@
 (function () {
   "use strict";
 
-  var preview = document.querySelector(".ie-preview");
-  if (!preview) return; // not on an interactive-embed page
+  var previews = document.querySelectorAll(".ie-preview");
+  if (!previews.length) return; // no interactive triggers on this page
 
   var overlay = document.getElementById("ie-overlay");
   var backdrop = overlay && overlay.querySelector(".ie-overlay__backdrop");
   var closeBtn = overlay && overlay.querySelector(".ie-overlay__close");
   var frame = overlay && overlay.querySelector(".ie-overlay__frame");
-  var src = preview.dataset.src;
-  if (!overlay || !frame || !src) return;
+  var src;
+  if (!overlay || !frame) return;
 
   var isOpen = false;
+  var activeOrigin = null;
 
   /* ── Helpers ── */
 
   function getPreviewRect() {
-    return preview.getBoundingClientRect();
+    return (activeOrigin || previews[0]).getBoundingClientRect();
   }
 
   function setFrameRect(rect) {
@@ -46,16 +47,19 @@
 
   /* ── Open: play button clicked ── */
 
-  function open() {
+  function open(trigger) {
     if (isOpen) return;
     isOpen = true;
+
+    activeOrigin = trigger.closest("[data-ie-origin]") || trigger;
+    src = trigger.dataset.src;
 
     var rect = getPreviewRect();
 
     // Position iframe exactly over the preview
     setFrameRect(rect);
 
-    // Load the iframe src (lazy — only on first open)
+    // Load the iframe src (deferred until open)
     if (!frame.src || frame.src === "about:blank") {
       frame.src = src;
     }
@@ -103,6 +107,7 @@
       frame.src = "about:blank";
       unlockScroll();
       isOpen = false;
+      activeOrigin = null;
     };
 
     frame.addEventListener("transitionend", onEnd);
@@ -117,14 +122,18 @@
 
   /* ── Event bindings ── */
 
-  preview.addEventListener("click", open);
-
-  // Also handle Enter/Space for keyboard accessibility
-  preview.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" || e.key === " ") {
+  previews.forEach(function (el) {
+    el.addEventListener("click", function (e) {
       e.preventDefault();
-      open();
-    }
+      e.stopPropagation();
+      open(el);
+    });
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        open(el);
+      }
+    });
   });
 
   closeBtn.addEventListener("click", close);

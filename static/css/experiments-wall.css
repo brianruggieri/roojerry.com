@@ -1,0 +1,184 @@
+/* Experiments wall — two-tier grid of project + toy tiles */
+
+.exp-grid {
+	display: grid;
+	gap: 18px;
+}
+.exp-grid--featured {
+	grid-template-columns: repeat(2, 1fr);
+}
+.exp-grid--toys {
+	grid-template-columns: repeat(3, 1fr);
+	gap: 14px;
+}
+@media (max-width: 767px) {
+	.exp-grid--featured,
+	.exp-grid--toys { grid-template-columns: 1fr; }
+}
+
+.exp-subhead {
+	font-family: inherit;
+	text-transform: uppercase;
+	letter-spacing: 3px;
+	font-size: 0.8rem;
+	color: var(--muted);
+}
+
+.exp-tile {
+	display: flex;
+	flex-direction: column;
+	text-decoration: none;
+	color: inherit;
+	cursor: pointer;
+	outline: none;
+	/* The wall sits below the fold — skip rendering for tiles that aren't
+	   near the viewport. */
+	content-visibility: auto;
+	contain-intrinsic-size: auto 300px;
+}
+.exp-tile__media {
+	position: relative;
+	display: block;
+	aspect-ratio: 16 / 10;
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+	box-shadow: var(--shadow-card);
+	transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.exp-tile:hover .exp-tile__media,
+.exp-tile:focus-visible .exp-tile__media {
+	box-shadow: var(--shadow-card-hover);
+	transform: translateY(-2px);
+}
+.exp-tile:focus-visible .exp-tile__media {
+	outline: 3px solid var(--accent);
+	outline-offset: 2px;
+}
+.exp-tile__poster {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+/* Inline live iframe injected by live-tile-waker.js */
+.exp-tile__slot {
+	position: absolute;
+	inset: 0;
+	display: none;
+}
+.exp-tile.is-live .exp-tile__slot { display: block; }
+.exp-tile.is-live .exp-tile__poster { visibility: hidden; }
+/* Render the live toy at a fullscreen-sized viewport, then scale it down to
+   fit the tile. The toys size their voxel grid by pixel, so a small viewport
+   yields a few huge cells — rendering at ~fullscreen gives the fine
+   composition, and live-tile-waker.js sets the scale to shrink it into the box. */
+.exp-tile__slot iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1440px;
+	height: 900px;
+	border: 0;
+	display: block;
+	transform-origin: top left;
+	/* transform: scale(...) is set by live-tile-waker.js */
+}
+
+.exp-tile__badge {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	font-size: 0.6rem;
+	font-weight: 700;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	padding: 3px 6px;
+	border-radius: var(--radius-sm);
+	z-index: 2;
+}
+.exp-tile__badge--live    { background: var(--accent); color: var(--brand-dark); }
+.exp-tile__badge--play    { background: rgb(var(--shadow-tint-rgb) / 0.65); color: #fff; }
+.exp-tile__badge--project { background: rgb(var(--brand-rgb) / 0.85); color: #fff; }
+
+.exp-tile__play,
+.exp-tile__expand {
+	position: absolute;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+}
+.exp-tile__play {
+	inset: 0;
+	margin: auto;
+	width: 54px;
+	height: 54px;
+	border-radius: 50%;
+	background: rgb(var(--shadow-tint-rgb) / 0.5);
+	pointer-events: none;
+}
+/* Clean icon-only fullscreen control (top-right). Visible at rest so the tile
+   reads as expandable; brightens with the tile. Triggers the same grow-to-
+   fullscreen animation as the Play tiles (via .ie-preview + data-ie-origin). */
+.exp-tile__expand {
+	top: 10px;
+	right: 10px;
+	width: 34px;
+	height: 34px;
+	border: 0;
+	border-radius: 50%;
+	background: rgb(var(--shadow-tint-rgb) / 0.5);
+	color: #fff;
+	cursor: pointer;
+	opacity: 0.8;
+	box-shadow: none;
+	backdrop-filter: blur(2px);
+	transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.exp-tile--live:hover .exp-tile__expand,
+.exp-tile--live:focus-within .exp-tile__expand {
+	opacity: 1;
+	background: rgb(var(--shadow-tint-rgb) / 0.78);
+}
+.exp-tile__expand:hover {
+	transform: scale(1.1);
+	background: rgb(var(--shadow-tint-rgb) / 0.9);
+}
+.exp-tile__expand svg { width: 15px; height: 15px; }
+
+/* Wall tiles reuse PR #15's .ie-preview only for its click-to-fullscreen
+   behavior. Strip its standalone-preview cosmetics (green gradient, outer
+   margin, dot-grid ::before, fixed aspect/size) so they don't bleed behind
+   the tile/caption. These compound selectors outrank bare .ie-preview. */
+.exp-tile.ie-preview {
+	margin: 0;
+	max-width: none;
+	aspect-ratio: auto;
+	background: none;
+	border: 0;
+	box-shadow: none;
+	border-radius: 0;
+}
+.exp-tile.ie-preview::before { display: none; }
+/* Neutralize only the inherited layout bleed on the expand button; its
+   background/hover come from the .exp-tile__expand rules above (this sheet
+   now loads after interactive-embed.css, so those win the cascade). */
+.exp-tile__expand.ie-preview {
+	margin: 0;
+	max-width: none;
+	aspect-ratio: auto;
+}
+.exp-tile__expand.ie-preview::before { display: none; }
+
+.exp-tile__cap {
+	display: block;
+	margin-top: 8px;
+}
+.exp-tile__cap b { display: block; font-size: 0.95rem; line-height: 1.2; }
+.exp-tile__cap span { display: block; font-size: 0.8rem; color: var(--muted); line-height: 1.3; }
+
+@media (prefers-reduced-motion: reduce) {
+	.exp-tile__media { transition: none; }
+}
