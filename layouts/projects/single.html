@@ -76,7 +76,7 @@
     {{/* ── Hero screenshot ── */}}
     {{ with $.Params.image }}
     {{ $webp := . | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
-    <div class="project-detail__hero">
+    <div class="project-detail__hero{{ if $.Params.heroBare }} project-detail__hero--bare{{ end }}">
       <picture>
         {{ if ne $webp . }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
         <img src="{{ . }}" alt="{{ $.Title }} — hero screenshot" loading="eager" />
