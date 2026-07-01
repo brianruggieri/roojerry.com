@@ -1,10 +1,7 @@
 ---
 title: "YouTube Music for macOS"
-subtitle: "ytm"
-description: "A native macOS wrapper for YouTube Music — no Electron, just WebKit with deep system integration. A fork I extended with an audio-reactive visualizer, a full light theme, and continued local development."
-tagline: "A real MilkDrop visualizer, driven by the app's own audio."
+description: "A lightweight native macOS wrapper for YouTube Music with system integration."
 tags: ["Swift", "AppKit", "WebKit", "Core Audio", "JavaScript", "macOS"]
-statusLabel: "Fork — Active Local Development"
 github: "https://github.com/brianruggieri/yt-music-mac"
 ctaTitle: "See it on GitHub"
 ctaDesc: "Forked from 0xjemm/youtube-music-macos (MIT). All extensions below are my own work."
@@ -41,4 +38,4 @@ screenshots:
 
 A native macOS wrapper for YouTube Music — no Electron, just a lean WebKit shell with deep system integration. Forked from [0xjemm/youtube-music-macos](https://github.com/0xjemm/youtube-music-macos) (MIT), which stays deliberately minimal.
 
-I took it in a different direction. The headline is an audio-reactive Butterchurn visualizer that taps the app's *own* audio output through Core Audio — not a mic, not fake data — plus a full runtime light theme, a fullscreen control bar with idle auto-hide, Spotify import, and a reshaped app icon. Development continues locally across several branches.
+I took it in a different direction. The headline is an audio-reactive Butterchurn visualizer that taps the app's *own* audio output through Core Audio, plus a full runtime light theme, a fullscreen control bar with idle auto-hide, Spotify import, and a reshaped app icon. Development continues locally across several branches.
