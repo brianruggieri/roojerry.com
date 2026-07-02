@@ -18,7 +18,8 @@
     dialog.addEventListener('click', (e) => {
       if (e.target === dialog) dialog.close();
     });
-    dialog.addEventListener('close', () => { img.src = ''; });
+    // removeAttribute, not src='': empty src resolves to the page URL and fires a wasted request
+    dialog.addEventListener('close', () => img.removeAttribute('src'));
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
