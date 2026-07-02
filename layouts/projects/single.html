@@ -173,19 +173,34 @@
 
     {{/* ── Screenshots ── */}}
     {{ with .Params.screenshots }}
+    {{ $grid := $.Params.screenshotsGrid }}
     <h3 class="project-section-heading">Screenshots</h3>
-    <div class="screenshots-gallery" role="region" aria-label="Project screenshots">
+    <div class="screenshots-gallery{{ if $grid }} screenshots-gallery--grid{{ end }}" role="region" aria-label="Project screenshots">
       {{ range . }}
       {{ $webp := .src | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
-      <figure class="gallery-item">
+      {{ $alt := .caption | default (printf "%s — screenshot" $.Title) }}
+      <figure class="gallery-item{{ with .fit }} gallery-item--{{ . }}{{ end }}">
+        {{ if $grid }}
+        <button type="button" class="gallery-item__zoom" data-full="{{ $webp }}"
+                aria-label="Expand screenshot: {{ $alt }}">
+        {{ end }}
         <picture>
           {{ if ne $webp .src }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
-          <img src="{{ .src }}" alt="{{ .caption | default (printf "%s — screenshot" $.Title) }}" loading="lazy" />
+          <img src="{{ .src }}" alt="{{ $alt }}" loading="lazy" />
         </picture>
+        {{ if $grid }}</button>{{ end }}
         {{ with .caption }}<figcaption>{{ . }}</figcaption>{{ end }}
       </figure>
       {{ end }}
     </div>
+    {{ if $grid }}
+    <dialog class="shot-lightbox" aria-label="Expanded screenshot">
+      <img src="" alt="" />
+      <button type="button" class="shot-lightbox__close" aria-label="Close">
+        {{ partial "icon.html" (dict "icon" "fas fa-times") }}
+      </button>
+    </dialog>
+    {{ end }}
     {{ end }}
 
     {{/* ── Privacy architecture ── */}}

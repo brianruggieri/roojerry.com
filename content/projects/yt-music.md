@@ -36,11 +36,26 @@ features:
   - icon: "fas fa-plug"
     title: "System Integration"
     desc: "Media keys, Now Playing in Control Center with artwork, and Discord Rich Presence — the lean WebKit core, carried forward from upstream."
+screenshotsGrid: true
 screenshots:
+  - src: "/img/projects/yt-music/shots/home-light.webp"
+    caption: "Home in the native light theme"
+  - src: "/img/projects/yt-music/shots/home-dark.webp"
+    caption: "Home in the stock dark theme"
+  - src: "/img/projects/yt-music/shots/explore-light.webp"
+    caption: "Explore — new albums and top songs, light theme"
+  - src: "/img/projects/yt-music/shots/library-dark.webp"
+    caption: "Library grid, dark theme"
+  - src: "/img/projects/yt-music/shots/search-light.webp"
+    caption: "Search results, light theme"
+  - src: "/img/projects/yt-music/shots/moods-light.webp"
+    caption: "Moods & genres chips, light theme"
   - src: "/img/projects/yt-music/control-center.png"
     caption: "Now Playing in Control Center, with album artwork"
+    fit: "contain"
   - src: "/img/projects/yt-music/discord.png"
     caption: "Discord Rich Presence showing the current track"
+    fit: "contain"
 ---
 
 A native macOS wrapper for YouTube Music — no Electron, just a lean WebKit shell with deep system integration. Forked from [0xjemm/youtube-music-macos](https://github.com/0xjemm/youtube-music-macos) (MIT), which stays deliberately minimal.
