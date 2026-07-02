@@ -931,3 +931,133 @@
         grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
     }
 }
+
+/* ── Before/after comparison slider ──
+   Images are transparent floating-window PNGs (own drop shadow), so the frame
+   stays bare like .project-detail__hero--bare — no border/clip to hard-edge the shadow. */
+.img-compare {
+    margin: 1.5rem 0 2rem;
+}
+
+.img-compare__frame {
+    position: relative;
+    line-height: 0;
+    --pos: 50%;
+    touch-action: pan-y; /* let vertical page scroll through; range handles horizontal */
+}
+
+.img-compare__img,
+.img-compare__img img {
+    display: block;
+    width: 100%;
+}
+
+.img-compare__img--top {
+    position: absolute;
+    inset: 0;
+    /* reveal only the left --pos of the top image */
+    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+}
+
+.img-compare__divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--pos);
+    width: 2px;
+    margin-left: -1px;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.15);
+    pointer-events: none;
+}
+
+.img-compare__handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 38px;
+    height: 38px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 5px rgb(0 0 0 / 0.3);
+}
+
+.img-compare__handle::before,
+.img-compare__handle::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    transform: translateY(-50%);
+}
+.img-compare__handle::before {
+    left: 7px;
+    border-right-color: var(--brand);
+}
+.img-compare__handle::after {
+    right: 7px;
+    border-left-color: var(--brand);
+}
+
+.img-compare__tag {
+    position: absolute;
+    top: 14px;
+    font-family: "Saira Extra Condensed", sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgb(0 0 0 / 0.55);
+    color: #fff;
+    pointer-events: none;
+}
+.img-compare__tag--left {
+    left: 16px;
+}
+.img-compare__tag--right {
+    right: 16px;
+}
+
+/* Invisible native range overlays the whole frame: drag anywhere, click to jump,
+   arrow keys to nudge — all for free. */
+.img-compare__range {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    opacity: 0;
+    cursor: ew-resize;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.img-compare__range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 44px;
+    height: 100%;
+    cursor: ew-resize;
+}
+.img-compare__range::-moz-range-thumb {
+    width: 44px;
+    height: 100%;
+    border: none;
+    background: transparent;
+}
+
+.img-compare__frame:has(.img-compare__range:focus-visible) .img-compare__handle {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.img-compare__caption {
+    margin-top: 0.7rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-align: center;
+}

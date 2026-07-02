@@ -8,6 +8,12 @@ ctaDesc: "Forked from 0xjemm/youtube-music-macos (MIT). All extensions below are
 image: "/img/projects/yt-music/visualizer.png"
 poster: "/img/projects/yt-music/visualizer.png"
 heroBare: true
+compare:
+  before: "/img/projects/yt-music/visualizer-dark.png"
+  after: "/img/projects/yt-music/visualizer.png"
+  beforeLabel: "Dark"
+  afterLabel: "Light"
+  caption: "Drag to compare the stock dark UI against the native light theme. (Placeholder dark image — real screenshot to come.)"
 featured: true
 year: "2026"
 featureColumns: 3
