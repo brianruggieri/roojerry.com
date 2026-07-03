@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate coin-faces (≥2 headshots required)
+        run: ./scripts/validate-coin-faces.sh
+
       - name: Build
         run: hugo --minify
 
