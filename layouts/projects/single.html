@@ -72,6 +72,30 @@
       </div>
       <span class="ie-preview__label">Click to play</span>
     </div>
+    {{ else with .Params.compare }}
+    {{/* ── Before/after comparison slider (replaces static hero) ── */}}
+    {{ $beforeWebp := .before | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+    {{ $afterWebp := .after | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+    {{ $beforeLabel := .beforeLabel | default "Before" }}
+    {{ $afterLabel := .afterLabel | default "After" }}
+    <figure class="img-compare">
+      <div class="img-compare__frame">
+        <picture class="img-compare__img">
+          {{ if ne $afterWebp .after }}<source srcset="{{ $afterWebp }}" type="image/webp">{{ end }}
+          <img src="{{ .after }}" alt="{{ $.Title }} — {{ $afterLabel }}" loading="eager" />
+        </picture>
+        <picture class="img-compare__img img-compare__img--top">
+          {{ if ne $beforeWebp .before }}<source srcset="{{ $beforeWebp }}" type="image/webp">{{ end }}
+          <img src="{{ .before }}" alt="{{ $.Title }} — {{ $beforeLabel }}" loading="eager" />
+        </picture>
+        <span class="img-compare__tag img-compare__tag--left" aria-hidden="true">{{ $beforeLabel }}</span>
+        <span class="img-compare__tag img-compare__tag--right" aria-hidden="true">{{ $afterLabel }}</span>
+        <div class="img-compare__divider" aria-hidden="true"><span class="img-compare__handle"></span></div>
+        <input class="img-compare__range" type="range" min="0" max="100" value="50" step="0.1"
+               aria-label="Drag to compare {{ $beforeLabel }} and {{ $afterLabel }} themes" />
+      </div>
+      {{ with .caption }}<figcaption class="img-compare__caption">{{ . }}</figcaption>{{ end }}
+    </figure>
     {{ else }}
     {{/* ── Hero screenshot ── */}}
     {{ with $.Params.image }}
@@ -149,19 +173,34 @@
 
     {{/* ── Screenshots ── */}}
     {{ with .Params.screenshots }}
+    {{ $grid := $.Params.screenshotsGrid }}
     <h3 class="project-section-heading">Screenshots</h3>
-    <div class="screenshots-gallery" role="region" aria-label="Project screenshots">
+    <div class="screenshots-gallery{{ if $grid }} screenshots-gallery--grid{{ end }}" role="region" aria-label="Project screenshots">
       {{ range . }}
       {{ $webp := .src | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
-      <figure class="gallery-item">
+      {{ $alt := .caption | default (printf "%s — screenshot" $.Title) }}
+      <figure class="gallery-item{{ with .fit }} gallery-item--{{ . }}{{ end }}">
+        {{ if $grid }}
+        <button type="button" class="gallery-item__zoom" data-full="{{ $webp }}"
+                aria-label="Expand screenshot: {{ $alt }}">
+        {{ end }}
         <picture>
           {{ if ne $webp .src }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
-          <img src="{{ .src }}" alt="{{ .caption | default (printf "%s — screenshot" $.Title) }}" loading="lazy" />
+          <img src="{{ .src }}" alt="{{ $alt }}" loading="lazy" />
         </picture>
+        {{ if $grid }}</button>{{ end }}
         {{ with .caption }}<figcaption>{{ . }}</figcaption>{{ end }}
       </figure>
       {{ end }}
     </div>
+    {{ if $grid }}
+    <dialog class="shot-lightbox" aria-label="Expanded screenshot">
+      <img alt="" />
+      <button type="button" class="shot-lightbox__close" aria-label="Close">
+        {{ partial "icon.html" (dict "icon" "fas fa-times") }}
+      </button>
+    </dialog>
+    {{ end }}
     {{ end }}
 
     {{/* ── Privacy architecture ── */}}

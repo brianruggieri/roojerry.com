@@ -8,6 +8,12 @@ ctaDesc: "Forked from 0xjemm/youtube-music-macos (MIT). All extensions below are
 image: "/img/projects/yt-music/visualizer.png"
 poster: "/img/projects/yt-music/visualizer.png"
 heroBare: true
+compare:
+  before: "/img/projects/yt-music/visualizer-dark.png"
+  after: "/img/projects/yt-music/visualizer.png"
+  beforeLabel: "Dark"
+  afterLabel: "Light"
+  caption: "Drag to compare the stock dark UI against the native light theme. (Placeholder dark image — real screenshot to come.)"
 featured: true
 year: "2026"
 featureColumns: 3
@@ -30,11 +36,24 @@ features:
   - icon: "fas fa-plug"
     title: "System Integration"
     desc: "Media keys, Now Playing in Control Center with artwork, and Discord Rich Presence — the lean WebKit core, carried forward from upstream."
+screenshotsGrid: true
 screenshots:
-  - src: "/img/projects/yt-music/control-center.png"
-    caption: "Now Playing in Control Center, with album artwork"
-  - src: "/img/projects/yt-music/discord.png"
-    caption: "Discord Rich Presence showing the current track"
+  - src: "/img/projects/yt-music/shots/home-light.webp"
+    caption: "Home in the native light theme"
+  - src: "/img/projects/yt-music/shots/home-dark.webp"
+    caption: "Home in the stock dark theme"
+  - src: "/img/projects/yt-music/shots/explore-light.webp"
+    caption: "Explore — new albums and top songs, light theme"
+  - src: "/img/projects/yt-music/shots/library-dark.webp"
+    caption: "Library grid, dark theme"
+  - src: "/img/projects/yt-music/shots/search-light.webp"
+    caption: "Search results, light theme"
+  - src: "/img/projects/yt-music/shots/moods-light.webp"
+    caption: "Moods & genres chips, light theme"
+  - src: "/img/projects/yt-music/shots/context-menu-light.webp"
+    caption: "Track context menu, themed in light mode"
+  - src: "/img/projects/yt-music/shots/account-menu-dark.webp"
+    caption: "Account menu, dark theme"
 ---
 
 A native macOS wrapper for YouTube Music — no Electron, just a lean WebKit shell with deep system integration. Forked from [0xjemm/youtube-music-macos](https://github.com/0xjemm/youtube-music-macos) (MIT), which stays deliberately minimal.
