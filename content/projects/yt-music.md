@@ -50,12 +50,10 @@ screenshots:
     caption: "Search results, light theme"
   - src: "/img/projects/yt-music/shots/moods-light.webp"
     caption: "Moods & genres chips, light theme"
-  - src: "/img/projects/yt-music/control-center.png"
-    caption: "Now Playing in Control Center, with album artwork"
-    fit: "contain"
-  - src: "/img/projects/yt-music/discord.png"
-    caption: "Discord Rich Presence showing the current track"
-    fit: "contain"
+  - src: "/img/projects/yt-music/shots/context-menu-light.webp"
+    caption: "Track context menu, themed in light mode"
+  - src: "/img/projects/yt-music/shots/account-menu-dark.webp"
+    caption: "Account menu, dark theme"
 ---
 
 A native macOS wrapper for YouTube Music — no Electron, just a lean WebKit shell with deep system integration. Forked from [0xjemm/youtube-music-macos](https://github.com/0xjemm/youtube-music-macos) (MIT), which stays deliberately minimal.
