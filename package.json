@@ -8,6 +8,7 @@
     "build:check": "/opt/homebrew/bin/hugo --minify --renderToMemory",
     "preview": "/opt/homebrew/bin/hugo server --disableFastRender",
     "clean": "rm -rf public/",
+    "sync-shots": "./scripts/sync-yt-music-shots.sh",
     "env": "/opt/homebrew/bin/hugo env",
     "test": "node tests/runner.js",
     "test:visual": "node tests/visual/runner.js",
