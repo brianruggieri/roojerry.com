@@ -18,7 +18,7 @@ await runTest('play tile opens fullscreen overlay and loads its src', async () =
 	if (before !== 'about:blank') throw new Error(`frame preloaded: ${before}`);
 
 	await page.click('.exp-tile--play');
-	await page.waitForSelector('#ie-overlay.is-active', { timeout: 3000 });
+	await page.waitForSelector('#ie-overlay[open]', { timeout: 3000 });
 	const src = await page.$eval('#ie-overlay .ie-overlay__frame', f => f.getAttribute('src'));
 	if (!src || src === 'about:blank') throw new Error('frame src not set after open');
 });
@@ -26,10 +26,10 @@ await runTest('play tile opens fullscreen overlay and loads its src', async () =
 await runTest('Escape closes the overlay and unloads the iframe', async () => {
 	await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
 	await page.click('.exp-tile--play');
-	await page.waitForSelector('#ie-overlay.is-active', { timeout: 3000 });
+	await page.waitForSelector('#ie-overlay[open]', { timeout: 3000 });
 	await page.keyboard.press('Escape');
 	await page.waitForFunction(
-		() => !document.getElementById('ie-overlay').classList.contains('is-active'),
+		() => !document.getElementById('ie-overlay').open,
 		{ timeout: 3000 });
 	const src = await page.$eval('#ie-overlay .ie-overlay__frame', f => f.getAttribute('src'));
 	if (src !== 'about:blank') throw new Error(`frame not unloaded: ${src}`);

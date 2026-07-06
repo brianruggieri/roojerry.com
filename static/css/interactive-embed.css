@@ -117,17 +117,25 @@
    Fullscreen takeover overlay
 --------------------------------------------------------------- */
 
+/* Native <dialog> shown via showModal() — lives in the browser top layer,
+   so page stacking contexts (sections/body all carry z-index: 1) can never
+   paint over it. Reset the UA's centered fit-content box to full viewport. */
 .ie-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10000;
-  display: none;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
 }
 
-.ie-overlay.is-active {
-  display: block;
-  pointer-events: auto;
+/* The fade lives on .ie-overlay__backdrop, not the native backdrop */
+.ie-overlay::backdrop {
+  background: none;
 }
 
 /* White backdrop fades in behind the iframe */
