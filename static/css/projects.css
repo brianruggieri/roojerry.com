@@ -702,7 +702,9 @@
     border: none;
     padding: 0;
     background: transparent;
-    max-width: min(92vw, 1280px);
+    /* % not vw: vw ignores a classic scrollbar, letting the box overflow the
+       window's right edge; % resolves against the real layout viewport */
+    max-width: min(calc(100% - 64px), 1280px);
     max-height: 90vh;
 }
 
@@ -714,16 +716,16 @@
     display: block;
     max-width: 100%;
     max-height: 90vh;
-    border-radius: 8px;
+    border-radius: 14px;
 }
 
 .shot-lightbox__close {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 36px;
-    height: 36px;
-    border: none;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgb(255 255 255 / 0.4);
     border-radius: 50%;
     background: rgb(0 0 0 / 0.55);
     color: #fff;
