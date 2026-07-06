@@ -38,11 +38,13 @@
   }
 
   function lockScroll() {
-    document.body.style.overflow = "hidden";
+    // html is the page scroller (background.css sets html { overflow-y: auto }),
+    // so body { overflow: hidden } alone doesn't stop viewport scroll
+    document.documentElement.style.overflow = "hidden";
   }
 
   function unlockScroll() {
-    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
   }
 
   /* ── Open: play button clicked ── */
@@ -64,8 +66,8 @@
       frame.src = src;
     }
 
-    // Show the overlay container
-    overlay.classList.add("is-active");
+    // Show the overlay in the browser top layer — immune to page z-index
+    overlay.showModal();
 
     // Hide site chrome (nav, bg controls, field controls, etc.)
     document.body.classList.add("ie-fullscreen-active");
@@ -102,7 +104,7 @@
     // Wait for transition, then tear down
     var onEnd = function () {
       frame.removeEventListener("transitionend", onEnd);
-      overlay.classList.remove("is-active");
+      overlay.close();
       // Unload iframe to free resources
       frame.src = "about:blank";
       unlockScroll();
@@ -138,10 +140,10 @@
 
   closeBtn.addEventListener("click", close);
 
-  // Escape key closes the overlay
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && isOpen) {
-      close();
-    }
+  // Escape fires the dialog's cancel event — intercept so we get the
+  // shrink-back animation instead of an instant close
+  overlay.addEventListener("cancel", function (e) {
+    e.preventDefault();
+    close();
   });
 })();
