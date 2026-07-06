@@ -1099,15 +1099,23 @@
 
 .img-compare__tag {
     position: absolute;
-    top: 14px;
+    /* below the screenshot's own titlebar so the pill doesn't sit on app chrome */
+    top: 48px;
     font-family: "Saira Extra Condensed", sans-serif;
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
+    font-size: 1.05rem;
+    font-weight: 600;
+    /* the frame zeroes line-height (image-gap fix); restore it or the pill collapses */
+    line-height: 1.4;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    padding: 3px 10px;
+    padding: 4px 14px;
     border-radius: 999px;
-    background: rgb(0 0 0 / 0.55);
+    background: rgb(0 0 0 / 0.75);
     color: #fff;
+    /* light ring + shadow so the pill separates from both dark and light screenshots */
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.35), 0 2px 8px rgb(0 0 0 / 0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     pointer-events: none;
 }
 .img-compare__tag--left {
