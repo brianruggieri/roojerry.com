@@ -6,7 +6,7 @@ github: "https://github.com/brianruggieri/yt-music-mac"
 ctaTitle: "See it on GitHub"
 ctaDesc: "Forked from 0xjemm/youtube-music-macos (MIT). All extensions below are my own work."
 image: "/img/projects/yt-music/visualizer.png"
-poster: "/img/projects/yt-music/visualizer.png"
+poster: "/img/projects/yt-music/shots/visualizer-dark.webp"
 heroBare: true
 compare:
   before: "/img/projects/yt-music/player-visualizer-dark.webp"
