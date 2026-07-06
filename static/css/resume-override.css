@@ -466,3 +466,21 @@ h1 .text-primary {
   }
 
 } /* end max-width: 991px */
+
+/* =========================
+   Desktop Sidebar Nav — link contrast
+   Bootstrap navbar-dark's rgba(255,255,255,.5) is 2.4:1 on the teal
+   sidebar (needs 4.5:1); only near-white passes, so links are white and
+   the scrollspy-active state is marked with an accent underline instead.
+========================= */
+
+@media (min-width: 992px) {
+  #sideNav .navbar-nav .nav-item .nav-link {
+    color: #fff;
+  }
+
+  #sideNav .navbar-nav .nav-item .nav-link.active {
+    text-decoration: underline 2px var(--accent);
+    text-underline-offset: 6px;
+  }
+}
