@@ -5,9 +5,19 @@ const coin = document.getElementById("profileCoin");
 const mobileCoin = document.getElementById("mobileCoin");
 const frontFace = coin?.querySelector(".coin-front");
 const backFace  = coin?.querySelector(".coin-back");
+const ripple = coin?.querySelector(".coin-ripple");
+
+// Water ripple behind the coin once it lands
+function fireRipple() {
+  if (!ripple || (window.FIELD && window.FIELD.prefersReducedMotion())) return;
+  ripple.classList.remove("is-rippling");
+  void ripple.offsetWidth; // restart CSS animation
+  ripple.classList.add("is-rippling");
+}
 
 let flipping = false;
 let showingReal = true; // front = real, back = generative
+let rippleTimer = null;
 
 function randomRange(min, max) {
   return Math.random() * (max - min) + min;
@@ -34,6 +44,13 @@ function flipCoin() {
   setTimeout(() => {
     flipping = false;
   }, lockDuration);
+
+  // Ripple lands slightly after the 600ms flip settles; reschedule if a
+  // second flip sneaks in between unlock (600ms) and ripple (700ms)
+  if (lockDuration) {
+    clearTimeout(rippleTimer);
+    rippleTimer = setTimeout(fireRipple, 700);
+  }
 }
 
 // Click handler (count only real clicks; auto-flips don't increment)

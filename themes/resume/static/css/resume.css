@@ -285,6 +285,83 @@ a:hover, a:focus, a:active {
   }
 }
 
+/* Water ripple — rings spread out from under the coin after it lands (triggered by
+   coin-flip.js). Rings paint above the faces (z-index 3) because the coin's ::before
+   drop shadow would otherwise bury them; starting at scale(1) hides the ring under
+   the coin's dark rim so it reads as emerging from behind. Transform/opacity only;
+   rings expand past the sidebar and fade to nothing, clipped at the blue edge. */
+@media (min-width: 992px) {
+  #sideNav {
+    overflow: hidden; /* clip ripple rings to the blue sidebar */
+  }
+}
+
+.coin-ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Soft shadow-toned bands (not hairlines): thick low-alpha border + baked-in
+   box-shadow blur, painted once then transform-scaled — the blur diffuses as
+   the ring grows, reading as the coin's shadow dissolving into the water.
+   Colors sit between the coin's black drop shadow and the --brand teal. */
+.coin-ripple span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 8px solid rgba(16, 45, 66, 0.3);
+  box-shadow: 0 0 10px rgba(16, 45, 66, 0.25), inset 0 0 10px rgba(16, 45, 66, 0.25);
+  opacity: 0;
+  transform: scale(1);
+}
+
+.coin-ripple span:first-child {
+  /* impact band — blacker, the coin shadow "leaking" outward */
+  border-color: rgba(6, 20, 30, 0.35);
+  box-shadow: 0 0 10px rgba(6, 20, 30, 0.3), inset 0 0 10px rgba(6, 20, 30, 0.3);
+}
+
+.coin-ripple.is-rippling span {
+  animation: coin-ripple 1.5s cubic-bezier(0.15, 0.55, 0.45, 1) forwards;
+}
+
+.coin-ripple.is-rippling span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.coin-ripple.is-rippling span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes coin-ripple {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  55% {
+    opacity: 0.18;
+  }
+  to {
+    opacity: 0;
+    transform: scale(4.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coin-ripple span {
+    animation: none !important;
+  }
+}
+
 /* Nav scroll-reveal — mobile only */
 @media (max-width: 991px) {
   #sideNav {
