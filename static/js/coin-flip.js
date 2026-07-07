@@ -17,6 +17,7 @@ function fireRipple() {
 
 let flipping = false;
 let showingReal = true; // front = real, back = generative
+let rippleTimer = null;
 
 function randomRange(min, max) {
   return Math.random() * (max - min) + min;
@@ -44,8 +45,12 @@ function flipCoin() {
     flipping = false;
   }, lockDuration);
 
-  // Ripple lands slightly after the 600ms flip settles
-  if (lockDuration) setTimeout(fireRipple, 700);
+  // Ripple lands slightly after the 600ms flip settles; reschedule if a
+  // second flip sneaks in between unlock (600ms) and ripple (700ms)
+  if (lockDuration) {
+    clearTimeout(rippleTimer);
+    rippleTimer = setTimeout(fireRipple, 700);
+  }
 }
 
 // Click handler (count only real clicks; auto-flips don't increment)
