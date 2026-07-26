@@ -1,6 +1,9 @@
 ---
 title: "Fit Assessments"
 description: "Evidence-backed job fit assessments by Brian Ruggieri"
-_build:
+build:
   list: never
+cascade:
+  build:
+    list: local
 ---

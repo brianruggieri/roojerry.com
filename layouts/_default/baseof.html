@@ -13,12 +13,15 @@
   {{if $preview_image }}
     <meta property="og:image" content="{{ $preview_image.Permalink }}" />
     <meta property="og:title" content="{{ $preview_image.Title }}" />
+  {{ else if .Params.image }}
+    <meta property="og:image" content="{{ .Params.image | absURL }}" />
+    <meta property="og:title" content="{{ $pageTitle }}" />
   {{ else }}
     <meta property="og:image" content="{{ .Site.Params.profileImage | absURL }}" />
     <meta property="og:title" content="{{ $pageTitle }}" />
   {{ end }}
   <meta property="og:description" content="{{ if .IsHome }}{{ .Site.Params.description }}{{else}}{{ .Description }}{{ end }}" />
-  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:card" content="{{ if or $preview_image .Params.image }}summary_large_image{{ else }}summary{{ end }}">
   <meta name="author" content="{{ .Site.Params.firstName }} {{ .Site.Params.lastName }}">
   {{ partial "jsonld.html" . }}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
