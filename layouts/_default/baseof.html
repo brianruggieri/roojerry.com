@@ -3,19 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>{{ .Site.Title }} | {{ .Title }}</title>
+  {{ $pageTitle := printf "%s | %s" .Site.Title .Title }}
+  {{ if .IsHome }}{{ $pageTitle = printf "%s — %s" .Site.Title .Site.Params.tagline }}{{ end }}
+  <title>{{ $pageTitle }}</title>
   <meta name="description" content="{{ if .IsHome }}{{ .Site.Params.description }}{{else}}{{ .Description }}{{ end }}">
+  <link rel="canonical" href="{{ .Permalink }}">
 
   {{ $preview_image := .Resources.GetMatch "site_preview" }}
   {{if $preview_image }}
     <meta property="og:image" content="{{ $preview_image.Permalink }}" />
-    <meta property="og:title" content="{{ $preview_image.Title }}" />  
+    <meta property="og:title" content="{{ $preview_image.Title }}" />
+  {{ else if .Params.image }}
+    <meta property="og:image" content="{{ .Params.image | absURL }}" />
+    <meta property="og:title" content="{{ $pageTitle }}" />
   {{ else }}
     <meta property="og:image" content="{{ .Site.Params.profileImage | absURL }}" />
-    <meta property="og:title" content="{{ .Site.Title }} | {{ .Title }}" />   
+    <meta property="og:title" content="{{ $pageTitle }}" />
   {{ end }}
   <meta property="og:description" content="{{ if .IsHome }}{{ .Site.Params.description }}{{else}}{{ .Description }}{{ end }}" />
+  <meta name="twitter:card" content="{{ if or $preview_image .Params.image }}summary_large_image{{ else }}summary{{ end }}">
   <meta name="author" content="{{ .Site.Params.firstName }} {{ .Site.Params.lastName }}">
+  {{ partial "jsonld.html" . }}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <!-- Bootstrap core CSS (self-hosted so PurgeCSS can strip unused rules at build) -->
   <link rel="stylesheet" href="/css/bootstrap.min.css">

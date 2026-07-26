@@ -1,0 +1,12 @@
+# Brian Ruggieri
+
+> Full-stack engineer and creative technologist based in Athens, GA. I build interactive platforms, data tools, and immersive experiences — from web apps to real-time 3D.
+
+roojerry.com is the personal portfolio of Brian Ruggieri ("roojerry" is his personal brand/handle). The site is pre-rendered static HTML; interactive WebGL/canvas experiments require JavaScript and are not visible to fetch-only agents.
+
+## Key pages
+
+- [Home / Resume](https://www.roojerry.com/): bio, work history, skills, education
+- [Projects](https://www.roojerry.com/projects/): YouTube Music for macOS, Nurbits, Claude Code Pulse, and more
+- [GitHub](https://github.com/brianruggieri/)
+- [LinkedIn](https://www.linkedin.com/in/roojerry/)

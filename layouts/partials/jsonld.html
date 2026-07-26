@@ -1,0 +1,45 @@
+{{- /* schema.org JSON-LD: Person/WebSite/ProfilePage on home, CreativeWork on project pages */ -}}
+{{- $base := .Site.BaseURL -}}
+{{- $personID := printf "%s#person" $base -}}
+{{- if .IsHome -}}
+{{- $person := dict
+  "@type" "Person"
+  "@id" $personID
+  "name" (printf "%s %s" .Site.Params.firstName .Site.Params.lastName)
+  "url" $base
+  "jobTitle" .Site.Params.tagline
+  "description" .Site.Params.description
+  "image" (.Site.Params.profileImage | absURL)
+  "address" .Site.Params.address
+  "sameAs" (apply .Site.Params.handles "index" "." "link")
+-}}
+{{- $website := dict
+  "@type" "WebSite"
+  "@id" (printf "%s#website" $base)
+  "url" $base
+  "name" .Site.Title
+  "description" .Site.Params.description
+  "publisher" (dict "@id" $personID)
+-}}
+{{- $profile := dict
+  "@type" "ProfilePage"
+  "@id" .Permalink
+  "mainEntity" (dict "@id" $personID)
+  "isPartOf" (dict "@id" (printf "%s#website" $base))
+-}}
+<script type="application/ld+json">{{ dict "@context" "https://schema.org" "@graph" (slice $person $website $profile) | jsonify | safeJS }}</script>
+{{- else if and (eq .Section "projects") .IsPage -}}
+{{- $work := dict
+  "@context" "https://schema.org"
+  "@type" "CreativeWork"
+  "name" .Title
+  "url" .Permalink
+  "author" (dict "@type" "Person" "@id" $personID "name" (printf "%s %s" .Site.Params.firstName .Site.Params.lastName))
+-}}
+{{- with .Description }}{{ $work = merge $work (dict "description" .) }}{{ end -}}
+{{- with .Params.image }}{{ $work = merge $work (dict "image" (. | absURL)) }}{{ end -}}
+{{- with .Params.tags }}{{ $work = merge $work (dict "keywords" (delimit . ", ")) }}{{ end -}}
+{{- with .Params.year }}{{ $work = merge $work (dict "copyrightYear" (int .)) }}{{ end -}}
+{{- with .Params.github }}{{ $work = merge $work (dict "sameAs" (slice .)) }}{{ end -}}
+<script type="application/ld+json">{{ $work | jsonify | safeJS }}</script>
+{{- end -}}
