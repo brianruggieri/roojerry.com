@@ -1223,3 +1223,9 @@
     .story-strip__row { grid-template-columns: 1fr; gap: 0.9rem; }
     .story-strip__row:nth-child(even) .story-strip__media { order: 0; }
 }
+
+/* Portrait story frames: cap the height so a tall card does not fill the column */
+.story-strip__media img {
+    max-height: 560px;
+    object-fit: contain;
+}

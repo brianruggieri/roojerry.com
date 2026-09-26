@@ -11,11 +11,11 @@ webp "$SRC/forty-years-and-the-dates-agree.png" "$OUT/poster.webp" 1280
 webp "$SRC/pick-a-spot-on-the-field.png" "$OUT/shots/position-board.webp" 732
 webp "$SRC/the-frame-takes-team-colors.jpg" "$OUT/shots/team-colours.webp" 1200
 webp "$SRC/the-career-you-chose.png" "$OUT/shots/career-you-chose.webp" 1594
-webp "$SRC/the-back-before-you-send-it.png" "$OUT/shots/back-before-you-send-it.webp" 1594
+webp "$SRC/gold-in-the-pile.png" "$OUT/shots/gold-in-the-pile.webp" 1600
 webp "$SRC/forty-years-and-the-dates-agree.png" "$OUT/shots/pile-background.webp" 1440
 webp "$SRC/realistic-2000.png" "$OUT/shots/real-odds.webp" 1600
 webp "$SRC/wear3d-cut-corner-ladder.png" "$OUT/shots/cut-corner-ladder.webp" 1000
-webp "$SRC/the-cut-edge-measured-then-rendered.png" "$OUT/shots/cut-edge.webp" 1286
+webp "$SRC/sweep-delta-legendary-512.png" "$OUT/shots/sweep-footprint.webp" 1600
 
 # PNG fallbacks are rarely served (near-universal webp support); keep them well
 # under their webp siblings' resolution so the 4 MB total budget holds.
