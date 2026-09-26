@@ -1,0 +1,105 @@
+{{ if .Params.image }}
+
+{{/* ── Rich showcase card (project has a screenshot) ── */}}
+<article class="project-card">
+
+  <div class="project-card__body">
+
+    <div class="project-card__meta">
+      {{ with .Params.statusLabel }}
+      <span class="project-status">
+        <span class="project-status__dot" aria-hidden="true"></span>
+        {{ . }}
+      </span>
+      {{ end }}
+    </div>
+
+    <h3 class="project-card__title">
+      {{ .Title }}{{ with .Params.subtitle }}<span class="project-card__subtitle"> {{ . }}</span>{{ end }}
+    </h3>
+
+    {{ with .Params.tagline }}
+    <p class="project-card__tagline">&ldquo;{{ . }}&rdquo;</p>
+    {{ end }}
+
+    {{ with .Description }}<p class="project-card__desc">{{ . }}</p>{{ end }}
+
+    {{ with .Params.tags }}
+    <div class="project-card__tags">
+      {{ range . }}<span class="project-tag">{{ . }}</span>{{ end }}
+    </div>
+    {{ end }}
+
+    <div class="project-card__links">
+      {{ with .Params.live }}
+      <a href="{{ . }}" class="project-card__link project-card__link--live"
+         target="_blank" rel="noopener noreferrer">
+        {{ partial "icon.html" (dict "icon" "fas fa-external-link-alt") }} Open the bench
+      </a>
+      {{ end }}
+      {{ with .Params.github }}
+      <a href="{{ . }}" class="project-card__link project-card__link--github"
+         target="_blank" rel="noopener noreferrer">
+        {{ partial "icon.html" (dict "icon" "fab fa-github") }} GitHub
+      </a>
+      {{ end }}
+      {{ with .Params.release }}
+      {{ $icon := $.Params.releaseIcon | default "fas fa-download" }}
+      {{ $label := $.Params.releaseLabel | default "Download" }}
+      <a href="{{ . }}" class="project-card__link project-card__link--release"
+         target="_blank" rel="noopener noreferrer">
+        {{ partial "icon.html" (dict "icon" $icon) }} {{ $label }}
+      </a>
+      {{ end }}
+      <a href="{{ .Permalink }}" class="project-card__link project-card__link--details">
+        Details &rarr;
+      </a>
+    </div>
+
+  </div>
+
+  <div class="project-card__visual">
+    {{ $img := .Params.image }}
+    {{ $webp := $img | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+    {{ $ext := $img | replaceRE `^.*\.` "" }}
+    {{ $mime := cond (eq $ext "jpg") "image/jpeg" (printf "image/%s" $ext) }}
+    <picture>
+      <source srcset="{{ $webp }}" type="image/webp">
+      <img src="{{ $img }}"
+           alt="{{ .Title }} screenshot"
+           class="project-card__screenshot"
+           loading="lazy" />
+    </picture>
+  </div>
+
+</article>
+
+{{ else }}
+
+{{/* ── Simple card fallback (no screenshot) ── */}}
+<div class="project-simple-card mb-4">
+  <div class="project-simple-card__inner">
+    <div>
+      <h3 class="project-simple-card__title">
+        <a href="{{ if .Params.externalLink }}{{ .Params.externalLink }}{{ else }}{{ .Permalink }}{{ end }}"
+           {{ if .Params.externalLink }}target="_blank" rel="noopener noreferrer"{{ end }}>
+          {{ .Title }}
+        </a>
+      </h3>
+      {{ with .Description }}<p class="project-simple-card__desc">{{ . }}</p>{{ end }}
+      {{ with .Params.tags }}
+      <div class="project-card__tags mt-2">
+        {{ range . }}<span class="project-tag project-tag--light">{{ . }}</span>{{ end }}
+      </div>
+      {{ end }}
+    </div>
+    {{ with .Params.externalLink }}
+    <a href="{{ . }}" class="project-simple-card__link"
+       target="_blank" rel="noopener noreferrer">
+      Visit {{ partial "icon.html" (dict "icon" "fas fa-external-link-alt") }}
+    </a>
+    {{ end }}
+  </div>
+</div>
+
+{{ end }}
