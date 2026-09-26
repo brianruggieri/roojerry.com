@@ -35,7 +35,14 @@ Allowed on the portfolio page:
   scenes, the cut-edge and wear ladders where the subject is invented or Commons)
 - the live site's own `og.jpg`
 
-Not allowed: any frame whose subject is a real player rendered from the parent
+Standard applied at review (coordinator call, 2026-09-25, for Brian to confirm
+at the PR): the public bench switched to invented players and Commons
+photographs on 2026-09-10, so any pile capture dated before that shows the
+original real-MLB seed set. Such a frame ships only if no real person is
+recognizable at the shipped size. Under that test the 10,000-card runaway and
+its fix (cards a few pixels each, smeared into columns) stay, and every frame
+with legible headshots in the pile was dropped and recaptured from the live
+site. Not allowed: any frame whose subject is a real player rendered from the parent
 repo's local content (Ohtani, Trout, Betts, Rutschman, Witt, Ober, Bo Jackson
 frames and the Bailey Ober half of `blue-means-it-never-happened`). When a frame's
 manifest `context` does not settle it, leave it out.
