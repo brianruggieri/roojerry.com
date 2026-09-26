@@ -44,7 +44,7 @@ pipeline:
     desc: "OSC 1 escape sequence writes the title to the specific pane"
 screenshots:
   - src: "/img/projects/claude-code-pulse/before.png"
-    caption: "Before: generic \"project · claude\" on every pane"
+    caption: "Before: every pane carries the same generic title"
   - src: "/img/projects/claude-code-pulse/after.png"
     caption: "After: branch, task, and live status on each pane"
   - src: "/img/projects/claude-code-pulse/status-lifecycle.apng"
