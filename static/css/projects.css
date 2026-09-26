@@ -114,6 +114,19 @@
     text-decoration: none;
 }
 
+.project-card__link--live {
+    background: var(--brand);
+    color: #fff;
+    border: 1px solid var(--brand);
+}
+.project-card__link--live:hover,
+.project-card__link--live:focus {
+    background: var(--brand-dark);
+    border-color: var(--brand-dark);
+    color: #fff;
+    text-decoration: none;
+}
+
 .project-card__link--release {
     background: var(--accent);
     color: #fff;
@@ -1165,4 +1178,48 @@
     font-size: 0.78rem;
     color: var(--muted);
     text-align: center;
+}
+
+/* ── Story strip (How it was built) ── */
+.story-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+}
+.story-strip__row {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 1.5rem;
+    align-items: center;
+    margin: 0;
+}
+.story-strip__row:nth-child(even) .story-strip__media { order: 2; }
+.story-strip__media {
+    display: block;
+    line-height: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    background: var(--bg-mid);
+}
+.story-strip__media img { width: 100%; height: auto; display: block; }
+.story-strip__text { min-width: 0; }
+.story-strip__title {
+    font-size: 1.05rem;
+    margin: 0 0 0.5rem;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.story-strip__text p {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0;
+    max-width: 48ch;
+}
+
+@media (max-width: 767px) {
+    .story-strip__row { grid-template-columns: 1fr; gap: 0.9rem; }
+    .story-strip__row:nth-child(even) .story-strip__media { order: 0; }
 }
