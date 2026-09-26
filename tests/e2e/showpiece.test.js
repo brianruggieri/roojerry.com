@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 // tests/e2e/showpiece.test.js
 import puppeteer from 'puppeteer';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { BASE_URL } from '../helpers/server.js';
+import { webpSize } from '../helpers/webp-size.js';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 let failures = 0;
 async function runTest(name, fn) {
@@ -39,9 +44,27 @@ await runTest('showpiece page is not duplicated in the featured grid', async () 
 	if (!hrefs.length) throw new Error('featured grid lost every ordinary project tile');
 });
 
-await runTest('showpiece poster has explicit dimensions', async () => {
-	const dims = await page.$eval('.exp-showpiece__media img', i => [i.getAttribute('width'), i.getAttribute('height')]);
-	if (!dims[0] || !dims[1]) throw new Error(`missing width/height: ${dims}`);
+// The tile is above the featured grid but below the fold, so the poster must
+// reserve its box without competing with the real LCP element for bandwidth.
+await runTest('showpiece poster reserves its real pixel size and loads lazily', async () => {
+	const img = await page.$eval('.exp-showpiece__media img', i => ({
+		width: i.getAttribute('width'), height: i.getAttribute('height'),
+		loading: i.getAttribute('loading'), fetchpriority: i.getAttribute('fetchpriority'),
+		src: i.getAttribute('src'),
+		webp: document.querySelector('.exp-showpiece__media source')?.getAttribute('srcset'),
+	}));
+	if (!img.width || !img.height) throw new Error(`missing width/height: ${img.width}x${img.height}`);
+	if (img.loading !== 'lazy') throw new Error(`loading=${img.loading}, want lazy`);
+	if (img.fetchpriority) throw new Error(`fetchpriority=${img.fetchpriority} on a below-the-fold tile`);
+
+	// The served poster is the webp when there is one; measure the file itself.
+	const served = img.webp || img.src;
+	if (!served.endsWith('.webp')) throw new Error(`poster is ${served}, expected a webp`);
+	const file = join(ROOT, 'static', served);
+	const { width, height } = webpSize(file);
+	if (width !== Number(img.width) || height !== Number(img.height)) {
+		throw new Error(`${served} is ${width}x${height} but the tag declares ${img.width}x${img.height}`);
+	}
 });
 
 await runTest('no horizontal overflow at 390px', async () => {
