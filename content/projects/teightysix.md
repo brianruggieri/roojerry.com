@@ -16,10 +16,18 @@ featured: true
 weight: 1
 year: "2026"
 # Sources for the numbers on this page, all in the teightysix repo under .claude/:
-# HANDOFF.md (98/98 parity fixtures, 63% faster render), PLAN-RELEASE.md 4.1
-# (256 live / 2000 resident) and 4.4 (the D13 content posture), PLAN-BACK.md 210
-# (DREAM_INK vs RED), captures/captures.jsonl (0.45 mm cut edge, the 10/4/1
-# rarity mix, the 233 mm pile, the mirrored-S Z).
+# HANDOFF.md (98/98 parity fixtures, 63% faster render; "M2 (the pile): DONE +
+# gate-cleared. Backend (publish Worker, relay DO, snapshots) ... M2a codex
+# trust-boundary gate CLEAR"), PLAN-RELEASE.md 0 ("One deploy, Stage 1 only ...
+# No D1, no R2, no Durable Objects, no publishing. The pile is local-pile.ts:
+# every visitor gets their own reproducible pile from a localStorage seed, and
+# nothing is transmitted to make that true"), 4.1 (256 live / 2000 resident) and
+# 4.4 (the D13 content posture), PLAN-BACK.md 210 (DREAM_INK vs RED),
+# captures/captures.jsonl (0.45 mm cut edge, the 10/4/1 rarity mix, the 233 mm
+# pile, the mirrored-S Z; legendary-struck-in-gold: "every black mark outside
+# the player picture ... replaced with gold foil"). The pile shot's print number
+# is read off the frame itself, which shows PRINT #2001 over the 2,000-card
+# local pile.
 compare:
   before: "/img/projects/teightysix/press-empty.png"
   after: "/img/projects/teightysix/press-loaded.png"
@@ -32,11 +40,11 @@ features:
     title: "Byte-exact to the Python press"
     desc: "The TypeScript and WebGPU engine reproduces the parent pipeline's output pixel for pixel. 98 of 98 parity fixtures match, and self-hashes are frozen per engine version."
   - icon: "fas fa-layer-group"
-    title: "A pile that is really there"
-    desc: "Published cards fall into a shared 3D scene, tumble under Rapier physics and settle face up. 256 cards stay live geometry and the rest bake into the table."
+    title: "A pile on your own table"
+    desc: "Let the card go and it tumbles under Rapier physics into the pile on your own table, rebuilt from a seed kept in your browser and sent nowhere. 256 cards stay live geometry and the rest bake into the table. The shared pile behind it, with its publish Worker, relay and snapshots, is built and gate-cleared and not yet deployed."
   - icon: "fas fa-sliders-h"
     title: "Wear you can dial"
-    desc: "Wear, age, print strength and miscut are recipe fields. The card is a solid with a measured 0.45 mm cut edge, and the corners chip back to board as you turn the knob."
+    desc: "Wear, age and print strength are knobs on the bench. The card is a solid with a measured 0.45 mm cut edge, and the corners chip back to board as you turn the knob."
   - icon: "fas fa-palette"
     title: "An alphabet rebuilt"
     desc: "The 1986 type never existed as a font. The parent project drew it glyph by glyph from scans, with its own kern table, and the bench sets every name in it."
@@ -45,21 +53,21 @@ features:
     desc: "Every card carries a period back with a career table. Invented players get a blended career in deep blue ink; the attributed showcase carries its real record in red."
   - icon: "fas fa-trophy"
     title: "Foil at real odds"
-    desc: "Rare, holo and legendary finishes land at 10, 4 and 1 per hundred publishes. Legendary strikes every black mark on the front in gold."
+    desc: "Rare, holo and legendary finishes land at 10, 4 and 1 per hundred publishes. Legendary strikes every black mark outside the player photograph in gold."
 screenshotsGrid: true
 screenshots:
   - src: "/img/projects/teightysix/shots/position-board.webp"
     caption: "The position control is a chalked field with nine lamp plates"
   - src: "/img/projects/teightysix/shots/team-colours.webp"
     caption: "Eight fronts in eight clubs' two-colour schemes"
-  - src: "/img/projects/teightysix/shots/career-you-chose.webp"
-    caption: "An invented back with a career picked from the bench's chips"
-  - src: "/img/projects/teightysix/shots/gold-in-the-pile.webp"
-    caption: "A pile rigged all legendary: gold bars and gilded keylines on every live card"
-  - src: "/img/projects/teightysix/shots/pile-background.webp"
-    caption: "The same back at full age and wear, attic-find board over the live pile"
-  - src: "/img/projects/teightysix/shots/real-odds.webp"
-    caption: "Two thousand cards at the shipped rarity mix"
+  - src: "/img/projects/teightysix/shots/back-turned-over.webp"
+    caption: "The back, turned over on the bench"
+  - src: "/img/projects/teightysix/shots/pile-top-down.webp"
+    caption: "The bench clears and the card lands in the pile on your own table, print 2001"
+  - src: "/img/projects/teightysix/shots/picked-card.webp"
+    caption: "A card lifted out of the pile and turned over, with its Commons credit"
+  - src: "/img/projects/teightysix/shots/sixty-licensed.webp"
+    caption: "The sixty-card showcase on freely licensed photographs"
   - src: "/img/projects/teightysix/shots/cut-corner-ladder.webp"
     caption: "One bottom-right cut, mint to attic find"
   - src: "/img/projects/teightysix/shots/sweep-footprint.webp"
@@ -85,14 +93,14 @@ story:
     text: "Sixty fronts rebuilt on freely licensed photographs, laid out in one sheet. Forty photographers, and the team name across the top almost never matches the jersey under it. Fifty of the sixty need a printed credit, so the photographer, the licence and the Commons link run along the bottom margin of the card itself."
 ---
 
-You drop in a photograph, type a name, pick a place name and a spot on the field, then turn the knobs for wear, age, print strength and miscut. The card redraws while you drag. Turn it over and a period back is waiting, career table and all.
+You drop in a photograph, type a name, pick a place name and a spot on the field, then turn the knobs for wear, age and print strength. The card redraws while you drag. Turn it over and a period back is waiting, career table and all.
 
 The render is the part I care about most. teightysix ports a Python pipeline I wrote for my own printing, and the browser has to agree with it byte for byte. 98 of 98 parity fixtures match, and every engine version freezes a self-hash, so a faster render that shifts one pixel fails the gate.
 
-The card is a 3D object on a glass table. Let go of it and it drops into a shared pile, tumbles under physics and settles face up. 256 cards stay real geometry and the rest bake into the table at low resolution, so the frame cost is the same at two thousand cards as at ten thousand.
+The card is a 3D object on a glass table. Let go of it and it drops into the pile, tumbles under physics and settles face up. That pile is yours alone: the deploy is static, so every visitor gets their own, rebuilt from a seed kept in the browser and sent nowhere. 256 cards stay real geometry and the rest bake into the table at low resolution, so the frame cost is the same at two thousand cards as at ten thousand.
 
 Wear comes from a measurement. The parent project put a real 1986 card under a calibrated microscope, so this one is a solid with a 0.45 mm cut edge whose corners chip back to tan board as you raise the knob.
 
 No font of the 1986 face existed, so it was drawn from scans with its own kerning. The Z is a mirrored S, because the reference sheet never gave one to trace.
 
-The public set is invented players on generated portraits, plus a showcase of Commons-licensed photographs with the credit printed on the card. Stage 1 is static, so your photograph stays in your browser, and the publish backend is still ahead of me.
+The public set is invented players on generated portraits, plus a showcase of Commons-licensed photographs with the credit printed on the card. Stage 1 is static, so your photograph stays in your browser. The shared pile behind it, with its publish Worker, its relay and its snapshots, is built and tested and has not been deployed.

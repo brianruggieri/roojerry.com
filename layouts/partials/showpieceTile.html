@@ -9,7 +9,9 @@
 	<a class="exp-showpiece__media" href="{{ $p.Permalink }}" aria-label="{{ $p.Title }}: how it was built">
 		<picture>
 			{{ if ne $webp $poster }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
-			<img src="{{ $poster }}" alt="{{ $p.Title }} preview" width="1280" height="800" loading="eager" fetchpriority="high">
+			{{/* 1280x800 is poster.webp's real pixel size; the assertion in
+			     tests/e2e/showpiece.test.js fails if the file stops matching. */}}
+			<img src="{{ $poster }}" alt="{{ $p.Title }} preview" width="1280" height="800" loading="lazy">
 		</picture>
 		<span class="exp-tile__badge exp-tile__badge--project">showpiece</span>
 	</a>
