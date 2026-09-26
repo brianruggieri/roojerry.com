@@ -62,8 +62,8 @@ screenshots:
     caption: "Two thousand cards at the shipped rarity mix"
   - src: "/img/projects/teightysix/shots/cut-corner-ladder.webp"
     caption: "One bottom-right cut, mint to attic find"
-  - src: "/img/projects/teightysix/shots/tarot.webp"
-    caption: "The Major Arcana as 1880s chromolithograph baseball cards"
+  - src: "/img/projects/teightysix/shots/cut-edge.webp"
+    caption: "Twelve millimetres of a 0.45 mm cut edge at three rungs of the wear ladder"
 story:
   - src: "/img/projects/teightysix/story/alphabet.png"
     title: "The typeface came first"

@@ -35,7 +35,26 @@ Commons-attributed showcase, explicitly allowed by the spec even though real
 player names appear, since these are licensed/credited photographs, not
 parent-repo AI renders).
 
-## Flagged, not swapped: `twenty-two-cards-of-a-baseball-tarot.png`
+## Swap (coordinator decision): `twenty-two-cards-of-a-baseball-tarot.png` -> `the-cut-edge-measured-then-rendered.png`
+
+Coordinator reviewed the flag below and decided against shipping the tarot
+frame: the garbled "BETTS" caption bands leak a real player's name, so the
+frame does not ship regardless of the invented illustrated subject.
+
+Replacement: `the-cut-edge-measured-then-rendered.png` (1286x540 native, no
+resize needed). A pure macro cross-section of the card's cut edge at three
+wear rungs (mint / handled / attic find); no face, name, or player content of
+any kind.
+
+Affected paths:
+- `shots/tarot.webp` removed.
+- `shots/cut-edge.webp` added: source `the-cut-edge-measured-then-rendered.png`, 1286 wide, q82.
+- `content/projects/teightysix.md` screenshots entry updated to
+  `src: /img/projects/teightysix/shots/cut-edge.webp`, caption "Twelve
+  millimetres of a 0.45 mm cut edge at three rungs of the wear ladder".
+- `scripts/export-teightysix-frames.sh` updated to match.
+
+## Original flag (superseded by the swap above): `twenty-two-cards-of-a-baseball-tarot.png`
 
 Viewed directly. All 22 illustrated figures are generic invented ballplayers,
 not likenesses of any real player (the plan already excluded the sibling frame

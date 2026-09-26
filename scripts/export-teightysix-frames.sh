@@ -15,7 +15,7 @@ webp "$SRC/the-back-before-you-send-it.png" "$OUT/shots/back-before-you-send-it.
 webp "$SRC/forty-years-and-the-dates-agree.png" "$OUT/shots/pile-background.webp" 1440
 webp "$SRC/realistic-2000.png" "$OUT/shots/real-odds.webp" 1600
 webp "$SRC/wear3d-cut-corner-ladder.png" "$OUT/shots/cut-corner-ladder.webp" 1000
-webp "$SRC/twenty-two-cards-of-a-baseball-tarot.png" "$OUT/shots/tarot.webp" 1600
+webp "$SRC/the-cut-edge-measured-then-rendered.png" "$OUT/shots/cut-edge.webp" 1286
 
 # PNG fallbacks are rarely served (near-universal webp support); keep them well
 # under their webp siblings' resolution so the 4 MB total budget holds.
