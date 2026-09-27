@@ -1,10 +1,10 @@
 ---
 title: "teightysix"
-subtitle: "make a 1986 baseball card"
-description: "Drop in a photograph and it comes back a 1986-style baseball card, drawn in your browser and byte-exact to the Python press it was ported from."
-blurb: "A 1986-style card press in the browser: WebGPU render, a 3D pile, wear you can dial, and a typeface rebuilt from scans."
-tags: ["TypeScript", "Svelte", "WebGPU", "Three.js", "Rapier", "Cloudflare Workers", "Python parity"]
-statusLabel: "1.0.0 live at cards.roojerry.com"
+subtitle: "a Topps '86 replica suite in WebGPU"
+description: "A faithful recreation of the 1986 Topps card design, rendered in the browser with WebGPU: the type, the colour, the print, and forty years of wear."
+blurb: "The 1986 Topps design recreated in WebGPU: a reconstructed typeface, a physics pile, and wear you can dial from mint to attic find."
+tags: ["TypeScript", "Svelte", "WebGPU", "Three.js", "Rapier", "Cloudflare Workers", "Python"]
+statusLabel: "v1.0.0 live"
 live: "https://cards.roojerry.com/"
 github: "https://github.com/brianruggieri/teightysix"
 ctaTitle: "Make one"
@@ -37,23 +37,23 @@ compare:
 featureColumns: 3
 features:
   - icon: "fas fa-file-code"
-    title: "Byte-exact to the Python press"
-    desc: "The TypeScript and WebGPU engine reproduces the parent pipeline's output pixel for pixel. 98 of 98 parity fixtures match, and self-hashes are frozen per engine version."
+    title: "Recipe-driven render"
+    desc: "Every card is a small JSON recipe: photo hash, crop, place name, position, wear, age, print strength, seed. The TypeScript and WebGPU engine renders it deterministically, and each engine version locks its output with frozen hashes."
   - icon: "fas fa-layer-group"
-    title: "A pile on your own table"
-    desc: "Let the card go and it tumbles under Rapier physics into the pile on your own table, rebuilt from a seed kept in your browser and sent nowhere. 256 cards stay live geometry and the rest bake into the table. The shared pile behind it, with its publish Worker, relay and snapshots, is built and gate-cleared and not yet deployed."
+    title: "Physics pile"
+    desc: "Release the card and it tumbles under Rapier physics into a Three.js pile on the table. 256 cards stay live geometry; the rest bake into the table texture, so frame cost is flat from two thousand cards to ten thousand."
   - icon: "fas fa-sliders-h"
-    title: "Wear you can dial"
-    desc: "Wear, age and print strength are knobs on the bench. The card is a solid with a measured 0.45 mm cut edge, and the corners chip back to board as you turn the knob."
+    title: "Measured wear model"
+    desc: "The card is a solid with a 0.45 mm cut edge taken from a real 1986 card under a calibrated microscope. Wear, age and print strength are recipe fields, and the corners chip back to tan board as they rise."
   - icon: "fas fa-palette"
-    title: "An alphabet rebuilt"
-    desc: "The 1986 type never existed as a font. The parent project drew it glyph by glyph from scans, with its own kern table, and the bench sets every name in it."
+    title: "Reconstructed typeface"
+    desc: "The 1986 face never shipped as a font. Every glyph was drawn from scans with its own kern table, and the bench sets every name and place in it."
   - icon: "fas fa-columns"
-    title: "The back turns over"
-    desc: "Every card carries a period back with a career table. Invented players get a blended career in deep blue ink; the attributed showcase carries its real record in red."
+    title: "Period card backs"
+    desc: "Each card carries a 1986-style back with a career table, printed in red for the attributed showcase and in deep blue for invented players."
   - icon: "fas fa-trophy"
-    title: "Foil at real odds"
-    desc: "Rare, holo and legendary finishes land at 10, 4 and 1 per hundred publishes. Legendary strikes every black mark outside the player photograph in gold."
+    title: "Rarity finishes"
+    desc: "Rare, holo and legendary finishes are shader passes at 10, 4 and 1 per hundred. Legendary strikes every black mark outside the photograph in gold foil."
 screenshotsGrid: true
 screenshots:
   - src: "/img/projects/teightysix/shots/position-board.webp"
@@ -95,14 +95,12 @@ story:
     text: "Sixty fronts rebuilt on freely licensed photographs, laid out in one sheet. Forty photographers, and the team name across the top almost never matches the jersey under it. Fifty of the sixty need a printed credit, so the photographer, the licence and the Commons link run along the bottom margin of the card itself."
 ---
 
-You drop in a photograph, type a name, pick a place name and a spot on the field, then turn the knobs for wear, age and print strength. The card redraws while you drag. Turn it over and a period back is waiting, career table and all.
+It has been forty years since the 1986 Topps set, and the cards I pulled out of the basement are junk wax by any collector's measure. I could not get over how tight the design still is: the heavy condensed type, the two-colour team bar, the way the photo sits in its keyline. It deserved a recreation, so this is one. An art project, not a serious product, born of a childhood interest and turned toward recycling forty-year-old cardboard into something new.
 
-The render is the part I care about most. teightysix ports a Python pipeline I wrote for my own printing, and the browser has to agree with it byte for byte. 98 of 98 parity fixtures match, and every engine version freezes a self-hash, so a faster render that shifts one pixel fails the gate.
+The whole card is a small JSON recipe. Drop in a photograph, type a name, pick a place name and a spot on the field, then turn the knobs for wear, age and print strength. The TypeScript and WebGPU engine redraws it while you drag, and it turns over to a period back with a career table.
 
-The card is a 3D object on a glass table. Let go of it and it drops into the pile, tumbles under physics and settles face up. That pile is yours alone: the deploy is static, so every visitor gets their own, rebuilt from a seed kept in the browser and sent nowhere. 256 cards stay real geometry and the rest bake into the table at low resolution, so the frame cost is the same at two thousand cards as at ten thousand.
+The card is a 3D solid on a glass table. Let go of it and it drops into the pile, tumbles under physics and settles face up. That pile is yours alone: the deploy is static, so every visitor gets their own, rebuilt from a seed kept in the browser and sent nowhere. 256 cards stay real geometry and the rest bake into the table at low resolution.
 
-Wear comes from a measurement. The parent project put a real 1986 card under a calibrated microscope, so this one is a solid with a 0.45 mm cut edge whose corners chip back to tan board as you raise the knob.
+Wear comes from a measurement. A real 1986 card went under a calibrated microscope, so this one has a 0.45 mm cut edge whose corners chip back to tan board as you raise the knob. No font of the 1986 face existed, so it was drawn from scans with its own kerning. The Z is a mirrored S, because the reference sheet never gave one to trace.
 
-No font of the 1986 face existed, so it was drawn from scans with its own kerning. The Z is a mirrored S, because the reference sheet never gave one to trace.
-
-The public set is invented players on generated portraits, plus a showcase of Commons-licensed photographs with the credit printed on the card. Stage 1 is static, so your photograph stays in your browser. The shared pile behind it, with its publish Worker, its relay and its snapshots, is built and tested and has not been deployed.
+The public set is invented players on generated portraits, plus a showcase of Commons-licensed photographs with the credit printed on the card. Your own photograph stays in your browser. The shared pile behind it, with its publish Worker, relay and snapshots, is built and tested and not yet deployed.
