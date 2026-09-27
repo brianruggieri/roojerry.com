@@ -9,7 +9,7 @@ live: "https://cards.roojerry.com/"
 github: "https://github.com/brianruggieri/teightysix"
 ctaTitle: "Make one"
 ctaDesc: "The bench runs in the browser. Your photograph stays on your machine."
-image: "/img/projects/teightysix/compare-mint.png"
+image: "/img/projects/teightysix/hero.png"
 poster: "/img/projects/teightysix/poster.webp"
 showpiece: true
 featured: true
