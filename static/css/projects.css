@@ -1173,6 +1173,40 @@
     outline-offset: 3px;
 }
 
+/* Portrait subject (a 5:7 trading card, not a landscape app window). Full width
+   would stand a 1000x1400 card over a thousand pixels tall, so the frame is held
+   near the card's real 2.5 in and centred, and the tags drop below it: a
+   landscape screenshot has dead titlebar to put them on at top 48px, but a card
+   has its team bar up there, and a pill over HOUSTON hides the one piece of type
+   the whole project is about. */
+.img-compare--portrait .img-compare__frame {
+    max-width: 380px;
+    margin-inline: auto;
+    margin-bottom: 2.6rem;
+}
+.img-compare--portrait .img-compare__tag {
+    top: auto;
+    bottom: -2.15rem;
+    font-size: 0.86rem;
+    padding: 2px 12px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgb(0 0 0 / 0.62);
+    box-shadow: none;
+}
+.img-compare--portrait .img-compare__tag--left { left: 0; }
+.img-compare--portrait .img-compare__tag--right { right: 0; }
+.img-compare--portrait .img-compare__handle {
+    width: 32px;
+    height: 32px;
+}
+/* A white card border on a pale page has almost no edge, so the card gets a lift.
+   Only the bottom layer carries it: clip-path clips the top layer's filter output
+   too, which would draw a second shadow edge down the divider. */
+.img-compare--portrait .img-compare__img:not(.img-compare__img--top) img {
+    filter: drop-shadow(0 5px 14px rgb(45 74 82 / 0.28));
+}
+
 .img-compare__caption {
     margin-top: 0.7rem;
     font-size: 0.78rem;

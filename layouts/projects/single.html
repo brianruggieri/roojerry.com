@@ -92,7 +92,7 @@
     {{ $afterWebp := .after | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
     {{ $beforeLabel := .beforeLabel | default "Before" }}
     {{ $afterLabel := .afterLabel | default "After" }}
-    <figure class="img-compare">
+    <figure class="img-compare{{ if .portrait }} img-compare--portrait{{ end }}">
       <div class="img-compare__frame">
         <picture class="img-compare__img">
           {{ if ne $afterWebp .after }}<source srcset="{{ $afterWebp }}" type="image/webp">{{ end }}
@@ -106,7 +106,7 @@
         <span class="img-compare__tag img-compare__tag--right" aria-hidden="true">{{ $afterLabel }}</span>
         <div class="img-compare__divider" aria-hidden="true"><span class="img-compare__handle"></span></div>
         <input class="img-compare__range" type="range" min="0" max="100" value="50" step="0.1"
-               aria-label="Drag to compare {{ $beforeLabel }} and {{ $afterLabel }} themes" />
+               aria-label="Drag to compare {{ $beforeLabel }} and {{ $afterLabel }}" />
       </div>
       {{ with .caption }}<figcaption class="img-compare__caption">{{ . }}</figcaption>{{ end }}
     </figure>

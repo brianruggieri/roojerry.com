@@ -9,7 +9,7 @@ live: "https://cards.roojerry.com/"
 github: "https://github.com/brianruggieri/teightysix"
 ctaTitle: "Make one"
 ctaDesc: "The bench runs in the browser. Your photograph stays on your machine."
-image: "/img/projects/teightysix/hero.png"
+image: "/img/projects/teightysix/compare-mint.png"
 poster: "/img/projects/teightysix/poster.webp"
 showpiece: true
 featured: true
@@ -29,11 +29,12 @@ year: "2026"
 # is read off the frame itself, which shows PRINT #2001 over the 2,000-card
 # local pile.
 compare:
-  before: "/img/projects/teightysix/press-empty.png"
-  after: "/img/projects/teightysix/press-loaded.png"
-  beforeLabel: "Empty"
-  afterLabel: "Loaded"
-  caption: "The press as it opens, and the same bench a moment after a sample photograph goes in."
+  before: "/img/projects/teightysix/compare-mint.png"
+  after: "/img/projects/teightysix/compare-worn.png"
+  beforeLabel: "1986"
+  afterLabel: "2026"
+  portrait: true
+  caption: "One invented player, one recipe, rendered twice: the card as it came off the press and the same card after forty years in a shoebox."
 featureColumns: 3
 features:
   - icon: "fas fa-file-code"
