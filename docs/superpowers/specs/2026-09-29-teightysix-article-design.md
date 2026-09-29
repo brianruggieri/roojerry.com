@@ -464,21 +464,26 @@ the existing `CreativeWork` branch for every other project page.
   and note the site's standing rule that local runs on this machine are
   contention-dominated and only PageSpeed Insights is authoritative.
 
-## Open question, needs Brian's call before beat 5 is drafted
+## Rights decision for beat 5 (settled 2026-09-29)
 
-Beat 5 is the LoRA and Muybridge section, and its natural illustrations are the
-finished renders of current MLB players as 1887 chromolithographs. The project's own
-rights posture says those are personal use only. Three options:
+**Option 2: process frames only.** No finished render of a current MLB player is
+published on this page. The modern-player results are described in prose; the
+figures are public-domain subjects and process artefacts.
 
-1. **Public-domain subjects only (recommended).** Illustrate with a real Edwards
-   card, a Muybridge plate, and a restored or regenerated *1887* player. Tells the
-   same story, clean end to end, and matches the "commercial unlock" framing already
-   in `physical.md`.
-2. **Process frames only.** Show the LoRA drift strip or a grading bench sheet,
-   which the 2026-09-25 spec already permits, and describe the modern-player results
-   in prose without publishing one.
-3. **Publish one modern-player render anyway**, on the argument that a portfolio page
-   is editorial rather than commercial. This is his call to make, not the spec's, and
-   the spec recommends against it.
+The figures this resolves to are better than the option it replaces, because the
+project already ran its evaluation on a public-domain historical set:
 
-Default if he does not answer: option 1.
+| Figure | Source | What it shows |
+| --- | --- | --- |
+| `loc/dorgan-1887.webp` | parent `p2l-eval/hist_gt/dorgan_2.jpg` | The real Old Judge chromolithograph, "DORGAN. RIGHT FIELD. N.Y." Public domain, LOC Edwards collection. Ground truth. |
+| `loc/dorgan-model.webp` | parent `p2l-out/kontext_v2_1000_g4/dorgan_2.png` | The model's attempt on the same sitter at step 1000, guidance 4. Style learned, identity gone, and the caption rendered as `EG JOULS / ORSU-DNOHA.L`. |
+
+The pair carries the whole finding in one look, and the gibberish caption is the
+reason the pipeline stopped asking FLUX for text and started compositing clean
+caption type (parent commit, 2026-08-28: "Composite clean caption type onto cards
+instead of asking FLUX for text").
+
+**Excluded by this decision:** every `cards-out/edwards_*_modal.png`, and every sheet
+under `.codex/p2l-resample/contact_sheets/` whose filename is a current player. Any
+composite sheet considered later must be opened and checked for modern faces before
+it is published.
