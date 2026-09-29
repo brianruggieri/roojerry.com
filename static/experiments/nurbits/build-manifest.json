@@ -1,7 +1,7 @@
 {
-  "build": "2026-09-29T21:55:54Z",
-  "commit": "180fd67",
-  "tree": "9e2a02d3a7d34098b2a5e3b1edaf90bb510ab718",
+  "build": "2026-09-29T23:31:10Z",
+  "commit": "180fd67-dirty",
+  "tree": "0626d2e88c326cd0630c1b3c653104536b93ccb5",
   "wasmBindgen": "0.2.129",
   "optimised": true,
   "wasm": "nurbits_bg.wasm",
