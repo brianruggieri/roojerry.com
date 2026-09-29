@@ -19,7 +19,7 @@ year: "2017"
 interactive:
   src: "/experiments/nurbits/"
   title: "Nurbits — 001 Holo-Horizon, loop AZ2"
-  deco: ["♪", "⚡", "♫", "♪"]
+  poster: "/experiments/nurbits/poster.webp"
 
 features:
   - icon: "fas fa-brain"
