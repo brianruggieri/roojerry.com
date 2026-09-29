@@ -273,6 +273,47 @@ function installVisibilityHandling() {
 }
 
 // ---------------------------------------------------------------------------------------------
+// The autoplay unlock, retried
+//
+// `kira 0.12.5`'s wasm backend (`backend/cpal/wasm.rs:71`) calls `stream.play()`, which is
+// `cpal 0.18.2`'s `ctx.resume()` (`host/webaudio/mod.rs:705`). With no `atomics` target-feature set
+// -- `.cargo/config.toml` is deliberately empty -- that runs synchronously during wasm startup,
+// which on this page is after the poster click, so Chrome's sticky activation carries it.
+//
+// It happens EXACTLY ONCE and nothing retries it. A browser that rejects that first `resume()` --
+// older Safari is the documented case -- runs the whole game on its free-running visual clock with
+// no sound at all, forever, with no way back. This costs a few lines and closes that.
+//
+// It is deliberately not a "click to enable audio" banner: the context is expected to be running
+// already, so this fires on the first real gesture after boot and then removes itself. A rejection
+// is swallowed, because "already running" and "still blocked" both land here and neither is worth
+// surfacing.
+// ---------------------------------------------------------------------------------------------
+
+function installAudioUnlockRetry() {
+	let done = false;
+	const retry = () => {
+		if (done) return;
+		done = true;
+		for (const ctx of api.audioContexts) {
+			try {
+				if (ctx.state === "running") continue;
+				const promise = ctx.resume();
+				if (promise && typeof promise.catch === "function") promise.catch(() => {});
+			} catch {
+				/* closed context */
+			}
+		}
+		for (const type of ["pointerdown", "keydown", "touchend"]) {
+			window.removeEventListener(type, retry, true);
+		}
+	};
+	for (const type of ["pointerdown", "keydown", "touchend"]) {
+		window.addEventListener(type, retry, true);
+	}
+}
+
+// ---------------------------------------------------------------------------------------------
 // Loading UI
 // ---------------------------------------------------------------------------------------------
 
@@ -671,6 +712,7 @@ async function boot() {
 
 installAudioInterposition();
 installVisibilityHandling();
+installAudioUnlockRetry();
 
 // Say what the click costs, before the click. `build.sh` writes the real figure onto the stage from
 // the artifact it just gzipped; an empty attribute (this file served straight out of `web/`) means
