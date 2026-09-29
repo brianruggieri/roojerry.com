@@ -40,7 +40,7 @@ function pickRandomImage(excludePath) {
  */
 function setFaceImage(face, imgPath) {
   if (!face || !imgPath) return;
-  const webpPath = imgPath.replace(/\.(png|jpg|jpeg)$/, '.webp');
+  const webpPath = imgPath.replace(/\.(png|jpg|jpeg)$/i, '.webp');
   const mimeType = /\.jpe?g$/i.test(imgPath) ? 'image/jpeg' : 'image/png';
   face.style.backgroundImage =
     `image-set(url('${webpPath}') type('image/webp'), url('${imgPath}') type('${mimeType}'))`;

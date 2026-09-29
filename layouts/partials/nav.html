@@ -1,21 +1,37 @@
 {{ $frontImg := .Site.Params.profileImage | relURL }}
 {{ $frontWebp := $frontImg | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
-{{/* Discover coin-face images from the coin-faces folder */}}
+{{/* Discover coin-face images from static/img/coin-faces/.
+     Only images that have a .webp companion are emitted: coin-flip.js builds an
+     image-set() with a .webp source at runtime, so a source without one would
+     hand webp-capable browsers a 404 and render a blank coin face.
+     scripts/validate-coin-faces.sh enforces the companion so this never silently
+     drops a face the author meant to include. */}}
+{{ $coinDir := "static/img/coin-faces" }}
 {{ $coinFaces := slice }}
-{{ range readDir "static/img/coin-faces" }}
-  {{ if not .IsDir }}
-    {{ $name := .Name }}
-    {{ $lower := $name | lower }}
-    {{ if or (strings.HasSuffix $lower ".png") (strings.HasSuffix $lower ".jpg") (strings.HasSuffix $lower ".jpeg") }}
-      {{ $coinFaces = $coinFaces | append (printf "/img/coin-faces/%s" $name) }}
+{{ if fileExists $coinDir }}
+  {{ range readDir $coinDir }}
+    {{ if not .IsDir }}
+      {{ $lower := .Name | lower }}
+      {{ if or (strings.HasSuffix $lower ".png") (strings.HasSuffix $lower ".jpg") (strings.HasSuffix $lower ".jpeg") }}
+        {{ $webpName := $lower | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+        {{ if fileExists (printf "%s/%s" $coinDir $webpName) }}
+          {{ $coinFaces = $coinFaces | append (printf "/img/coin-faces/%s" .Name) }}
+        {{ else }}
+          {{ warnf "coin-faces: skipping %q — no .webp companion (run npm run assets, or add %s)" .Name $webpName }}
+        {{ end }}
+      {{ end }}
     {{ end }}
   {{ end }}
+{{ else }}
+  {{ warnf "coin-faces: %s does not exist — the coin will show only the front face" $coinDir }}
 {{ end }}
 {{ $backImg := "" }}
 {{ if gt (len $coinFaces) 0 }}
   {{ $backImg = index $coinFaces 0 }}
 {{ end }}
 {{ $backWebp := $backImg | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+{{/* MIME type is written as a literal in each branch on purpose: Hugo's CSS
+     minifier escapes image/png to image\2fpng when it arrives via a variable. */}}
 {{ $isJpeg := findRE `(?i)\.(jpg|jpeg)$` $backImg }}
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
   {{/* aria-label: on desktop the link holds only bg-image coin divs — no accessible name without it */}}
