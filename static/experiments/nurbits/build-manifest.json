@@ -1,0 +1,10 @@
+{
+  "build": "2026-09-28T18:06:30Z",
+  "commit": "9172e79",
+  "wasmBindgen": "0.2.129",
+  "optimised": true,
+  "wasm": "nurbits_bg.wasm",
+  "wasmBytes": 19780098,
+  "gz": "nurbits_bg.wasm.gz",
+  "gzBytes": 7915980
+}

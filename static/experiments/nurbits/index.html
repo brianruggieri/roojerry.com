@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nurbits — 001 Holo-Horizon / AZ2</title>
+<meta name="description" content="A faithful Rust + Bevy recreation of one level of Nurbits, the 2013–2017 Unity neuroscience music puzzle game by Cogent Education.">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+
+<!--
+	WP7 — the web shell.
+
+	The whole first paint is this document, style.css and poster.webp. Nothing else is fetched
+	until the visitor asks for the game (D23 / V15): the browser's autoplay policy needs the
+	gesture, and a portfolio page must not pay megabytes for an embed most visitors scroll past.
+
+	`#nurbits-canvas` is the selector `src/main.rs` hands winit (`canvas: Some("#nurbits-canvas")`),
+	and `fit_canvas_to_parent` makes Bevy size it to `.nb-stage`, which is the 16:9 letterbox
+	(D30 / V12). If either the id or the stage's aspect ratio moves, every pixel coordinate in
+	`specs/visual-spec.md` stops being a 1080p pixel.
+-->
+
+<link rel="stylesheet" href="style.css">
+<link rel="preload" as="image" href="poster.webp" type="image/webp">
+<link rel="icon" href="data:,">
+</head>
+<body>
+
+<!--
+	`data-download-mb` is filled in by build.sh from the real size of the artifact it just gzipped,
+	and the loader renders it into the hint line under the Play button. Empty here on purpose: this
+	source copy has no artifact beside it, and a stale hardcoded number on a portfolio page is worse
+	than no number. Empty means the loader says nothing.
+-->
+<main class="nb-stage" id="nb-stage" data-download-mb="7.9">
+
+	<canvas id="nurbits-canvas" class="nb-canvas" width="1920" height="1080"
+	        aria-label="Nurbits puzzle board" tabindex="0"></canvas>
+
+	<!-- ── The poster (D23 / V15) ─────────────────────────────────────────────────────────── -->
+	<div class="nb-poster" id="nb-poster" role="button" tabindex="0"
+	     aria-label="Load and play the Nurbits recreation">
+		<img class="nb-poster__img" src="poster.webp" alt="" decoding="async" fetchpriority="high">
+		<span class="nb-poster__scrim" aria-hidden="true"></span>
+
+		<div class="nb-poster__body">
+			<p class="nb-poster__kicker">001 Holo-Horizon · loop AZ2 · channel 3</p>
+			<h1 class="nb-poster__title">Nurbits</h1>
+			<p class="nb-poster__line">
+				Each chip is a neuron with a firing threshold. Wire enough signal into one and it
+				fires; wire too much and it dies. Solve the loop by making every green cell play
+				its note on the beat.
+			</p>
+
+			<div class="nb-poster__actions">
+				<button class="nb-play" id="nb-play" type="button">
+					<span class="nb-play__glyph" aria-hidden="true">▶</span>
+					<span id="nb-play-label">Play</span>
+				</button>
+			</div>
+
+			<p class="nb-poster__hint">
+				Sound on · drag chips from the tray · press <kbd>?</kbd> in game for how chips
+				work<span id="nb-size"></span>
+			</p>
+			<p class="nb-poster__note">
+				The still above is a frame of the original 2017 Unity build — the reference this
+				port is measured against. Press play to load the recreation.
+			</p>
+		</div>
+	</div>
+
+	<!-- ── Loading ────────────────────────────────────────────────────────────────────────── -->
+	<div class="nb-loading" id="nb-loading" hidden>
+		<div class="nb-bar" id="nb-bar" role="progressbar"
+		     aria-label="Loading Nurbits" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+			<span class="nb-bar__fill" id="nb-bar-fill"></span>
+		</div>
+		<p class="nb-loading__label" id="nb-loading-label">starting…</p>
+	</div>
+
+	<!-- ── Failure (ARCHITECTURE §11.4: the poster stays up) ──────────────────────────────── -->
+	<div class="nb-error" id="nb-error" hidden role="alert">
+		<span id="nb-error-text"></span>
+		<code class="nb-error__detail" id="nb-error-detail"></code>
+	</div>
+
+	<!--
+		Shell chrome — mute (D-N10 / V16) and the provenance line, grouped in the bottom-left.
+
+		The corner matters. Unity's own UI owns the top-left ("back to brain"), the top-right
+		("restart") and the bottom-right ("?"); `specs/ACCEPTED-DIFFERENCES.md` gives their exact
+		rects. The bottom-left below the tray is the one corner of the 1080p frame nothing in the
+		game draws into, so shell chrome can live there without covering a control. Under
+		`?state=screenshot` the whole group is hidden anyway, so it can never land in a diffed pixel.
+	-->
+	<div class="nb-chrome">
+		<button class="nb-mute" id="nb-mute" type="button" aria-pressed="false"
+		        aria-label="Mute audio" title="Mute">
+			<svg class="nb-mute__on" viewBox="0 0 24 24" aria-hidden="true">
+				<path d="M4 9v6h4l5 4V5L8 9H4zm11.5 3a3.5 3.5 0 0 0-2-3.16v6.32A3.5 3.5 0 0 0 15.5 12zm-2 -7.2v2.06A5.5 5.5 0 0 1 13.5 17.1v2.06A7.5 7.5 0 0 0 13.5 4.8z"/>
+			</svg>
+			<svg class="nb-mute__off" viewBox="0 0 24 24" aria-hidden="true">
+				<path d="M4 9v6h4l5 4V5L8 9H4zm15.7 3 2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z"/>
+			</svg>
+		</button>
+
+		<p class="nb-credit">
+			Recreation of one level · original by Cogent Education, 2017 ·
+			<a href="https://store.steampowered.com/app/651010/Nurbits/" target="_blank" rel="noopener noreferrer">Steam</a>
+		</p>
+	</div>
+
+</main>
+
+<script type="module" src="loader.js"></script>
+</body>
+</html>

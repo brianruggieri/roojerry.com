@@ -1,0 +1,481 @@
+/* =============================================================================================
+ * Nurbits web shell — WP7.
+ *
+ * Three jobs, in order of how badly they break the port if they are wrong:
+ *
+ *  1. **The 16:9 letterbox (D30 / V12).** Everything in `visual-spec.md` is a pixel inside a
+ *     1920x1080 frame. The stage below is exactly 16:9 at every viewport size, centred, with the
+ *     level colour behind it, so the rendered area is one fixed layout times one scale factor and
+ *     the pixel diff stays meaningful at any embed size.
+ *  2. **Touch that drags instead of scrolling.** `touch-action: none` on the canvas and
+ *     `overscroll-behavior: none` on the document. Bevy's `prevent_default_event_handling` covers
+ *     key and context-menu defaults; it does not cover the compositor-thread scroll gesture, which
+ *     is a CSS decision and only a CSS decision.
+ *  3. **A poster that is the whole page until someone asks for the game (D23 / V15).** No canvas
+ *     paint, no wasm, no `AudioContext` before the click.
+ *
+ * COLOUR PROVENANCE. `src/palette.rs` is the only place Rust constructs a colour, and this file is
+ * not Rust — but it must not invent one either. Every game colour below is transcribed from that
+ * file with the constant named, so a change there has one obvious place to follow. Colours that
+ * exist only in the shell chrome (the poster scrim, the button ink) are not game colours and have
+ * no counterpart in the palette.
+ * ============================================================================================= */
+
+:root {
+	/* palette::LETTERBOX == palette::CUBE_BASE == srgb8(22, 43, 180) — the level colour. D30 says
+	   the bars and the page behind the iframe are this exact colour. */
+	--nb-letterbox: #162bb4;
+	/* palette::GRID_LINE — srgba(0, 1, 0.7761, 0.667). The shell uses it opaque, as an accent. */
+	--nb-accent: #00ffc6;
+	/* palette::LED_ACTIVE_GREEN — srgb8(0, 204, 0). */
+	--nb-good: #00cc00;
+	/* palette::LED_ACTIVE_RED — srgb8(204, 0, 0). */
+	--nb-bad: #cc0000;
+
+	/* Shell chrome only. Not game colours. */
+	--nb-ink: #f2f6ff;
+	--nb-ink-dim: #b9c4e8;
+	--nb-scrim: rgba(6, 10, 38, 0.72);
+	--nb-panel: rgba(6, 10, 38, 0.86);
+	--nb-hairline: rgba(255, 255, 255, 0.16);
+
+	--nb-ui-font: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+	--nb-mono-font: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	background: var(--nb-letterbox);
+	color: var(--nb-ink);
+	font-family: var(--nb-ui-font);
+	/* The embed is an iframe on someone's portfolio. A rubber-band bounce here scrolls the host
+	   page out from under a drag, which is exactly the failure D30's touch clause exists to stop. */
+	overscroll-behavior: none;
+	overflow: hidden;
+}
+
+body {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * The stage — the letterbox itself
+ *
+ * `aspect-ratio` plus the two `max-*` clamps give the standard contain fit with no JS: as wide as
+ * the viewport allows, as tall as 16:9 permits, whichever binds first. `100dvh` rather than `100vh`
+ * so an iOS address bar does not crop the bottom of the board. Bevy sets the canvas's inline
+ * `width: 100%; height: 100%` itself (`bevy_winit/src/system.rs:103`, `fit_canvas_to_parent`), so
+ * this element is what decides the rendered size.
+ * ------------------------------------------------------------------------------------------- */
+
+.nb-stage {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	max-width: calc(100dvh * 16 / 9);
+	max-height: calc(100dvw * 9 / 16);
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	background: var(--nb-letterbox);
+	/* A hair of contrast against the identical page background when the iframe is inset. */
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+@supports not (height: 100dvh) {
+	.nb-stage {
+		max-width: calc(100vh * 16 / 9);
+		max-height: calc(100vw * 9 / 16);
+	}
+}
+
+.nb-canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+	/* The whole touch story. Without it a drag across the board pans the page on every mobile
+	   browser, and the chip never moves. */
+	touch-action: none;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	outline: none;
+	background: var(--nb-letterbox);
+}
+
+/* The canvas is not in the layout until the wasm has booted — an empty canvas paints a
+   transparent rectangle over the poster and eats its pointer events. */
+.nb-stage:not(.is-booted) .nb-canvas {
+	visibility: hidden;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * The poster (D23 / V15)
+ * ------------------------------------------------------------------------------------------- */
+
+.nb-poster {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	text-align: center;
+	cursor: pointer;
+	z-index: 2;
+	transition: opacity 260ms ease;
+}
+
+/* `display: grid` above outranks the UA's `[hidden] { display: none }`, so the loader's
+   `poster.hidden = true` would otherwise do nothing at all. */
+.nb-poster[hidden] {
+	display: none;
+}
+
+.nb-poster__img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	/* The still is the original game, not this port. Pushing it back keeps the two apart visually
+	   as well as in the caption. */
+	filter: saturate(0.85) brightness(0.55);
+}
+
+.nb-poster__scrim {
+	position: absolute;
+	inset: 0;
+	background:
+		radial-gradient(ellipse at 50% 46%, rgba(6, 10, 38, 0.35) 0%, rgba(6, 10, 38, 0.86) 72%),
+		linear-gradient(to bottom, rgba(6, 10, 38, 0.55), rgba(6, 10, 38, 0.8));
+}
+
+.nb-poster__body {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.85rem;
+	padding: clamp(1rem, 3.2vw, 2.5rem);
+	max-width: 62ch;
+}
+
+.nb-poster__kicker {
+	margin: 0;
+	font-family: var(--nb-mono-font);
+	font-size: clamp(0.58rem, 1.15vw, 0.78rem);
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: var(--nb-accent);
+}
+
+.nb-poster__title {
+	margin: 0;
+	font-size: clamp(1.6rem, 5.2vw, 3.4rem);
+	font-weight: 700;
+	letter-spacing: -0.015em;
+	line-height: 1.02;
+	text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
+}
+
+.nb-poster__line {
+	margin: 0;
+	font-size: clamp(0.78rem, 1.7vw, 1.02rem);
+	line-height: 1.5;
+	color: var(--nb-ink-dim);
+	text-wrap: balance;
+}
+
+.nb-poster__actions {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-top: 0.35rem;
+}
+
+.nb-play {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6em;
+	border: 1px solid var(--nb-accent);
+	border-radius: 999px;
+	background: var(--nb-accent);
+	color: #041226;
+	font: inherit;
+	font-weight: 700;
+	font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+	letter-spacing: 0.02em;
+	padding: 0.62em 1.5em;
+	cursor: pointer;
+	transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
+	box-shadow: 0 0 0 0 rgba(0, 255, 198, 0.45);
+}
+
+.nb-play:hover,
+.nb-play:focus-visible {
+	transform: translateY(-1px);
+	box-shadow: 0 0 0 6px rgba(0, 255, 198, 0.16);
+	outline: none;
+}
+
+.nb-play:active {
+	transform: translateY(0);
+}
+
+.nb-play__glyph {
+	font-size: 0.85em;
+	line-height: 1;
+}
+
+.nb-poster__hint {
+	margin: 0;
+	font-family: var(--nb-mono-font);
+	font-size: clamp(0.58rem, 1.15vw, 0.74rem);
+	color: var(--nb-ink-dim);
+	opacity: 0.85;
+}
+
+.nb-poster__hint kbd {
+	font: inherit;
+	border: 1px solid var(--nb-hairline);
+	border-bottom-width: 2px;
+	border-radius: 4px;
+	padding: 0.05em 0.4em;
+}
+
+/* The honesty line. The poster is a frame of the 2017 Unity build; the thing behind it is not. */
+.nb-poster__note {
+	margin: 0.2rem 0 0;
+	font-size: clamp(0.55rem, 1.1vw, 0.72rem);
+	line-height: 1.45;
+	color: var(--nb-ink-dim);
+	opacity: 0.66;
+	max-width: 46ch;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Loading
+ * ------------------------------------------------------------------------------------------- */
+
+.nb-loading {
+	position: absolute;
+	left: 50%;
+	bottom: clamp(1.1rem, 5vh, 3rem);
+	transform: translateX(-50%);
+	z-index: 3;
+	width: min(420px, 74%);
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+	align-items: center;
+}
+
+.nb-loading[hidden] {
+	display: none;
+}
+
+.nb-bar {
+	width: 100%;
+	height: 5px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.14);
+	overflow: hidden;
+}
+
+.nb-bar__fill {
+	display: block;
+	height: 100%;
+	width: 0%;
+	border-radius: inherit;
+	background: var(--nb-accent);
+	transition: width 140ms linear;
+}
+
+/* No Content-Length and no manifest: sweep instead of lying about a percentage. */
+.nb-bar--indeterminate .nb-bar__fill {
+	width: 34%;
+	transition: none;
+	animation: nb-sweep 1.15s ease-in-out infinite;
+}
+
+@keyframes nb-sweep {
+	0% {
+		transform: translateX(-110%);
+	}
+	100% {
+		transform: translateX(320%);
+	}
+}
+
+.nb-loading__label {
+	font-family: var(--nb-mono-font);
+	font-size: clamp(0.58rem, 1.15vw, 0.74rem);
+	letter-spacing: 0.06em;
+	color: var(--nb-ink-dim);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Failure (ARCHITECTURE §11.4 — the poster stays, the visitor keeps the screenshot)
+ * ------------------------------------------------------------------------------------------- */
+
+.nb-error {
+	position: absolute;
+	left: 50%;
+	bottom: clamp(1.1rem, 5vh, 3rem);
+	transform: translateX(-50%);
+	z-index: 4;
+	max-width: min(56ch, 86%);
+	padding: 0.7rem 1rem;
+	border: 1px solid rgba(204, 0, 0, 0.55);
+	border-radius: 8px;
+	background: var(--nb-panel);
+	color: var(--nb-ink);
+	font-size: clamp(0.66rem, 1.3vw, 0.82rem);
+	line-height: 1.45;
+	text-align: center;
+}
+
+.nb-error[hidden] {
+	display: none;
+}
+
+.nb-error__detail {
+	display: block;
+	margin-top: 0.3rem;
+	font-family: var(--nb-mono-font);
+	font-size: 0.85em;
+	color: var(--nb-ink-dim);
+	word-break: break-word;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Mute (D-N10 / V16) and the credit line
+ *
+ * Both sit outside the faithful UI layer on purpose: they are shell chrome, not Unity's HUD.
+ * ------------------------------------------------------------------------------------------- */
+
+/* The bottom-left is the one corner of the 1080p frame Unity's UI never draws into: "back to
+   brain" is top-left, "restart" top-right, "?" bottom-right, and the tray sits centred above this.
+   Putting the shell's own controls anywhere else covers a real button. */
+.nb-chrome {
+	position: absolute;
+	left: 0.75rem;
+	bottom: 0.55rem;
+	z-index: 5;
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.nb-mute {
+	width: 2.1rem;
+	height: 2.1rem;
+	display: grid;
+	place-items: center;
+	padding: 0;
+	border: 1px solid var(--nb-hairline);
+	border-radius: 8px;
+	background: var(--nb-panel);
+	color: var(--nb-ink);
+	cursor: pointer;
+	opacity: 0.55;
+	transition: opacity 140ms ease, border-color 140ms ease;
+}
+
+.nb-mute:hover,
+.nb-mute:focus-visible {
+	opacity: 1;
+	border-color: var(--nb-accent);
+	outline: none;
+}
+
+.nb-mute svg {
+	width: 1.05rem;
+	height: 1.05rem;
+	fill: currentColor;
+}
+
+.nb-mute__off {
+	display: none;
+}
+
+.nb-mute[aria-pressed="true"] .nb-mute__on {
+	display: none;
+}
+
+.nb-mute[aria-pressed="true"] .nb-mute__off {
+	display: block;
+}
+
+.nb-credit {
+	margin: 0;
+	font-family: var(--nb-mono-font);
+	font-size: clamp(0.5rem, 1vw, 0.66rem);
+	letter-spacing: 0.04em;
+	color: var(--nb-ink-dim);
+	opacity: 0.45;
+	pointer-events: auto;
+	transition: opacity 140ms ease;
+}
+
+.nb-credit:hover {
+	opacity: 0.9;
+}
+
+.nb-credit a {
+	color: inherit;
+}
+
+/* While the poster is up the credit line would sit on top of it; it belongs to the running game. */
+.nb-stage:not(.is-booted) .nb-credit {
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* `?state=screenshot` is the fidelity instrument's view: the frame and nothing else, so no shell
+   chrome can ever land inside a captured pixel. */
+.nb-stage.is-capture .nb-chrome,
+.nb-stage.is-capture .nb-loading {
+	display: none;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Motion and contrast preferences. D-N13 names accessibility as a deferral for the board itself;
+ * that is not a licence for the shell's own chrome to ignore the two cheapest signals.
+ * ------------------------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+	.nb-poster,
+	.nb-play,
+	.nb-bar__fill,
+	.nb-mute,
+	.nb-credit {
+		transition-duration: 1ms;
+	}
+
+	.nb-bar--indeterminate .nb-bar__fill {
+		animation-duration: 3s;
+	}
+}
+
+@media (prefers-contrast: more) {
+	:root {
+		--nb-ink-dim: #e6ecff;
+		--nb-scrim: rgba(3, 6, 24, 0.9);
+		--nb-hairline: rgba(255, 255, 255, 0.45);
+	}
+
+	.nb-poster__note,
+	.nb-credit {
+		opacity: 1;
+	}
+}
