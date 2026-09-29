@@ -17,7 +17,7 @@
         {{ if fileExists (printf "%s/%s" $coinDir $webpName) }}
           {{ $coinFaces = $coinFaces | append (printf "/img/coin-faces/%s" .Name) }}
         {{ else }}
-          {{ warnf "coin-faces: skipping %q — no .webp companion (run npm run assets, or add %s)" .Name $webpName }}
+          {{ warnf "coin-faces: skipping %q — no .webp companion. Generate one: cwebp -q 80 -m 6 %s/%s -o %s/%s" .Name $coinDir .Name $coinDir $webpName }}
         {{ end }}
       {{ end }}
     {{ end }}
