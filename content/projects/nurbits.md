@@ -27,7 +27,7 @@ features:
     desc: "A chip fires when the signal wired into it reaches its threshold. Excitatory chips add, inhibitory chips subtract, relays pass along, and one stimulus chip fires on its own. That is spatial summation, and it is the core mechanic of the puzzle."
   - icon: "fas fa-music"
     title: "The Puzzles Build the Song"
-    desc: "Green cells are the notes this loop needs. Solve the board and the channel plays its part correctly; get it wrong and you hear exactly which note is off, because the synth is playing your wrong answer."
+    desc: "Green cells are the notes this loop needs. Solve the board and the robot band member plays its part correctly; get it wrong and you hear exactly which note is off, because the synth is playing your wrong answer."
   - icon: "fas fa-heartbeat"
     title: "Pruning and Excitotoxicity"
     desc: 'A chip that never reaches threshold is pruned away ("explodes"). A chip driven far past it dies of overstimulation. Both are real neuroscience and both will happen to you.'
@@ -39,7 +39,7 @@ screenshots:
   - src: "/img/projects/nurbits/nurbits-puzzle.jpg"
     caption: "The studio: each band member holds an instrument, and each instrument has a sequence of loops you unlock by solving puzzles"
   - src: "/img/projects/nurbits/nurbits-creative.jpg"
-    caption: "Inside a brain: the signal path for one channel, with effects you earn and can copy between loops"
+    caption: "Inside a brain: the signal path for one instrument, with effects you earn and can copy between loops"
   - src: "/img/projects/nurbits/nurbits-venue.jpg"
     caption: "Robot customization: parts are unlocked by progress through the songs"
   - src: "/img/projects/nurbits/nurbits-band.jpg"

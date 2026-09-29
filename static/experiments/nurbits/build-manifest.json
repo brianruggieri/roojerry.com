@@ -1,12 +1,12 @@
 {
-  "build": "2026-09-29T23:31:10Z",
-  "commit": "180fd67-dirty",
-  "tree": "0626d2e88c326cd0630c1b3c653104536b93ccb5",
+  "build": "2026-09-29T23:37:30Z",
+  "commit": "d904ae6-dirty",
+  "tree": "32c53c7e50079781bc0dd0b9f21f7576aca834c0",
   "wasmBindgen": "0.2.129",
   "optimised": true,
   "wasm": "nurbits_bg.wasm",
   "wasmBytes": 19861234,
-  "wasmSha256": "3c9a7ac19f2e8c3a47707a1cd79aec43c09d1bc1bf1671bfea549741bea008cb",
+  "wasmSha256": "8d29a6f63c4db5818427aed2c034375b700110c710ecde4f9c44bcb996d0d8c6",
   "gz": "nurbits_bg.wasm.gz",
-  "gzBytes": 7949578
+  "gzBytes": 7949592
 }
