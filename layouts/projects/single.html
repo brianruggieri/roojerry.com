@@ -54,10 +54,17 @@
 
     {{/* ── Interactive preview (if present, replaces static hero) ── */}}
     {{ with .Params.interactive }}
-    <div class="ie-preview" data-src="{{ .src }}" role="button" tabindex="0"
+    <div class="ie-preview{{ if .poster }} ie-preview--poster{{ end }}" data-src="{{ .src }}"
+         role="button" tabindex="0"
          aria-label="Launch {{ .title | default "interactive" }}">
+      {{/* A poster shows the thing you are about to play. Without one the preview is a
+           decorative gradient, which tells a visitor nothing about the project. */}}
+      {{ with .poster }}
+      <img class="ie-preview__poster" src="{{ . }}"
+           alt="{{ $.Title }} - a playable puzzle" loading="eager" decoding="async" />
+      {{ else }}
       <span class="ie-preview__deco" aria-hidden="true"></span>
-      {{ with .deco }}
+      {{ with $.Params.interactive.deco }}
         {{ range . }}
         <span class="ie-preview__deco" aria-hidden="true">{{ . }}</span>
         {{ end }}
@@ -66,6 +73,7 @@
       <span class="ie-preview__deco" aria-hidden="true">🐾</span>
       <span class="ie-preview__deco" aria-hidden="true">🐾</span>
       <span class="ie-preview__deco" aria-hidden="true">🐾</span>
+      {{ end }}
       {{ end }}
       <div class="ie-preview__play" aria-hidden="true">
         {{ partial "icon.html" (dict "icon" "fas fa-play") }}
@@ -253,19 +261,13 @@
   </div>
 </section>
 
-{{/* ── Fullscreen interactive overlay (only for interactive projects) ── */}}
+{{/* ── Fullscreen interactive overlay (only for interactive projects) ──
+     Use the shared partial, which is a real <dialog>. interactive-embed.js calls
+     overlay.showModal(), which exists only on <dialog>; the inline <div> that used to
+     live here threw on click, so the fullscreen takeover never opened on a project
+     detail page. The experiments wall already used the partial, which is why the same
+     click worked there and not here. */}}
 {{ with .Params.interactive }}
-<div id="ie-overlay" class="ie-overlay" aria-modal="true" role="dialog"
-     aria-label="{{ .title | default "Interactive" }} — fullscreen">
-  <div class="ie-overlay__backdrop"></div>
-  <iframe class="ie-overlay__frame" src="about:blank"
-          title="{{ .title | default "Interactive" }}"
-          allow="autoplay" loading="lazy"
-          sandbox="allow-scripts allow-same-origin"></iframe>
-  <button class="ie-overlay__close" type="button"
-          aria-label="Close interactive">
-    {{ partial "icon.html" (dict "icon" "fas fa-times") }}
-  </button>
-</div>
+{{ partial "ieOverlay.html" $ }}
 {{ end }}
 {{ end }}

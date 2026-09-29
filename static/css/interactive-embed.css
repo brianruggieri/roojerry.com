@@ -310,3 +310,50 @@
     height: 16px;
   }
 }
+
+/* ---------------------------------------------------------------
+   Poster variant: show a frame from the actual playable instead of
+   the decorative gradient. The gradient says nothing about the
+   project; a real frame is the strongest thing the preview can show.
+--------------------------------------------------------------- */
+
+.ie-preview--poster {
+  background: #0a1020;
+}
+
+.ie-preview__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  z-index: 0;
+}
+
+/* The dotted grid overlay reads as noise on top of a real screenshot. */
+.ie-preview--poster::before { display: none; }
+
+/* Darken slightly on rest so the play button keeps its contrast, and
+   lift on hover so the frame itself becomes the subject. */
+.ie-preview--poster .ie-preview__poster {
+  filter: brightness(0.82) saturate(0.95);
+  transition: filter 0.25s ease, transform 0.35s ease;
+}
+
+.ie-preview--poster:hover .ie-preview__poster,
+.ie-preview--poster:focus-visible .ie-preview__poster {
+  filter: brightness(1) saturate(1);
+  transform: scale(1.015);
+}
+
+@media (hover: none) {
+  .ie-preview--poster .ie-preview__poster {
+    filter: brightness(0.92);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ie-preview--poster .ie-preview__poster { transition: filter 0.25s ease; }
+  .ie-preview--poster:hover .ie-preview__poster { transform: none; }
+}
