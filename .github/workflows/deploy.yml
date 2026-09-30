@@ -43,3 +43,34 @@ jobs:
           remote_host: ${{ secrets.DEPLOY_HOST }}
           remote_user: ${{ secrets.DEPLOY_USER }}
           remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Purge Cloudflare cache
+        # The Cache Rule that makes HTML cacheable (see
+        # docs/cloudflare-html-caching.md) means a deploy is not live until the
+        # edge is purged. This step must fail loudly: a silent failure serves
+        # the previous build to everyone until the TTL expires.
+        env:
+          CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${CF_ZONE_ID:-}" || -z "${CF_API_TOKEN:-}" ]]; then
+            echo "::error::CLOUDFLARE_ZONE_ID / CLOUDFLARE_API_TOKEN are not set."
+            echo "Without a purge, cached HTML will serve the previous build."
+            exit 1
+          fi
+          response=$(curl -sS -w '\n%{http_code}' -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+          status=$(tail -n1 <<<"$response")
+          body=$(sed '$d' <<<"$response")
+          echo "$body"
+          # Cloudflare returns 200 with "success": false on a permission error,
+          # so the status code alone is not enough.
+          if [[ "$status" != "200" ]] || ! grep -q '"success":true' <<<"$body"; then
+            echo "::error::Cloudflare purge failed (HTTP $status)."
+            exit 1
+          fi
+          echo "Cloudflare cache purged."
