@@ -19,6 +19,8 @@
 
 set -euo pipefail
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
 COIN_DIR="static/img/coin-faces"
 MIN_REQUIRED=2
 # The coin renders at 10rem (160px) desktop, 36px mobile. 400x400 covers 2x DPR
@@ -35,7 +37,7 @@ failed=0
 count=0
 warnings=0
 
-while IFS= read -r src; do
+while IFS= read -r -d '' src; do
   count=$((count + 1))
   base="${src%.*}"
 
@@ -53,14 +55,16 @@ while IFS= read -r src; do
     continue
   fi
 
-  size=$(stat -f %z "$src" 2>/dev/null || stat -c %s "$src")
+  # Not stat: BSD -f is a format flag, GNU -f is --file-system, and the GNU
+  # failure still prints to stdout, so a `||` fallback concatenates garbage.
+  size=$(wc -c < "$src")
   if (( size > MAX_BYTES )); then
     echo "⚠️   $(basename "$src") — $((size / 1024)) KB exceeds the $((MAX_BYTES / 1024)) KB budget"
     echo "    The coin renders at 160px; 400x400 is plenty. Downscale:"
     echo "    sips -z 400 400 '$src'"
     warnings=$((warnings + 1))
   fi
-done < <(find "$COIN_DIR" -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) | sort)
+done < <(find "$COIN_DIR" -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) -print0 | sort -z)
 
 if (( count < MIN_REQUIRED )); then
   echo "❌  coin-faces validation failed"

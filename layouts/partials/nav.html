@@ -13,7 +13,10 @@
     {{ if not .IsDir }}
       {{ $lower := .Name | lower }}
       {{ if or (strings.HasSuffix $lower ".png") (strings.HasSuffix $lower ".jpg") (strings.HasSuffix $lower ".jpeg") }}
-        {{ $webpName := $lower | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+        {{/* Derive the companion from .Name, not the lowercased copy: on a
+             case-sensitive filesystem Me.PNG needs Me.webp, and checking
+             me.webp would skip the face while the validator passed it. */}}
+        {{ $webpName := .Name | replaceRE `(?i)\.(png|jpg|jpeg)$` ".webp" }}
         {{ if fileExists (printf "%s/%s" $coinDir $webpName) }}
           {{ $coinFaces = $coinFaces | append (printf "/img/coin-faces/%s" .Name) }}
         {{ else }}
@@ -29,7 +32,7 @@
 {{ if gt (len $coinFaces) 0 }}
   {{ $backImg = index $coinFaces 0 }}
 {{ end }}
-{{ $backWebp := $backImg | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+{{ $backWebp := $backImg | replaceRE `(?i)\.(png|jpg|jpeg)$` ".webp" }}
 {{/* MIME type is written as a literal in each branch on purpose: Hugo's CSS
      minifier escapes image/png to image\2fpng when it arrives via a variable. */}}
 {{ $isJpeg := findRE `(?i)\.(jpg|jpeg)$` $backImg }}
@@ -39,10 +42,14 @@
     <div class="d-block d-lg-none mobile-brand">
       <div id="mobileCoin" class="mobile-brand__coin" data-coin-images='{{ $coinFaces | jsonify }}'>
         <div class="coin-side coin-front" style="background-image: image-set(url('{{ $frontWebp }}') type('image/webp'), url('{{ $frontImg }}') type('image/png'))"></div>
-        {{ if $isJpeg }}
+        {{ if $backImg }}
+          {{ if $isJpeg }}
         <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/jpeg'))"></div>
-        {{ else }}
+          {{ else }}
         <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/png'))"></div>
+          {{ end }}
+        {{ else }}
+        <div class="coin-side coin-back"></div>
         {{ end }}
       </div>
       <span class="mobile-brand__name">{{ .Site.Params.firstName }} {{ .Site.Params.lastName }}</span>
@@ -50,10 +57,14 @@
     <div class="d-none d-lg-block">
       <div id="profileCoin" class="mx-auto mb-2" data-coin-images='{{ $coinFaces | jsonify }}'>
         <div class="coin-side coin-front" style="background-image: image-set(url('{{ $frontWebp }}') type('image/webp'), url('{{ $frontImg }}') type('image/png'))"></div>
-        {{ if $isJpeg }}
+        {{ if $backImg }}
+          {{ if $isJpeg }}
         <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/jpeg'))"></div>
-        {{ else }}
+          {{ else }}
         <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/png'))"></div>
+          {{ end }}
+        {{ else }}
+        <div class="coin-side coin-back"></div>
         {{ end }}
       </div>
     </div>
