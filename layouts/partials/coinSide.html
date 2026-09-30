@@ -1,0 +1,16 @@
+{{/* One face of the coin.
+     Expects: .img (site-absolute path to a .png/.jpg/.jpeg in coin-faces),
+              .class ("coin-front" or "coin-back").
+     The MIME type is a literal in each branch on purpose: Hugo's CSS minifier
+     escapes image/png to image\2fpng when it arrives through a variable. */}}
+{{- $img := .img -}}
+{{- $webp := $img | replaceRE `(?i)\.(png|jpg|jpeg)$` ".webp" -}}
+{{- if $img -}}
+  {{- if findRE `(?i)\.(jpg|jpeg)$` $img -}}
+<div class="coin-side {{ .class }}" style="background-image: image-set(url('{{ $webp }}') type('image/webp'), url('{{ $img }}') type('image/jpeg'))"></div>
+  {{- else -}}
+<div class="coin-side {{ .class }}" style="background-image: image-set(url('{{ $webp }}') type('image/webp'), url('{{ $img }}') type('image/png'))"></div>
+  {{- end -}}
+{{- else -}}
+<div class="coin-side {{ .class }}"></div>
+{{- end -}}
