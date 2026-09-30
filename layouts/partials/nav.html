@@ -1,19 +1,71 @@
 {{ $frontImg := .Site.Params.profileImage | relURL }}
 {{ $frontWebp := $frontImg | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+{{/* Discover coin-face images from static/img/coin-faces/.
+     Only images that have a .webp companion are emitted: coin-flip.js builds an
+     image-set() with a .webp source at runtime, so a source without one would
+     hand webp-capable browsers a 404 and render a blank coin face.
+     scripts/validate-coin-faces.sh enforces the companion so this never silently
+     drops a face the author meant to include. */}}
+{{ $coinDir := "static/img/coin-faces" }}
+{{ $coinFaces := slice }}
+{{ if fileExists $coinDir }}
+  {{ range readDir $coinDir }}
+    {{ if not .IsDir }}
+      {{ $lower := .Name | lower }}
+      {{ if or (strings.HasSuffix $lower ".png") (strings.HasSuffix $lower ".jpg") (strings.HasSuffix $lower ".jpeg") }}
+        {{/* Derive the companion from .Name, not the lowercased copy: on a
+             case-sensitive filesystem Me.PNG needs Me.webp, and checking
+             me.webp would skip the face while the validator passed it. */}}
+        {{ $webpName := .Name | replaceRE `(?i)\.(png|jpg|jpeg)$` ".webp" }}
+        {{ if fileExists (printf "%s/%s" $coinDir $webpName) }}
+          {{ $coinFaces = $coinFaces | append (printf "/img/coin-faces/%s" .Name) }}
+        {{ else }}
+          {{ warnf "coin-faces: skipping %q — no .webp companion. Generate one: cwebp -q 80 -m 6 %s/%s -o %s/%s" .Name $coinDir .Name $coinDir $webpName }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+{{ else }}
+  {{ warnf "coin-faces: %s does not exist — the coin will show only the front face" $coinDir }}
+{{ end }}
+{{ $backImg := "" }}
+{{ if gt (len $coinFaces) 0 }}
+  {{ $backImg = index $coinFaces 0 }}
+{{ end }}
+{{ $backWebp := $backImg | replaceRE `(?i)\.(png|jpg|jpeg)$` ".webp" }}
+{{/* MIME type is written as a literal in each branch on purpose: Hugo's CSS
+     minifier escapes image/png to image\2fpng when it arrives via a variable. */}}
+{{ $isJpeg := findRE `(?i)\.(jpg|jpeg)$` $backImg }}
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
   {{/* aria-label: on desktop the link holds only bg-image coin divs — no accessible name without it */}}
   <a class="navbar-brand js-scroll-trigger" href="{{ "#about" | relURL }}" aria-label="{{ .Site.Params.firstName }} {{ .Site.Params.lastName }} — about">
     <div class="d-block d-lg-none mobile-brand">
-      <div id="mobileCoin" class="mobile-brand__coin">
+      <div id="mobileCoin" class="mobile-brand__coin" data-coin-images='{{ $coinFaces | jsonify }}'>
         <div class="coin-side coin-front" style="background-image: image-set(url('{{ $frontWebp }}') type('image/webp'), url('{{ $frontImg }}') type('image/png'))"></div>
-        <div class="coin-side coin-back" style="background-image: image-set(url('/img/me-photo.webp') type('image/webp'), url('/img/me-photo.png') type('image/png'))"></div>
+        {{ if $backImg }}
+          {{ if $isJpeg }}
+        <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/jpeg'))"></div>
+          {{ else }}
+        <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/png'))"></div>
+          {{ end }}
+        {{ else }}
+        <div class="coin-side coin-back"></div>
+        {{ end }}
       </div>
       <span class="mobile-brand__name">{{ .Site.Params.firstName }} {{ .Site.Params.lastName }}</span>
     </div>
     <div class="d-none d-lg-block">
-      <div id="profileCoin" class="mx-auto mb-2">
+      <div id="profileCoin" class="mx-auto mb-2" data-coin-images='{{ $coinFaces | jsonify }}'>
         <div class="coin-side coin-front" style="background-image: image-set(url('{{ $frontWebp }}') type('image/webp'), url('{{ $frontImg }}') type('image/png'))"></div>
-        <div class="coin-side coin-back" style="background-image: image-set(url('/img/me-photo.webp') type('image/webp'), url('/img/me-photo.png') type('image/png'))"></div>
+        {{ if $backImg }}
+          {{ if $isJpeg }}
+        <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/jpeg'))"></div>
+          {{ else }}
+        <div class="coin-side coin-back" style="background-image: image-set(url('{{ $backWebp }}') type('image/webp'), url('{{ $backImg }}') type('image/png'))"></div>
+          {{ end }}
+        {{ else }}
+        <div class="coin-side coin-back"></div>
+        {{ end }}
       </div>
     </div>
   </a>

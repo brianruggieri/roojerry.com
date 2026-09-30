@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "/opt/homebrew/bin/hugo server -D",
-    "build": "/opt/homebrew/bin/hugo --minify && npx purgecss --config purgecss.config.js && npx terser public/js/bg-field.js -o public/js/bg-field.js -c -m",
+    "validate:coin-faces": "./scripts/validate-coin-faces.sh",
+    "build": "npm run validate:coin-faces && /opt/homebrew/bin/hugo --minify && npx purgecss --config purgecss.config.js && npx terser public/js/bg-field.js -o public/js/bg-field.js -c -m",
     "build:check": "/opt/homebrew/bin/hugo --minify --renderToMemory",
     "preview": "/opt/homebrew/bin/hugo server --disableFastRender",
     "clean": "rm -rf public/",
