@@ -1,14 +1,14 @@
 {{/*
-  icon.html — inline SVG icon partial (no Font Awesome webfonts/CSS needed)
+  icon.html: inline SVG icon partial (no Font Awesome webfonts/CSS needed)
 
   Usage:
     {{ partial "icon.html" (dict "icon" "fas fa-github") }}
     {{ partial "icon.html" (dict "icon" "fab fa-github" "class" "my-class" "aria" "GitHub") }}
 
   Parameters:
-    icon  — FA class string, e.g. "fas fa-download" or "fab fa-github"
-    class — optional CSS class(es) added to the <svg> element
-    aria  — optional accessible label; if omitted the icon is aria-hidden
+    icon  = FA class string, e.g. "fas fa-download" or "fab fa-github"
+    class = optional CSS class(es) added to the <svg> element
+    aria  = optional accessible label; if omitted the icon is aria-hidden
 */}}
 {{ $icon  := .icon  | default "" }}
 {{ $class := .class | default "" }}

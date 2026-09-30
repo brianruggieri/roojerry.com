@@ -1,0 +1,30 @@
+{{- /* showpieceTile.html: the one lead project above the featured grid.
+       Two sibling anchors, not a nested one: the poster links to the detail
+       page and the CTAs are their own links. */ -}}
+{{- $p := . -}}
+{{- $poster := $p.Params.poster | default $p.Params.image -}}
+{{- $webp := $poster | replaceRE `\.(png|jpg|jpeg)$` ".webp" -}}
+{{- $blurb := $p.Params.blurb | default $p.Params.subtitle | default $p.Description -}}
+<article class="exp-showpiece">
+	<a class="exp-showpiece__media" href="{{ $p.Permalink }}" aria-label="{{ $p.Title }}: how it was built">
+		<picture>
+			{{ if ne $webp $poster }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
+			{{/* 1280x800 is poster.webp's real pixel size; the assertion in
+			     tests/e2e/showpiece.test.js fails if the file stops matching. */}}
+			<img src="{{ $poster }}" alt="{{ $p.Title }} preview" width="1280" height="800" loading="lazy">
+		</picture>
+		<span class="exp-tile__badge exp-tile__badge--project">showpiece</span>
+	</a>
+	<div class="exp-showpiece__cap">
+		<h3 class="exp-showpiece__title">{{ $p.Title }}{{ with $p.Params.subtitle }}<span class="exp-showpiece__sub">{{ . }}</span>{{ end }}</h3>
+		<p class="exp-showpiece__blurb">{{ $blurb }}</p>
+		<div class="exp-showpiece__ctas">
+			{{ with $p.Params.live }}
+			<a class="exp-showpiece__cta exp-showpiece__cta--live" href="{{ . }}" target="_blank" rel="noopener noreferrer">
+				{{ partial "icon.html" (dict "icon" "fas fa-external-link-alt") }} Make a card
+			</a>
+			{{ end }}
+			<a class="exp-showpiece__cta exp-showpiece__cta--details" href="{{ $p.Permalink }}">How it was built</a>
+		</div>
+	</div>
+</article>

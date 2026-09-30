@@ -31,6 +31,12 @@
     {{ end }}
 
     <div class="project-card__links">
+      {{ with .Params.live }}
+      <a href="{{ . }}" class="project-card__link project-card__link--live"
+         target="_blank" rel="noopener noreferrer">
+        {{ partial "icon.html" (dict "icon" "fas fa-external-link-alt") }} Open the bench
+      </a>
+      {{ end }}
       {{ with .Params.github }}
       <a href="{{ . }}" class="project-card__link project-card__link--github"
          target="_blank" rel="noopener noreferrer">
@@ -60,7 +66,7 @@
     <picture>
       <source srcset="{{ $webp }}" type="image/webp">
       <img src="{{ $img }}"
-           alt="{{ .Title }} — screenshot"
+           alt="{{ .Title }} screenshot"
            class="project-card__screenshot"
            loading="lazy" />
     </picture>
