@@ -26,24 +26,24 @@
   {{ partial "jsonld.html" . }}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <!-- Bootstrap core CSS (self-hosted so PurgeCSS can strip unused rules at build) -->
-  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ partial "asset.html" "css/bootstrap.min.css" }}">
   <!-- Self-hosted fonts: preload woff2 files so browser fetches them before CSS is parsed -->
   <link rel="preload" href="/fonts/open-sans.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/open-sans-italic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/saira-extra-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="{{ partial "asset.html" "css/fonts.css" }}">
   <!-- Custom styles for this template -->
-  <link rel="stylesheet" href="/css/design-system.css">
-  <link rel="stylesheet" href="/css/resume.css">
-  <link rel="stylesheet" href="/css/tweaks.css">
-  <link rel="stylesheet" href="/css/resume-override.css?v=2">
-    <link rel="stylesheet" href="/css/background.css">
-    <link rel="stylesheet" href="/css/field-controls.css">
-    <link rel="stylesheet" href="/css/achievements.css">
-    <link rel="stylesheet" href="/css/bg-controls.css">
-    <link rel="stylesheet" href="/css/projects.css?v=5">
-    <link rel="stylesheet" href="/css/interactive-embed.css?v=2">
-    <link rel="stylesheet" href="/css/experiments-wall.css">
+  <link rel="stylesheet" href="{{ partial "asset.html" "css/design-system.css" }}">
+  <link rel="stylesheet" href="{{ partial "asset.html" "css/resume.css" }}">
+  <link rel="stylesheet" href="{{ partial "asset.html" "css/tweaks.css" }}">
+  <link rel="stylesheet" href="{{ partial "asset.html" "css/resume-override.css" }}">
+    <link rel="stylesheet" href="{{ partial "asset.html" "css/background.css" }}">
+    <link rel="stylesheet" href="{{ partial "asset.html" "css/field-controls.css" }}">
+    <link rel="stylesheet" href="{{ partial "asset.html" "css/achievements.css" }}">
+    <link rel="stylesheet" href="{{ partial "asset.html" "css/bg-controls.css" }}">
+    <link rel="stylesheet" href="{{ partial "asset.html" "css/projects.css" }}">
+    <link rel="stylesheet" href="{{ partial "asset.html" "css/interactive-embed.css" }}">
+    <link rel="stylesheet" href="{{ partial "asset.html" "css/experiments-wall.css" }}">
 
   {{ hugo.Generator }}
   {{ block "headfiles" . }}
@@ -83,20 +83,20 @@
   <script defer src="https://unpkg.com/smoothscroll-anchor-polyfill@1.3.2/dist/index.min.js" integrity="sha384-EY9NBEHCFbZANmPcTm7CgG8OhsFILy0VBLG85pF6OIpP42NVbZVNsFOc23PYTCkB" crossorigin="anonymous"></script>
 
   <!-- Custom scripts (deferred so execution order is preserved) -->
-  <script defer src="/js/resume.js"></script>
-  <script defer src="/js/field-controls.js"></script>
-  <script defer src="/js/bg-field.js"></script>
-  <script defer src="/js/bg-controls.js"></script>
-  <!-- <script defer src="/js/name-field.js"></script> -->
-  <script defer src="/js/name-disturbance.js"></script>
-  <script defer src="/js/achievements.js"></script>
-  <script defer src="/js/coin-flip.js?v=2"></script>
-  <script defer src="/js/nav-scroll-reveal.js"></script>
-  <script defer src="/js/external-links.js"></script>
-  <script defer src="/js/interactive-embed.js?v=2"></script>
-  <script defer src="/js/img-compare.js"></script>
-  <script defer src="/js/shot-lightbox.js"></script>
-  <script defer src="/js/live-tile-waker.js"></script>
+  <script defer src="{{ partial "asset.html" "js/resume.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/field-controls.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/bg-field.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/bg-controls.js" }}"></script>
+  <!-- <script defer src="{{ partial "asset.html" "js/name-field.js" }}"></script> -->
+  <script defer src="{{ partial "asset.html" "js/name-disturbance.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/achievements.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/coin-flip.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/nav-scroll-reveal.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/external-links.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/interactive-embed.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/img-compare.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/shot-lightbox.js" }}"></script>
+  <script defer src="{{ partial "asset.html" "js/live-tile-waker.js" }}"></script>
 
   <script data-goatcounter="https://roojerry.goatcounter.com/count"
           async src="//gc.zgo.at/count.js"></script>
