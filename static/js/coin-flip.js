@@ -1,21 +1,26 @@
-// Coin Flip + Generative Identity System Integration
-// (wired to real DOM structure in nav.html)
+// Coin Flip — every reveal shows a different face
+//
+// The two faces have no fixed identity: both draw from one pool of images
+// discovered at build time, photographs and illustrations alike. The face that
+// is hidden by a flip is immediately reassigned, so the next flip always turns
+// up something the viewer has not just seen.
 
 const coin = document.getElementById("profileCoin");
 const mobileCoin = document.getElementById("mobileCoin");
 const frontFace = coin?.querySelector(".coin-front");
 const backFace  = coin?.querySelector(".coin-back");
-const mobileBackFace = mobileCoin?.querySelector(".coin-back");
+const mobileFrontFace = mobileCoin?.querySelector(".coin-front");
+const mobileBackFace  = mobileCoin?.querySelector(".coin-back");
 
 let flipping = false;
-let showingReal = true; // front = real, back = generative
+let showingFront = true;
 
-// Coin face image rotation — images discovered at build time by Hugo
 const coinImages = JSON.parse(coin?.dataset?.coinImages || '[]');
-let currentBackImage = coinImages.length > 0 ? coinImages[0] : null;
+// What each face currently wears, so a swap can avoid repeating the other one.
+let faceImages = { front: null, back: null };
 
 if (coinImages.length < 2) {
-  console.warn('[coin-flip] fewer than 2 coin-face images — back-to-back repeats are unavoidable.');
+  console.warn('[coin-flip] fewer than 2 coin-face images — repeats are unavoidable.');
 }
 
 function randomRange(min, max) {
@@ -23,16 +28,14 @@ function randomRange(min, max) {
 }
 
 /**
- * Pick a random image from the pool, different from the current one if possible.
+ * Pick a random image, avoiding any the caller says are already on screen.
  */
-function pickRandomImage(excludePath) {
-  if (coinImages.length === 0) return null;
-  if (coinImages.length === 1) return coinImages[0];
-  let pick;
-  do {
-    pick = coinImages[Math.floor(Math.random() * coinImages.length)];
-  } while (pick === excludePath);
-  return pick;
+function pickRandomImage(...exclude) {
+  const taken = exclude.filter(Boolean);
+  const pool = coinImages.filter(p => !taken.includes(p));
+  const from = pool.length ? pool : coinImages;
+  if (!from.length) return null;
+  return from[Math.floor(Math.random() * from.length)];
 }
 
 /**
@@ -46,12 +49,23 @@ function setFaceImage(face, imgPath) {
     `image-set(url('${webpPath}') type('image/webp'), url('${imgPath}') type('${mimeType}'))`;
 }
 
-// Randomise the initial back face on every page load
+/** Put an image on one logical face, across both the desktop and mobile coins. */
+function dressFace(which, imgPath) {
+  if (!imgPath) return;
+  faceImages[which] = imgPath;
+  if (which === "front") {
+    setFaceImage(frontFace, imgPath);
+    setFaceImage(mobileFrontFace, imgPath);
+  } else {
+    setFaceImage(backFace, imgPath);
+    setFaceImage(mobileBackFace, imgPath);
+  }
+}
+
+// Randomise both faces on load, so a reload is not the same coin twice.
 if (coinImages.length > 0) {
-  const initialImg = pickRandomImage(null);
-  currentBackImage = initialImg;
-  setFaceImage(backFace, initialImg);
-  setFaceImage(mobileBackFace, initialImg);
+  dressFace("front", pickRandomImage());
+  dressFace("back", pickRandomImage(faceImages.front));
 }
 
 function flipCoin() {
@@ -61,7 +75,7 @@ function flipCoin() {
   // Trigger CSS flip animation (sync both coins)
   coin.classList.toggle("flipped");
   mobileCoin?.classList.toggle("flipped");
-  showingReal = !showingReal;
+  showingFront = !showingFront;
 
   // Environment sync
   if (window.FIELD) {
@@ -75,15 +89,13 @@ function flipCoin() {
   setTimeout(() => {
     flipping = false;
 
-    // When the back face is hidden again, swap it to a new random image
-    // so the next reveal shows a fresh picture.
-    if (coinImages.length > 1 && showingReal) {
-      const newImg = pickRandomImage(currentBackImage);
-      if (newImg) {
-        currentBackImage = newImg;
-        setFaceImage(backFace, newImg);
-        setFaceImage(mobileBackFace, newImg);
-      }
+    // Reassign whichever face just went out of view. Swapping it while hidden
+    // means the change is never visible mid-flip, and the next flip reveals an
+    // image that is neither the one on screen nor the one just seen.
+    if (coinImages.length > 1) {
+      const hidden = showingFront ? "back" : "front";
+      const visible = showingFront ? "front" : "back";
+      dressFace(hidden, pickRandomImage(faceImages[visible], faceImages[hidden]));
     }
   }, lockDuration);
 }

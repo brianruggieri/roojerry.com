@@ -49,9 +49,14 @@ browser TTL cannot be purged, so it stays short.
 repository secrets:
 
 - `CLOUDFLARE_ZONE_ID` — zone overview page, right-hand sidebar.
-- `CLOUDFLARE_API_TOKEN` — **My Profile → API Tokens → Create Token**, using
-  the *Zone → Cache Purge* template, scoped to this zone only. Not the Global
-  API Key, which carries full account access.
+- `CLOUDFLARE_API_TOKEN` — **My Profile → API Tokens → Create Custom Token**
+  ("Get started"). There is no ready-made purge template in the list, so set it
+  by hand:
+  - Permissions: `Zone` → `Cache Purge` → `Purge` (that one row, nothing else)
+  - Zone Resources: `Include` → `Specific zone` → the site's zone
+
+  The value is shown once, on creation. Not the Global API Key, which carries
+  full account access.
 
 The purge step fails the build if either secret is missing or if Cloudflare
 returns `"success": false`. That is deliberate: a silent purge failure serves

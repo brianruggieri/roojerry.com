@@ -1,0 +1,19 @@
+{{/* Cache-busted URL for a file in static/, keyed to its contents.
+
+     /js/*.js and /css/*.css are served `cache-control: max-age=31536000,
+     immutable`. A Cloudflare purge clears the edge but NOT a visitor's browser,
+     so without a content-keyed URL a returning visitor can hold a stale script
+     for a year. Hand-maintained ?v=N numbers were the previous approach and
+     they silently went stale — the coin rotation shipped working but invisible
+     because coin-flip.js changed while its ?v= did not.
+
+     Usage: <script defer src="{{ partial "asset.html" "js/coin-flip.js" }}">
+     The argument is the path under static/, with no leading slash. */}}
+{{- $p := . -}}
+{{- $file := printf "static/%s" $p -}}
+{{- if fileExists $file -}}
+{{- printf "/%s?v=%s" $p (substr (crypto.SHA256 (readFile $file)) 0 8) -}}
+{{- else -}}
+{{- warnf "asset: static/%s not found — emitting an unversioned URL" $p -}}
+{{- printf "/%s" $p -}}
+{{- end -}}

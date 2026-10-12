@@ -20,6 +20,13 @@ const page = await browser.newPage();
 const backImage = () => page.$eval('#profileCoin .coin-back', el =>
 	getComputedStyle(el).backgroundImage);
 
+// Whichever face the flip has turned toward the viewer.
+const visibleImage = () => page.$eval('#profileCoin', el => {
+	const showingBack = el.classList.contains('flipped');
+	const face = el.querySelector(showingBack ? '.coin-back' : '.coin-front');
+	return getComputedStyle(face).backgroundImage;
+});
+
 // Reduced motion disables the 3-8s auto-flip and zeroes the animation lock, so
 // flips driven from the test are the only ones that happen. Without this the
 // auto-flip races every assertion below.
@@ -72,38 +79,54 @@ await runTest('every discovered image and its .webp companion resolves', async (
 	}
 });
 
-await runTest('back face swaps to a different image and never repeats back to back', async () => {
+await runTest('every flip reveals an image the viewer has not just seen', async () => {
 	await loadQuiet();
 	const imgs = await page.$eval('#profileCoin', el =>
 		JSON.parse(el.dataset.coinImages || '[]'));
 
-	const seen = [await backImage()];
-	for (let i = 0; i < 6; i++) {
-		await revealCycle();
-		const now = await backImage();
+	// One flip = one reveal. The face that just went out of view is reassigned
+	// while hidden, so consecutive reveals must never match.
+	const seen = [await visibleImage()];
+	for (let i = 0; i < 10; i++) {
+		await flipOnce();
+		const now = await visibleImage();
 		if (now === seen[seen.length - 1]) {
-			throw new Error(`back face repeated on cycle ${i + 1}: ${now}`);
+			throw new Error(`flip ${i + 1} revealed the same image again: ${now}`);
 		}
 		seen.push(now);
 	}
 
 	const distinct = new Set(seen).size;
-	const expected = Math.min(imgs.length, seen.length);
-	if (distinct < Math.min(2, expected)) {
-		throw new Error(`rotation never varied: ${distinct} distinct across ${seen.length} cycles`);
+	if (distinct < Math.min(3, imgs.length)) {
+		throw new Error(`rotation barely varied: ${distinct} distinct across ${seen.length} reveals`);
 	}
 });
 
-await runTest('rotation leaves the front face alone', async () => {
+await runTest('both faces rotate, not just the back', async () => {
 	await loadQuiet();
 	const front = () => page.$eval('#profileCoin .coin-front', el =>
 		getComputedStyle(el).backgroundImage);
-	const before = await front();
-	await revealCycle();
-	await revealCycle();
-	const after = await front();
-	if (before !== after) {
-		throw new Error(`front face changed:\n  before ${before}\n  after  ${after}`);
+	const startFront = await front();
+	const startBack = await backImage();
+
+	let frontChanged = false, backChanged = false;
+	for (let i = 0; i < 8 && !(frontChanged && backChanged); i++) {
+		await flipOnce();
+		if (await front() !== startFront) frontChanged = true;
+		if (await backImage() !== startBack) backChanged = true;
+	}
+	if (!frontChanged) throw new Error('front face never changed — it is not drawing from the pool');
+	if (!backChanged) throw new Error('back face never changed');
+});
+
+await runTest('a reload does not always open on the same face', async () => {
+	const first = [];
+	for (let i = 0; i < 6; i++) {
+		await loadQuiet();
+		first.push(await visibleImage());
+	}
+	if (new Set(first).size < 2) {
+		throw new Error(`load face never varied across 6 loads: ${first[0]}`);
 	}
 });
 
