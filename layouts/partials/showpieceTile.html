@@ -1,12 +1,12 @@
 {{- /* showpieceTile.html: the one lead project above the featured grid.
-       Two sibling anchors, not a nested one: the poster links to the detail
-       page and the CTAs are their own links. */ -}}
+       The detail page is withheld until the v2 article ships, so the poster
+       and the single CTA both open the live tool. */ -}}
 {{- $p := . -}}
 {{- $poster := $p.Params.poster | default $p.Params.image -}}
 {{- $webp := $poster | replaceRE `\.(png|jpg|jpeg)$` ".webp" -}}
 {{- $blurb := $p.Params.blurb | default $p.Params.subtitle | default $p.Description -}}
 <article class="exp-showpiece">
-	<a class="exp-showpiece__media" href="{{ $p.Permalink }}" aria-label="{{ $p.Title }}: how it was built">
+	<a class="exp-showpiece__media" href="{{ $p.Params.live }}" target="_blank" rel="noopener noreferrer" aria-label="{{ $p.Title }}: open the live tool">
 		<picture>
 			{{ if ne $webp $poster }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
 			{{/* 1280x800 is poster.webp's real pixel size; the assertion in
@@ -24,7 +24,6 @@
 				{{ partial "icon.html" (dict "icon" "fas fa-external-link-alt") }} Make a card
 			</a>
 			{{ end }}
-			<a class="exp-showpiece__cta exp-showpiece__cta--details" href="{{ $p.Permalink }}">How it was built</a>
 		</div>
 	</div>
 </article>

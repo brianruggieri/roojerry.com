@@ -51,9 +51,13 @@
         {{ partial "icon.html" (dict "icon" $icon) }} {{ $label }}
       </a>
       {{ end }}
+      {{/* detailsPage: false marks a project whose detail page is unrendered
+           (build.render: never); linking it would be a dead click. */}}
+      {{ if ne .Params.detailsPage false }}
       <a href="{{ .Permalink }}" class="project-card__link project-card__link--details">
         Details &rarr;
       </a>
+      {{ end }}
     </div>
 
   </div>

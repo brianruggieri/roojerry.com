@@ -29,13 +29,18 @@ await runTest('exactly one showpiece tile renders above the featured grid', asyn
 	if (!order) throw new Error('showpiece is not before the featured grid');
 });
 
-await runTest('showpiece links to the live site and the detail page', async () => {
+// The detail page is withheld until the v2 article ships: every anchor in the
+// tile must open the live tool, and nothing on the page may link the
+// unrendered /projects/teightysix/ URL.
+await runTest('showpiece links only to the live tool', async () => {
 	const live = await page.$eval('.exp-showpiece__cta--live', a => a.getAttribute('href'));
 	if (live !== 'https://cards.roojerry.com/') throw new Error(`live href: ${live}`);
 	const rel = await page.$eval('.exp-showpiece__cta--live', a => a.getAttribute('rel'));
 	if (!/noopener/.test(rel || '')) throw new Error('live link missing rel=noopener');
-	const details = await page.$eval('.exp-showpiece__cta--details', a => a.getAttribute('href'));
-	if (!details.includes('/projects/teightysix/')) throw new Error(`details href: ${details}`);
+	const media = await page.$eval('.exp-showpiece__media', a => a.getAttribute('href'));
+	if (media !== 'https://cards.roojerry.com/') throw new Error(`media href: ${media}`);
+	const dead = await page.$$eval('a', as => as.map(a => a.getAttribute('href')).filter(h => h && h.includes('/projects/teightysix/')));
+	if (dead.length) throw new Error(`links to the unrendered detail page: ${dead.join(', ')}`);
 });
 
 await runTest('showpiece page is not duplicated in the featured grid', async () => {

@@ -11,6 +11,14 @@ ctaTitle: "Make one"
 ctaDesc: "The bench runs in the browser. Your photograph stays on your machine."
 image: "/img/projects/teightysix/hero.png"
 poster: "/img/projects/teightysix/poster.webp"
+# The structured detail page is withheld from this release; the v2 narrated
+# article (docs/superpowers/specs/2026-09-29-teightysix-article-design.md)
+# replaces it. list: local keeps the page in the wall and /projects/ while
+# excluding it from the sitemap and the search index.
+build:
+  render: never
+  list: local
+detailsPage: false
 showpiece: true
 featured: true
 weight: 1
