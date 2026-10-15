@@ -104,7 +104,6 @@
 }
 .exp-tile__badge--live    { background: var(--accent); color: var(--brand-dark); }
 .exp-tile__badge--play    { background: rgb(var(--shadow-tint-rgb) / 0.65); color: #fff; }
-.exp-tile__badge--project { background: rgb(var(--brand-rgb) / 0.85); color: #fff; }
 
 .exp-tile__play,
 .exp-tile__expand {
@@ -211,7 +210,6 @@
 	object-fit: cover;
 	display: block;
 }
-.exp-showpiece__media .exp-tile__badge { top: 12px; left: 12px; }
 .exp-showpiece__cap {
 	padding: 28px 28px 26px;
 	display: flex;
