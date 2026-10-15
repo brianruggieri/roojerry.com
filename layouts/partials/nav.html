@@ -33,8 +33,8 @@
 {{ if gt (len $coinFaces) 0 }}{{ $faceA = index $coinFaces 0 }}{{ end }}
 {{ if gt (len $coinFaces) 1 }}{{ $faceB = index $coinFaces 1 }}{{ end }}
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
-  {{/* aria-label: on desktop the link holds only bg-image coin divs — no accessible name without it */}}
-  <a class="navbar-brand js-scroll-trigger" href="{{ "#about" | relURL }}" aria-label="{{ .Site.Params.firstName }} {{ .Site.Params.lastName }} — about">
+  {{/* aria-label: on desktop the link holds only bg-image coin divs, no accessible name without it */}}
+  <a class="navbar-brand js-scroll-trigger" href="{{ "#about" | relURL }}" aria-label="{{ .Site.Params.firstName }} {{ .Site.Params.lastName }} about">
     <div class="d-block d-lg-none mobile-brand">
       <div id="mobileCoin" class="mobile-brand__coin" data-coin-images='{{ $coinFaces | jsonify }}'>
         {{ partial "coinSide.html" (dict "img" $faceA "class" "coin-front") }}

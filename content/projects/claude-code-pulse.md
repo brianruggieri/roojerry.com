@@ -1,10 +1,10 @@
 ---
 title: "Claude Code Pulse"
 subtitle: "ccp"
-description: "A CLI wrapper that hooks into Claude Code's lifecycle events and writes live context — branch, task, status — into each terminal pane's title bar. Built for multi-agent workflows."
+description: "A CLI wrapper that hooks into Claude Code's lifecycle events and writes live context (branch, task, status) into each terminal pane's title bar. Built for multi-agent workflows."
 tagline: "See what every agent is doing. At a glance."
 tags: ["Bash", "CLI Tooling", "Claude Code Hooks", "iTerm2", "macOS"]
-statusLabel: "v1.5.0 — Active Development"
+statusLabel: "v1.5.0: Active Development"
 github: "https://github.com/brianruggieri/claude-code-pulse"
 ctaTitle: "Get Claude Code Pulse"
 ctaDesc: "One install script. No sudo. No telemetry. Works in 30 seconds."
@@ -16,7 +16,7 @@ featureColumns: 3
 features:
   - icon: "fas fa-plug"
     title: "Hook Architecture"
-    desc: "Integrates directly with Claude Code's hook events — no output parsing or regex fragility."
+    desc: "Reads structured hook events straight from Claude Code, skipping regex-based output parsing entirely."
   - icon: "fas fa-columns"
     title: "Per-Pane Independence"
     desc: "Each split pane updates its own title via OSC 1 sequences. No cross-talk between agents."
@@ -44,15 +44,15 @@ pipeline:
     desc: "OSC 1 escape sequence writes the title to the specific pane"
 screenshots:
   - src: "/img/projects/claude-code-pulse/before.png"
-    caption: "Before — generic \"project — claude\" on every pane"
+    caption: "Before: every pane carries the same generic title"
   - src: "/img/projects/claude-code-pulse/after.png"
-    caption: "After — branch, task, and live status on each pane"
+    caption: "After: branch, task, and live status on each pane"
   - src: "/img/projects/claude-code-pulse/status-lifecycle.apng"
-    caption: "Full status lifecycle: editing → testing → passed → committed → idle"
+    caption: "Full status lifecycle: editing, testing, passed, committed, idle"
   - src: "/img/projects/claude-code-pulse/tmux-after.png"
-    caption: "tmux compatibility — same context, different multiplexer"
+    caption: "tmux compatibility: same context, different multiplexer"
 ---
 
-Multi-agent workflows in split panes get disorienting fast — every title bar says the same thing, and there's no way to tell which agent is editing, which just finished, or which is waiting for input.
+Multi-agent workflows in split panes get disorienting fast: every title bar says the same thing, and there's no way to tell which agent is editing, which just finished, or which is waiting for input.
 
-ccp hooks into Claude Code's lifecycle events and writes real context — branch, task, status — into each pane's title. No output parsing, no regex. Just hooks and escape sequences.
+ccp hooks into Claude Code's lifecycle events and writes real context (branch, task, status) into each pane's title. It runs on hooks and escape sequences; nothing parses output or matches against regex.

@@ -114,6 +114,19 @@
     text-decoration: none;
 }
 
+.project-card__link--live {
+    background: var(--brand);
+    color: #fff;
+    border: 1px solid var(--brand);
+}
+.project-card__link--live:hover,
+.project-card__link--live:focus {
+    background: var(--brand-dark);
+    border-color: var(--brand-dark);
+    color: #fff;
+    text-decoration: none;
+}
+
 .project-card__link--release {
     background: var(--accent);
     color: #fff;
@@ -1160,9 +1173,93 @@
     outline-offset: 3px;
 }
 
+/* Portrait subject (a 5:7 trading card, not a landscape app window). Full width
+   would stand a 1000x1400 card over a thousand pixels tall, so the frame is held
+   near the card's real 2.5 in and centred, and the tags drop below it: a
+   landscape screenshot has dead titlebar to put them on at top 48px, but a card
+   has its team bar up there, and a pill over HOUSTON hides the one piece of type
+   the whole project is about. */
+.img-compare--portrait .img-compare__frame {
+    max-width: 380px;
+    margin-inline: auto;
+    margin-bottom: 2.6rem;
+}
+.img-compare--portrait .img-compare__tag {
+    top: auto;
+    bottom: -2.15rem;
+    font-size: 0.86rem;
+    padding: 2px 12px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgb(0 0 0 / 0.62);
+    box-shadow: none;
+}
+.img-compare--portrait .img-compare__tag--left { left: 0; }
+.img-compare--portrait .img-compare__tag--right { right: 0; }
+.img-compare--portrait .img-compare__handle {
+    width: 32px;
+    height: 32px;
+}
+/* A white card border on a pale page has almost no edge, so the card gets a lift.
+   Only the bottom layer carries it: clip-path clips the top layer's filter output
+   too, which would draw a second shadow edge down the divider. */
+.img-compare--portrait .img-compare__img:not(.img-compare__img--top) img {
+    filter: drop-shadow(0 5px 14px rgb(45 74 82 / 0.28));
+}
+
 .img-compare__caption {
     margin-top: 0.7rem;
     font-size: 0.78rem;
     color: var(--muted);
     text-align: center;
+}
+
+/* ── Story strip (How it was built) ── */
+.story-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+}
+.story-strip__row {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 1.5rem;
+    align-items: center;
+    margin: 0;
+}
+.story-strip__row:nth-child(even) .story-strip__media { order: 2; }
+.story-strip__media {
+    display: block;
+    line-height: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    background: var(--bg-mid);
+}
+.story-strip__media img { width: 100%; height: auto; display: block; }
+.story-strip__text { min-width: 0; }
+.story-strip__title {
+    font-size: 1.05rem;
+    margin: 0 0 0.5rem;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.story-strip__text p {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0;
+    max-width: 48ch;
+}
+
+@media (max-width: 767px) {
+    .story-strip__row { grid-template-columns: 1fr; gap: 0.9rem; }
+    .story-strip__row:nth-child(even) .story-strip__media { order: 0; }
+}
+
+/* Portrait story frames: cap the height so a tall card does not fill the column */
+.story-strip__media img {
+    max-height: 560px;
+    object-fit: contain;
 }

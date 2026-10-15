@@ -2,11 +2,19 @@
 	<div class="my-auto">
 		{{- $projects := .GetPage "section" "projects" -}}
 		{{- $featured := where $projects.Pages "Params.featured" true -}}
+		{{- /* Exactly one showpiece leads the wall; extras fall back to ordinary tiles. */ -}}
+		{{- $flagged := where $featured "Params.showpiece" true -}}
+		{{- $showpiece := "" -}}
+		{{- if gt (len $flagged) 0 -}}{{- $showpiece = index $flagged.ByWeight 0 -}}{{- end -}}
 		{{- $experiments := (.GetPage "section" "experiments").Pages.ByWeight -}}
 
 		<h2 class="mb-4">{{ i18n "projects" }}</h2>
+		{{- with $showpiece -}}
+			{{ partial "showpieceTile.html" . }}
+		{{- end -}}
 		<div class="exp-grid exp-grid--featured">
 			{{- range $featured -}}
+				{{- if and $showpiece (eq .Permalink $showpiece.Permalink) -}}{{- continue -}}{{- end -}}
 				{{ partial "experimentTile.html" (dict "page" . "kind" "project") }}
 			{{- end -}}
 		</div>

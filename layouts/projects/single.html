@@ -28,6 +28,12 @@
       </div>
 
       <div class="project-detail__header-links">
+        {{ with .Params.live }}
+        <a href="{{ . }}" class="project-card__link project-card__link--live"
+           target="_blank" rel="noopener noreferrer">
+          {{ partial "icon.html" (dict "icon" "fas fa-external-link-alt") }} Open the bench
+        </a>
+        {{ end }}
         {{ with .Params.github }}
         <a href="{{ . }}" class="project-card__link project-card__link--github"
            target="_blank" rel="noopener noreferrer">
@@ -86,21 +92,21 @@
     {{ $afterWebp := .after | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
     {{ $beforeLabel := .beforeLabel | default "Before" }}
     {{ $afterLabel := .afterLabel | default "After" }}
-    <figure class="img-compare">
+    <figure class="img-compare{{ if .portrait }} img-compare--portrait{{ end }}">
       <div class="img-compare__frame">
         <picture class="img-compare__img">
           {{ if ne $afterWebp .after }}<source srcset="{{ $afterWebp }}" type="image/webp">{{ end }}
-          <img src="{{ .after }}" alt="{{ $.Title }} — {{ $afterLabel }}" loading="eager" />
+          <img src="{{ .after }}" alt="{{ $.Title }}, {{ $afterLabel }}" loading="eager" />
         </picture>
         <picture class="img-compare__img img-compare__img--top">
           {{ if ne $beforeWebp .before }}<source srcset="{{ $beforeWebp }}" type="image/webp">{{ end }}
-          <img src="{{ .before }}" alt="{{ $.Title }} — {{ $beforeLabel }}" loading="eager" />
+          <img src="{{ .before }}" alt="{{ $.Title }}, {{ $beforeLabel }}" loading="eager" />
         </picture>
         <span class="img-compare__tag img-compare__tag--left" aria-hidden="true">{{ $beforeLabel }}</span>
         <span class="img-compare__tag img-compare__tag--right" aria-hidden="true">{{ $afterLabel }}</span>
         <div class="img-compare__divider" aria-hidden="true"><span class="img-compare__handle"></span></div>
         <input class="img-compare__range" type="range" min="0" max="100" value="50" step="0.1"
-               aria-label="Drag to compare {{ $beforeLabel }} and {{ $afterLabel }} themes" />
+               aria-label="Drag to compare {{ $beforeLabel }} and {{ $afterLabel }}" />
       </div>
       {{ with .caption }}<figcaption class="img-compare__caption">{{ . }}</figcaption>{{ end }}
     </figure>
@@ -111,7 +117,7 @@
     <div class="project-detail__hero{{ if $.Params.heroBare }} project-detail__hero--bare{{ end }}">
       <picture>
         {{ if ne $webp . }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
-        <img src="{{ . }}" alt="{{ $.Title }} — hero screenshot" loading="eager" />
+        <img src="{{ . }}" alt="{{ $.Title }} hero screenshot" loading="eager" />
       </picture>
     </div>
     {{ end }}
@@ -137,6 +143,28 @@
       </div>
       {{ end }}
     </div>
+    {{ end }}
+
+    {{/* ── Story strip: process frames with a paragraph each ── */}}
+    {{ with .Params.story }}
+    <h3 class="project-section-heading">How it was built</h3>
+    <section class="story-strip" aria-label="Build story">
+      {{ range . }}
+      {{ if and .src .text }}
+      {{ $webp := .src | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
+      <figure class="story-strip__row">
+        <picture class="story-strip__media">
+          {{ if ne $webp .src }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
+          <img src="{{ .src }}" alt="{{ .title | default .text }}" loading="lazy" />
+        </picture>
+        <figcaption class="story-strip__text">
+          {{ with .title }}<h4 class="story-strip__title">{{ . }}</h4>{{ end }}
+          <p>{{ .text }}</p>
+        </figcaption>
+      </figure>
+      {{ end }}
+      {{ end }}
+    </section>
     {{ end }}
 
     {{/* ── How it works ── */}}
@@ -186,7 +214,7 @@
     <div class="screenshots-gallery{{ if $grid }} screenshots-gallery--grid{{ end }}" role="region" aria-label="Project screenshots">
       {{ range . }}
       {{ $webp := .src | replaceRE `\.(png|jpg|jpeg)$` ".webp" }}
-      {{ $alt := .caption | default (printf "%s — screenshot" $.Title) }}
+      {{ $alt := .caption | default (printf "%s screenshot" $.Title) }}
       <figure class="gallery-item{{ with .fit }} gallery-item--{{ . }}{{ end }}">
         {{ if $grid }}
         <button type="button" class="gallery-item__zoom" data-full="{{ $webp }}"
@@ -224,7 +252,7 @@
       <div class="privacy-tier">
         <div class="privacy-tier__number" aria-hidden="true">{{ .tier }}</div>
         <div>
-          <div class="privacy-tier__label">Tier {{ .tier }} &mdash; {{ .label }}</div>
+          <div class="privacy-tier__label">Tier {{ .tier }}: {{ .label }}</div>
           <p class="privacy-tier__desc">{{ .desc }}</p>
         </div>
       </div>
@@ -233,13 +261,19 @@
     {{ end }}
 
     {{/* ── CTA ── */}}
-    {{ if or .Params.github .Params.release }}
+    {{ if or .Params.live .Params.github .Params.release }}
     <div class="project-cta">
       <div class="project-cta__text">
         <h4>{{ .Params.ctaTitle | default (printf "Get %s" .Title) }}</h4>
         {{ with .Params.ctaDesc }}<p>{{ . }}</p>{{ end }}
       </div>
       <div class="project-cta__actions">
+        {{ with .Params.live }}
+        <a href="{{ . }}" class="project-card__link project-card__link--live"
+           target="_blank" rel="noopener noreferrer">
+          {{ partial "icon.html" (dict "icon" "fas fa-external-link-alt") }} Open the bench
+        </a>
+        {{ end }}
         {{ with .Params.github }}
         <a href="{{ . }}" class="project-card__link project-card__link--github"
            target="_blank" rel="noopener noreferrer">

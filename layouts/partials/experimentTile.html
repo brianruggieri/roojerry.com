@@ -10,7 +10,7 @@
 	<span class="exp-tile__media">
 		<picture>
 			<source srcset="{{ $webp }}" type="image/webp">
-			<img class="exp-tile__poster" src="{{ $poster }}" alt="{{ $title }} — preview" width="640" height="400" loading="lazy">
+			<img class="exp-tile__poster" src="{{ $poster }}" alt="{{ $title }} preview" width="640" height="400" loading="lazy">
 		</picture>
 		<span class="exp-tile__badge exp-tile__badge--project">project</span>
 	</span>
@@ -21,7 +21,7 @@
 <div class="exp-tile exp-tile--play ie-preview" data-src="{{ $p.Params.src }}" data-ie-origin
      role="button" tabindex="0" aria-label="Open {{ $title }} fullscreen">
 	<span class="exp-tile__media">
-		<img class="exp-tile__poster" src="{{ $poster }}" alt="{{ $title }} — preview"
+		<img class="exp-tile__poster" src="{{ $poster }}" alt="{{ $title }} preview"
 		     width="640" height="400" loading="lazy">
 		<span class="exp-tile__badge exp-tile__badge--play">play</span>
 		<span class="exp-tile__play" aria-hidden="true">{{ partial "icon.html" (dict "icon" "fas fa-play") }}</span>
@@ -33,7 +33,7 @@
 <div class="exp-tile exp-tile--live" data-ie-origin data-live-src="{{ $p.Params.src }}"
      role="button" tabindex="0" aria-label="Play {{ $title }}">
 	<span class="exp-tile__media">
-		<img class="exp-tile__poster" src="{{ $poster }}" alt="{{ $title }} — preview"
+		<img class="exp-tile__poster" src="{{ $poster }}" alt="{{ $title }} preview"
 		     width="640" height="400" loading="lazy">
 		<span class="exp-tile__slot" aria-hidden="true"></span>
 		<span class="exp-tile__badge exp-tile__badge--live">live</span>
