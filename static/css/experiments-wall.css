@@ -210,6 +210,17 @@
 	object-fit: cover;
 	display: block;
 }
+/* The view grid's canvas (showpiece-views.js), laid exactly over the poster. */
+.exp-showpiece__views {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.4s ease;
+}
+.exp-showpiece__views.is-ready { opacity: 1; }
 .exp-showpiece__cap {
 	padding: 28px 28px 26px;
 	display: flex;

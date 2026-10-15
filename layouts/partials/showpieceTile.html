@@ -5,13 +5,25 @@
 {{- $poster := $p.Params.poster | default $p.Params.image -}}
 {{- $webp := $poster | replaceRE `\.(png|jpg|jpeg)$` ".webp" -}}
 {{- $blurb := $p.Params.blurb | default $p.Params.subtitle | default $p.Description -}}
+{{- /* views: a grid of the real scene captured from a few camera angles
+       (scripts/capture-teightysix-views.mjs). showpiece-views.js blends
+       between them under the pointer. Frame URLs are content-hashed like
+       every other asset, because a re-capture keeps the same file names. */ -}}
+{{- $views := slice -}}
+{{- with $p.Params.views -}}
+	{{- range $r := seq 0 (sub .rows 1) -}}
+		{{- range $c := seq 0 (sub $.Params.views.cols 1) -}}
+			{{- $views = $views | append (partial "asset.html" (printf "%s/r%dc%d.webp" (strings.TrimPrefix "/" $.Params.views.dir) $r $c)) -}}
+		{{- end -}}
+	{{- end -}}
+{{- end -}}
 <article class="exp-showpiece">
-	<a class="exp-showpiece__media" href="{{ $p.Params.live }}" target="_blank" rel="noopener noreferrer" aria-label="{{ $p.Title }}: open the live tool">
+	<a class="exp-showpiece__media" href="{{ $p.Params.live }}"{{ with $p.Params.views }} data-views="{{ delimit $views " " }}" data-views-cols="{{ .cols }}" data-views-rows="{{ .rows }}"{{ end }} target="_blank" rel="noopener noreferrer" aria-label="{{ $p.Title }}: open the live tool">
 		<picture>
-			{{ if ne $webp $poster }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
+			{{ if ne $webp $poster }}<source srcset="{{ partial "asset.html" (strings.TrimPrefix "/" $webp) }}" type="image/webp">{{ end }}
 			{{/* 1280x800 is poster.webp's real pixel size; the assertion in
 			     tests/e2e/showpiece.test.js fails if the file stops matching. */}}
-			<img src="{{ $poster }}" alt="{{ $p.Title }} preview" width="1280" height="800" loading="lazy">
+			<img src="{{ partial "asset.html" (strings.TrimPrefix "/" $poster) }}" alt="{{ $p.Title }} preview" width="1280" height="800" loading="lazy">
 		</picture>
 	</a>
 	<div class="exp-showpiece__cap">
