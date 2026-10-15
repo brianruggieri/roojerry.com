@@ -211,12 +211,24 @@
   // Tilt relative to however the phone was held when the first reading came
   // in, so a phone held upright starts at the centre view. About 20 degrees
   // of tilt crosses the grid.
+  //
+  // The sensor reports many times a second even from a phone lying still, so
+  // readings within TILT_JITTER of the last real move are ignored. Without
+  // that the settle timer below would be reset forever, and a phone held
+  // between two views would show both at once.
+  var TILT_JITTER = 0.012;
+  var tiltRaw = { u: 0.5, v: 0.5 };
   function onTilt(e) {
     if (e.gamma == null || e.beta == null) return;
     if (!tiltBase) tiltBase = { g: e.gamma, b: e.beta };
     tiltLive = true;
-    target.u = clamp01(0.5 + (e.gamma - tiltBase.g) / 40);
-    target.v = clamp01(0.5 + (e.beta - tiltBase.b) / 40);
+    var u = clamp01(0.5 + (e.gamma - tiltBase.g) / 40);
+    var v = clamp01(0.5 + (e.beta - tiltBase.b) / 40);
+    if (Math.abs(u - tiltRaw.u) < TILT_JITTER && Math.abs(v - tiltRaw.v) < TILT_JITTER) return;
+    tiltRaw.u = target.u = u;
+    tiltRaw.v = target.v = v;
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(settle, SETTLE_MS);
     wake();
   }
 
