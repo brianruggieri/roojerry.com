@@ -2,9 +2,9 @@
 title: "teightysix"
 subtitle: "a Topps '86 replica suite in WebGPU"
 description: "A faithful recreation of the 1986 Topps card design, rendered in the browser with WebGPU: the type, the colour, the print, and forty years of wear."
-blurb: "The 1986 Topps design recreated in WebGPU: a reconstructed typeface, a physics pile, and wear you can dial from mint to attic find."
+blurb: "The 1986 Topps baseball card design, rebuilt in WebGPU. Put your photo on a card and print it fresh, or age it until it looks like it spent forty years in the attic."
 tags: ["TypeScript", "Svelte", "WebGPU", "Three.js", "Rapier", "Cloudflare Workers", "Python"]
-statusLabel: "v1.0.0 live"
+statusLabel: "v1.3.0 live"
 live: "https://cards.roojerry.com/"
 github: "https://github.com/brianruggieri/teightysix"
 ctaTitle: "Make one"
