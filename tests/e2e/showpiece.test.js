@@ -72,21 +72,24 @@ await runTest('showpiece poster reserves its real pixel size and loads lazily', 
 	}
 });
 
-// The hover views: a full grid, every frame on disk at the poster's size (the
-// canvas crops them exactly as the poster is cropped), and the canvas only
-// once they have all decoded.
-await runTest('showpiece view grid is complete and matches the poster', async () => {
+// The hover views: a full grid, each frame the crop's shape (the canvas lays
+// them over exactly that part of the poster), and the canvas only once the
+// first tier has decoded.
+await runTest('showpiece view grid is complete and matches its crop', async () => {
 	await page.setViewport({ width: 1600, height: 1000 });
 	await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
 	const v = await page.$eval('.exp-showpiece__media', a => ({
 		urls: (a.getAttribute('data-views') || '').split(/\s+/).filter(Boolean),
 		cols: +a.getAttribute('data-views-cols'), rows: +a.getAttribute('data-views-rows'),
+		crop: (a.getAttribute('data-views-crop') || '').split(/\s+/).map(Number),
 	}));
 	if (!v.urls.length || v.urls.length !== v.cols * v.rows) throw new Error(`${v.urls.length} views for a ${v.cols}x${v.rows} grid`);
+	const [, , cw, ch, pw, ph] = v.crop;
+	if (v.crop.length !== 6 || !(cw <= pw && ch <= ph)) throw new Error(`bad crop ${v.crop.join(' ')}`);
 	for (const u of v.urls) {
 		if (!/\?v=[0-9a-f]{8}$/.test(u)) throw new Error(`${u} is not content-hashed`);
 		const { width, height } = webpSize(join(ROOT, 'static', u.replace(/\?.*$/, '')));
-		if (width !== 1280 || height !== 800) throw new Error(`${u} is ${width}x${height}, poster is 1280x800`);
+		if (Math.abs(width / height - cw / ch) > 0.01) throw new Error(`${u} is ${width}x${height}, crop is ${cw}x${ch}`);
 	}
 	await page.$eval('.exp-showpiece', el => el.scrollIntoView({ block: 'center' }));
 	await page.waitForSelector('.exp-showpiece__views.is-ready', { timeout: 10000 });

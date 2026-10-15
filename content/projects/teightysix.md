@@ -11,13 +11,12 @@ ctaTitle: "Make one"
 ctaDesc: "The bench runs in the browser. Your photograph stays on your machine."
 image: "/img/projects/teightysix/hero.png"
 poster: "/img/projects/teightysix/poster.webp"
-# The showpiece hover: the bench re-rendered from a 7x3 grid of camera angles.
-# Regenerate with scripts/capture-teightysix-views.mjs then
-# scripts/export-teightysix-views.sh; poster.webp is the grid's centre view.
+# The showpiece hover: the bench re-rendered from a grid of camera angles by
+# the teightysix capture suite, exported by scripts/export-teightysix-views.sh
+# (grid size and crop live in the export's views.json). poster.webp is the
+# grid's centre view.
 views:
   dir: "/img/projects/teightysix/views"
-  cols: 7
-  rows: 3
 # The structured detail page is withheld from this release; the v2 narrated
 # article (docs/superpowers/specs/2026-09-29-teightysix-article-design.md)
 # replaces it. list: local keeps the page in the wall and /projects/ while
