@@ -1,0 +1,78 @@
+{
+	"engine": "0.5.0",
+	"commit": "5fa4f97c2cbd6b38dd3182785c5077b17de38131",
+	"dirty": false,
+	"club": "ATLANTA",
+	"sample": "bramwell-eldredge.webp",
+	"visitorSeed": "roojerry-showpiece-1",
+	"yaws": [
+		-4,
+		-3.3333333333333335,
+		-2.666666666666667,
+		-2,
+		-1.3333333333333335,
+		-0.6666666666666665,
+		0,
+		0.666666666666667,
+		1.333333333333333,
+		2,
+		2.666666666666667,
+		3.333333333333333,
+		4
+	],
+	"pitches": [
+		-3,
+		-1.5,
+		0,
+		1.5,
+		3
+	],
+	"viewport": {
+		"width": 1600,
+		"height": 1000,
+		"deviceScaleFactor": 1
+	},
+	"turntableRad": 0.6,
+	"recipe": {
+		"schema": 1,
+		"engine": "0.5.0",
+		"photo": {
+			"w": 1,
+			"h": 1
+		},
+		"crop": {
+			"x": 0.5,
+			"y": 0.5,
+			"scale": 1
+		},
+		"team": "ATL",
+		"bar": "city",
+		"wordmark": null,
+		"name": "YOUR NAME HERE",
+		"pos": "CF",
+		"palette": "team",
+		"ink": null,
+		"wear": 0,
+		"age": 0,
+		"print": 1,
+		"miscut": 0,
+		"variant": "type",
+		"emblem": "roundel",
+		"seed": 19861015
+	},
+	"browser": "154.0.8037.92",
+	"site": {
+		"cols": 13,
+		"rows": 5,
+		"crop": {
+			"x": 0,
+			"y": 28,
+			"w": 1280,
+			"h": 772
+		},
+		"poster": {
+			"w": 1280,
+			"h": 800
+		}
+	}
+}

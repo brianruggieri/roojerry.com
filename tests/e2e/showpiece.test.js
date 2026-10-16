@@ -63,13 +63,58 @@ await runTest('showpiece poster reserves its real pixel size and loads lazily', 
 	if (img.fetchpriority) throw new Error(`fetchpriority=${img.fetchpriority} on a below-the-fold tile`);
 
 	// The served poster is the webp when there is one; measure the file itself.
-	const served = img.webp || img.src;
+	const served = (img.webp || img.src).replace(/\?.*$/, '');
 	if (!served.endsWith('.webp')) throw new Error(`poster is ${served}, expected a webp`);
 	const file = join(ROOT, 'static', served);
 	const { width, height } = webpSize(file);
 	if (width !== Number(img.width) || height !== Number(img.height)) {
 		throw new Error(`${served} is ${width}x${height} but the tag declares ${img.width}x${img.height}`);
 	}
+});
+
+// The hover views: a full grid, each frame the crop's shape (the canvas lays
+// them over exactly that part of the poster), and the canvas only once the
+// first tier has decoded.
+await runTest('showpiece view grid is complete and matches its crop', async () => {
+	await page.setViewport({ width: 1600, height: 1000 });
+	await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
+	const v = await page.$eval('.exp-showpiece__media', a => ({
+		urls: (a.getAttribute('data-views') || '').split(/\s+/).filter(Boolean),
+		cols: +a.getAttribute('data-views-cols'), rows: +a.getAttribute('data-views-rows'),
+		crop: (a.getAttribute('data-views-crop') || '').split(/\s+/).map(Number),
+	}));
+	if (!v.urls.length || v.urls.length !== v.cols * v.rows) throw new Error(`${v.urls.length} views for a ${v.cols}x${v.rows} grid`);
+	const [, , cw, ch, pw, ph] = v.crop;
+	if (v.crop.length !== 6 || !(cw <= pw && ch <= ph)) throw new Error(`bad crop ${v.crop.join(' ')}`);
+	for (const u of v.urls) {
+		if (!/\?v=[0-9a-f]{8}$/.test(u)) throw new Error(`${u} is not content-hashed`);
+		const { width, height } = webpSize(join(ROOT, 'static', u.replace(/\?.*$/, '')));
+		if (Math.abs(width / height - cw / ch) > 0.01) throw new Error(`${u} is ${width}x${height}, crop is ${cw}x${ch}`);
+	}
+	await page.$eval('.exp-showpiece', el => el.scrollIntoView({ block: 'center' }));
+	await page.waitForSelector('.exp-showpiece__views.is-ready', { timeout: 10000 });
+	const aria = await page.$eval('.exp-showpiece__views', c => c.getAttribute('aria-hidden'));
+	if (aria !== 'true') throw new Error('the views canvas is exposed to assistive tech');
+});
+
+await runTest('reduced motion never loads the view grid', async () => {
+	const p2 = await browser.newPage();
+	await p2.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+	const fetched = [];
+	p2.on('request', r => { if (r.url().includes('/views/r')) fetched.push(r.url()); });
+	await p2.goto(BASE_URL, { waitUntil: 'networkidle0' });
+	await p2.$eval('.exp-showpiece', el => el.scrollIntoView({ block: 'center' }));
+	await new Promise(r => setTimeout(r, 1500));
+	if (await p2.$('.exp-showpiece__views')) throw new Error('canvas created under reduced motion');
+	if (fetched.length) throw new Error(`fetched ${fetched.length} views under reduced motion`);
+	await p2.close();
+});
+
+// Badges on project tiles were dropped: the tile's size and place already say
+// what it is. The play and live badges stay; they say what a tile DOES.
+await runTest('project tiles carry no badge', async () => {
+	const n = await page.$$eval('.exp-showpiece .exp-tile__badge, .exp-tile--project .exp-tile__badge', els => els.length);
+	if (n) throw new Error(`${n} badge(s) on project tiles`);
 });
 
 await runTest('no horizontal overflow at 390px', async () => {

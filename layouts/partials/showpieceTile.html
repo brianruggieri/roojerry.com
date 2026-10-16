@@ -5,15 +5,31 @@
 {{- $poster := $p.Params.poster | default $p.Params.image -}}
 {{- $webp := $poster | replaceRE `\.(png|jpg|jpeg)$` ".webp" -}}
 {{- $blurb := $p.Params.blurb | default $p.Params.subtitle | default $p.Description -}}
+{{- /* views: the real scene re-rendered from a grid of camera angles (the
+       teightysix capture suite, exported by scripts/export-teightysix-views.sh).
+       The grid and the crop come from that export's views.json, so a
+       re-capture needs no edit here. showpiece-views.js blends between the
+       views under the pointer. Frame URLs are content-hashed like every other
+       asset, because a re-capture keeps the same file names. */ -}}
+{{- $views := slice -}}
+{{- $grid := dict -}}
+{{- with $p.Params.views -}}
+	{{- $dir := strings.TrimPrefix "/" .dir -}}
+	{{- $grid = (readFile (printf "static/%s/views.json" $dir) | transform.Unmarshal).site -}}
+	{{- range $r := seq 0 (sub $grid.rows 1) -}}
+		{{- range $c := seq 0 (sub $grid.cols 1) -}}
+			{{- $views = $views | append (partial "asset.html" (printf "%s/r%dc%d.webp" $dir $r $c)) -}}
+		{{- end -}}
+	{{- end -}}
+{{- end -}}
 <article class="exp-showpiece">
-	<a class="exp-showpiece__media" href="{{ $p.Params.live }}" target="_blank" rel="noopener noreferrer" aria-label="{{ $p.Title }}: open the live tool">
+	<a class="exp-showpiece__media" href="{{ $p.Params.live }}"{{ with $views }} data-views="{{ delimit . " " }}" data-views-cols="{{ $grid.cols }}" data-views-rows="{{ $grid.rows }}" data-views-crop="{{ $grid.crop.x }} {{ $grid.crop.y }} {{ $grid.crop.w }} {{ $grid.crop.h }} {{ $grid.poster.w }} {{ $grid.poster.h }}"{{ end }} target="_blank" rel="noopener noreferrer" aria-label="{{ $p.Title }}: open the live tool">
 		<picture>
-			{{ if ne $webp $poster }}<source srcset="{{ $webp }}" type="image/webp">{{ end }}
+			{{ if ne $webp $poster }}<source srcset="{{ partial "asset.html" (strings.TrimPrefix "/" $webp) }}" type="image/webp">{{ end }}
 			{{/* 1280x800 is poster.webp's real pixel size; the assertion in
 			     tests/e2e/showpiece.test.js fails if the file stops matching. */}}
-			<img src="{{ $poster }}" alt="{{ $p.Title }} preview" width="1280" height="800" loading="lazy">
+			<img src="{{ partial "asset.html" (strings.TrimPrefix "/" $poster) }}" alt="{{ $p.Title }} preview" width="1280" height="800" loading="lazy">
 		</picture>
-		<span class="exp-tile__badge exp-tile__badge--project">showpiece</span>
 	</a>
 	<div class="exp-showpiece__cap">
 		<h3 class="exp-showpiece__title">{{ $p.Title }}{{ with $p.Params.subtitle }}<span class="exp-showpiece__sub">{{ . }}</span>{{ end }}</h3>
