@@ -49,9 +49,10 @@ await runTest('showpiece page is not duplicated in the featured grid', async () 
 	if (!hrefs.length) throw new Error('featured grid lost every ordinary project tile');
 });
 
-// The tile is above the featured grid but below the fold, so the poster must
-// reserve its box without competing with the real LCP element for bandwidth.
-await runTest('showpiece poster reserves its real pixel size and loads lazily', async () => {
+// On a phone the About section is short and this tile is in the first
+// screen, where the poster is the LCP element: it must reserve its box and
+// load eagerly. (It was lazy once, and mobile LCP paid ~400 ms for it.)
+await runTest('showpiece poster reserves its real pixel size and is not lazy', async () => {
 	const img = await page.$eval('.exp-showpiece__media img', i => ({
 		width: i.getAttribute('width'), height: i.getAttribute('height'),
 		loading: i.getAttribute('loading'), fetchpriority: i.getAttribute('fetchpriority'),
@@ -59,8 +60,7 @@ await runTest('showpiece poster reserves its real pixel size and loads lazily', 
 		webp: document.querySelector('.exp-showpiece__media source')?.getAttribute('srcset'),
 	}));
 	if (!img.width || !img.height) throw new Error(`missing width/height: ${img.width}x${img.height}`);
-	if (img.loading !== 'lazy') throw new Error(`loading=${img.loading}, want lazy`);
-	if (img.fetchpriority) throw new Error(`fetchpriority=${img.fetchpriority} on a below-the-fold tile`);
+	if (img.loading === 'lazy') throw new Error('poster is lazy, but it is the mobile LCP element');
 
 	// The served poster is the webp when there is one; measure the file itself.
 	const served = (img.webp || img.src).replace(/\?.*$/, '');
@@ -95,6 +95,19 @@ await runTest('showpiece view grid is complete and matches its crop', async () =
 	await page.waitForSelector('.exp-showpiece__views.is-ready', { timeout: 10000 });
 	const aria = await page.$eval('.exp-showpiece__views', c => c.getAttribute('aria-hidden'));
 	if (aria !== 'true') throw new Error('the views canvas is exposed to assistive tech');
+});
+
+await runTest('view frames wait for the page load, even when the tile starts in view', async () => {
+	const p3 = await browser.newPage();
+	await p3.setViewport({ width: 412, height: 823, isMobile: true, hasTouch: true });
+	await p3.goto(BASE_URL, { waitUntil: 'load' });
+	await p3.waitForSelector('.exp-showpiece__views.is-ready', { timeout: 15000 });
+	const t = await p3.evaluate(() => ({
+		load: performance.getEntriesByType('navigation')[0].loadEventStart,
+		first: Math.min(...performance.getEntriesByType('resource').filter(e => e.name.includes('/views/r')).map(e => e.startTime)),
+	}));
+	if (!(t.first >= t.load)) throw new Error(`first frame requested at ${Math.round(t.first)} ms, load event at ${Math.round(t.load)} ms`);
+	await p3.close();
 });
 
 await runTest('reduced motion never loads the view grid', async () => {

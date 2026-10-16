@@ -13,9 +13,10 @@
    are under a degree once the grid is full, which is what keeps
    the blend from doubling the cards in the pile.
 
-   The poster stays underneath the whole time: nothing changes
-   until the first tier has decoded, and reduced motion or
-   Save-Data never loads a frame.
+   The poster stays underneath the whole time: nothing loads
+   until the page has finished loading, nothing changes until
+   the first tier has decoded, and reduced motion or Save-Data
+   never loads a frame.
    ============================================================= */
 
 (function () {
@@ -269,13 +270,28 @@
     wake();
   }
 
+  // The frames never compete with the page's own load. On a phone this tile
+  // is in the first screen, so "in view" alone would start a megabyte of
+  // frames during load; wait for the load event and an idle moment too.
+  var pageSettled = false;
+  function settleThen(fn) {
+    var idle = window.requestIdleCallback || function (f) { setTimeout(f, 1200); };
+    function go() { idle(fn, { timeout: 3000 }); }
+    if (document.readyState === "complete") go();
+    else window.addEventListener("load", go, { once: true });
+  }
+
   var started = false;
+  function maybeStart() {
+    if (!inView || started || !pageSettled) return;
+    started = true;
+    load(evens(rows), evens(cols)).then(start, function () { /* the poster stays */ });
+  }
+  settleThen(function () { pageSettled = true; maybeStart(); });
+
   new IntersectionObserver(function (entries) {
     inView = entries[0].isIntersecting;
-    if (inView && !started) {
-      started = true;
-      load(evens(rows), evens(cols)).then(start, function () { /* the poster stays */ });
-    }
+    maybeStart();
     wake();
   }, { rootMargin: "200px 0px" }).observe(media);
 })();
