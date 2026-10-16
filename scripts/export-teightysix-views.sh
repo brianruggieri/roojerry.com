@@ -65,6 +65,9 @@ for f in "$SRC"/r*c*.png; do
 		| cwebp -quiet -q "$Q" -o "$OUT/views/$n.webp" -- -
 done
 cwebp -quiet -q 82 -resize "$W" 0 "$SRC/r${mr}c$mc.png" -o "$OUT/poster.webp"
+# A phone shows the tile ~372 css px wide and it is the mobile LCP element,
+# so it gets a 768 poster (enough for 2x at that width) (srcset in showpieceTile.html).
+cwebp -quiet -q 80 -resize 768 0 "$SRC/r${mr}c$mc.png" -o "$OUT/poster-768.webp"
 
 # The site's manifest: the capture's own record plus the grid and the crop,
 # which showpieceTile.html reads at build time.
