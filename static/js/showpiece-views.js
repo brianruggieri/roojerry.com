@@ -220,8 +220,19 @@
   var tiltRaw = { u: 0.5, v: 0.5 };
   function onTilt(e) {
     if (e.gamma == null || e.beta == null) return;
-    if (!tiltBase) tiltBase = { g: e.gamma, b: e.beta };
-    tiltLive = true;
+    if (!tiltBase) {
+      // The first reading may arrive after the drift has moved the picture,
+      // and it calibrates to the centre, which the jitter guard would then
+      // swallow. Hand over explicitly: back to the centre view, settled.
+      tiltBase = { g: e.gamma, b: e.beta };
+      tiltLive = true;
+      tiltRaw.u = target.u = 0.5;
+      tiltRaw.v = target.v = 0.5;
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(settle, SETTLE_MS);
+      wake();
+      return;
+    }
     var u = clamp01(0.5 + (e.gamma - tiltBase.g) / 40);
     var v = clamp01(0.5 + (e.beta - tiltBase.b) / 40);
     if (Math.abs(u - tiltRaw.u) < TILT_JITTER && Math.abs(v - tiltRaw.v) < TILT_JITTER) return;
