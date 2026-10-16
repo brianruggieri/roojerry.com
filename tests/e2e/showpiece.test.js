@@ -61,6 +61,7 @@ await runTest('showpiece poster reserves its real pixel size and is not lazy', a
 	}));
 	if (!img.width || !img.height) throw new Error(`missing width/height: ${img.width}x${img.height}`);
 	if (img.loading === 'lazy') throw new Error('poster is lazy, but it is the mobile LCP element');
+	if (img.fetchpriority !== 'high') throw new Error(`fetchpriority=${img.fetchpriority}, want high on the mobile LCP element`);
 
 	// The served poster is the webp when there is one; measure the file itself.
 	const served = (img.webp || img.src).replace(/\?.*$/, '');
@@ -95,6 +96,17 @@ await runTest('showpiece view grid is complete and matches its crop', async () =
 	await page.waitForSelector('.exp-showpiece__views.is-ready', { timeout: 10000 });
 	const aria = await page.$eval('.exp-showpiece__views', c => c.getAttribute('aria-hidden'));
 	if (aria !== 'true') throw new Error('the views canvas is exposed to assistive tech');
+});
+
+await runTest('a phone takes the 768 poster', async () => {
+	const p4 = await browser.newPage();
+	await p4.setViewport({ width: 412, height: 823, isMobile: true, hasTouch: true, deviceScaleFactor: 1.75 });
+	await p4.goto(BASE_URL, { waitUntil: 'load' });
+	const cur = await p4.$eval('.exp-showpiece__media img', i => i.currentSrc);
+	if (!/poster-768\.webp/.test(cur)) throw new Error(`phone loaded ${cur}`);
+	const { width, height } = webpSize(join(ROOT, 'static', new URL(cur).pathname));
+	if (width !== 768 || height !== 480) throw new Error(`poster-768 is ${width}x${height}`);
+	await p4.close();
 });
 
 await runTest('view frames wait for the page load, even when the tile starts in view', async () => {

@@ -28,9 +28,13 @@
 			{{ if ne $webp $poster }}<source srcset="{{ partial "asset.html" (strings.TrimPrefix "/" $webp) }}" type="image/webp">{{ end }}
 			{{/* 1280x800 is poster.webp's real pixel size; the assertion in
 			     tests/e2e/showpiece.test.js fails if the file stops matching.
-			     Not lazy: on a phone the About section is short and this tile
-			     is in the first screen, where it is the LCP element. */}}
-			<img src="{{ partial "asset.html" (strings.TrimPrefix "/" $poster) }}" alt="{{ $p.Title }} preview" width="1280" height="800" decoding="async">
+			     Not lazy, and fetched early: on a phone the About section is
+			     short and this tile is in the first screen, where it is the LCP
+			     element. Phones take the 768 poster. */}}
+			{{- $small := replaceRE `\.webp$` "-768.webp" $poster -}}
+			<img src="{{ partial "asset.html" (strings.TrimPrefix "/" $poster) }}"
+			     {{- if fileExists (printf "static%s" $small) }} srcset="{{ partial "asset.html" (strings.TrimPrefix "/" $small) }} 768w, {{ partial "asset.html" (strings.TrimPrefix "/" $poster) }} 1280w" sizes="(max-width: 991px) calc(100vw - 40px), 55vw"{{ end }}
+			     alt="{{ $p.Title }} preview" width="1280" height="800" fetchpriority="high" decoding="async">
 		</picture>
 	</a>
 	<div class="exp-showpiece__cap">
