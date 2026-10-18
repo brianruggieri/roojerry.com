@@ -2,10 +2,20 @@
   <div class="my-auto">
     <h2 class="mb-5">{{ i18n "education" }}</h2>
     {{ range $.Data.education }}
-      <div class="resume-glass-card d-flex flex-column flex-md-row">
+      {{ $uga := eq .school "University of Georgia" }}
+      <div class="resume-glass-card d-flex flex-column flex-md-row{{ if $uga }} education-uga{{ end }}">
         <div class="resume-content mr-auto">
-          <h3 class="mb-0">{{ .school | markdownify }}</h3>
-          <div class="subheading mb-3">{{ .degree }}</div>
+          <div{{ if $uga }} class="uga-heading"{{ end }}>
+            <div>
+              <h3 class="mb-0">{{ .school | markdownify }}</h3>
+              <div class="subheading{{ if not $uga }} mb-3{{ end }}">{{ .degree }}</div>
+            </div>
+            {{ if $uga }}
+              <div class="uga-march-track" aria-hidden="true">
+                <span class="uga-march-walker"><span class="uga-march-sprite" style="background-image: url('{{ partial "asset.html" "img/education/uga-march.webp" }}')"></span></span>
+              </div>
+            {{ end }}
+          </div>
           <div>{{ .major | markdownify }}</div>
           <p>{{ .notes | markdownify }}</p>
         </div>
@@ -16,3 +26,4 @@
     {{ end }}
   </div>
 </section>
+<script defer src="{{ partial "asset.html" "js/education-mascots.js" }}"></script>

@@ -35,6 +35,96 @@
   box-shadow: var(--shadow-card-hover);
 }
 
+/* Keep the drummer in the heading's free space, clear of the resume text. */
+.uga-heading {
+  display: grid;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.uga-march-track {
+  --size: 72px;
+  --pose: 0.64s;
+  --journey: calc(var(--uga-steps, 32) * var(--pose));
+  position: relative;
+  height: var(--size);
+  opacity: 0.15;
+  visibility: var(--page-animation-visibility, visible);
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.uga-march-walker {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: calc(100% - var(--size));
+  height: var(--size);
+  animation: uga-march-travel var(--journey) steps(var(--uga-steps, 32), end) infinite;
+}
+
+.uga-march-sprite {
+  display: block;
+  width: var(--size);
+  height: 100%;
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: uga-march-pose var(--pose) steps(1, end) infinite,
+    uga-march-turn var(--journey) steps(1, end) infinite;
+}
+
+.uga-march-walker,
+.uga-march-sprite {
+  animation-play-state: var(--uga-play-state, var(--page-animation-play-state, paused));
+}
+
+@keyframes uga-march-travel {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(100%); }
+}
+
+@keyframes uga-march-pose {
+  0%, 100% { background-position: 0 0; }
+  50% { background-position: 100% 0; }
+}
+
+@keyframes uga-march-turn {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uga-march-walker,
+  .uga-march-sprite {
+    animation: none;
+  }
+}
+
+@media (max-width: 767px), (min-width: 992px) and (max-width: 1199px) {
+  .uga-heading {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.25rem;
+  }
+  .uga-march-track {
+    --size: 56px;
+  }
+}
+
+@media (max-width: 767px) {
+  .education-uga h3 {
+    padding-right: 3rem;
+    font-size: clamp(1.25rem, 5.8vw, 1.5rem);
+  }
+  .education-uga .resume-date {
+    position: absolute;
+    top: 1.75rem;
+    right: 2rem;
+    padding-left: 0;
+  }
+}
+
 /* 2-column grid for skill group cards */
 .resume-glass-grid {
   display: grid;
