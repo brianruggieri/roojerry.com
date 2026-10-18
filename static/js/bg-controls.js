@@ -78,8 +78,10 @@
         setPlayState(false);
       } else {
         window.FIELD.play();
+        // Cancels a hide still fading out, which FIELD.play() cannot see yet.
+        if (!visible) window.FIELD.setVisible(true);
         setPlayState(true);
-        setVisState(window.FIELD.isVisible());
+        setVisState(true);
       }
     });
 

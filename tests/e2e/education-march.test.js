@@ -96,6 +96,17 @@ try {
   assert.equal(await sceneVisibility(), 'visible');
   assert.equal(await page.evaluate(() => window.FIELD.isVisible()), true);
   assert.equal(await page.$eval('#bgc-visible', el => el.getAttribute('aria-label')), 'Hide animations');
+  // Play during the 400ms hide fade cancels the pending hide.
+  await page.click('#bgc-play');
+  await page.click('#bgc-visible');
+  await page.click('#bgc-play');
+  await new Promise(resolve => setTimeout(resolve, 700));
+  assert.equal(await page.evaluate(() => window.FIELD.isVisible()), true, 'play during the hide fade keeps the canvas visible');
+  assert.equal(await page.evaluate(() => window.FIELD.isPlaying()), true, 'play during the hide fade keeps the canvas playing');
+  assert.equal(await page.$eval('#bgc-visible', el => el.getAttribute('aria-label')), 'Hide animations');
+  assert.equal(await page.$eval('#bgc-play', el => el.getAttribute('aria-label')), 'Pause animations');
+  assert.equal(await sceneVisibility(), 'visible');
+  assert(await allRunning(), 'drummer keeps marching after the canceled hide');
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
   await page.waitForFunction(() => document.querySelector('.uga-march-track').getAnimations({ subtree: true }).every(a => a.playState === 'paused'));
   await page.$eval('.uga-march-track', el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
