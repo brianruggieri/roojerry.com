@@ -23,24 +23,35 @@
     const resetBtn   = document.getElementById('bgc-reset');
     if (!playBtn || !visBtn || !resetBtn) return;
 
+    let playing = window.FIELD.isPlaying() || window.FIELD.prefersReducedMotion();
+    let visible = window.FIELD.isVisible();
+    function syncPageAnimations() {
+      document.documentElement.style.setProperty('--page-animation-play-state', playing && visible ? 'running' : 'paused');
+      document.documentElement.style.setProperty('--page-animation-visibility', visible ? 'visible' : 'hidden');
+    }
+
     /* ── State sync helpers ── */
 
     function setPlayState(isPlaying) {
+      playing = isPlaying;
       playBtn.innerHTML = isPlaying ? ICONS.pause : ICONS.play;
-      playBtn.setAttribute('aria-label', isPlaying ? 'Pause animation' : 'Play animation');
+      playBtn.setAttribute('aria-label', isPlaying ? 'Pause animations' : 'Play animations');
       playBtn.dataset.tooltip = isPlaying ? 'Pause' : 'Play';
+      syncPageAnimations();
     }
 
     function setVisState(isVisible) {
+      visible = isVisible;
       visBtn.innerHTML = isVisible ? ICONS.eye : ICONS.eyeOff;
-      visBtn.setAttribute('aria-label', isVisible ? 'Hide background' : 'Show background');
+      visBtn.setAttribute('aria-label', isVisible ? 'Hide animations' : 'Show animations');
       visBtn.dataset.tooltip = isVisible ? 'Hide' : 'Show';
+      syncPageAnimations();
     }
 
     /* ── Initial state ── */
 
-    setPlayState(window.FIELD.isPlaying());
-    setVisState(window.FIELD.isVisible());
+    setPlayState(playing);
+    setVisState(visible);
 
     /* ── Reduced motion: disable play/pause (nothing to pause) ── */
 
@@ -52,7 +63,7 @@
         playBtn.dataset.tooltip = 'Motion reduced';
       } else {
         playBtn.disabled = false;
-        playBtn.dataset.tooltip = window.FIELD.isPlaying() ? 'Pause' : 'Play';
+        playBtn.dataset.tooltip = playing ? 'Pause' : 'Play';
       }
     }
 
@@ -62,19 +73,21 @@
     /* ── Click handlers ── */
 
     playBtn.addEventListener('click', () => {
-      if (window.FIELD.isPlaying()) {
+      if (playing) {
         window.FIELD.pause();
         setPlayState(false);
       } else {
         window.FIELD.play();
+        // Cancels a hide still fading out, which FIELD.play() cannot see yet.
+        if (!visible) window.FIELD.setVisible(true);
         setPlayState(true);
+        setVisState(true);
       }
     });
 
     visBtn.addEventListener('click', () => {
-      const nowVisible = window.FIELD.isVisible();
-      window.FIELD.setVisible(!nowVisible);
-      setVisState(!nowVisible);
+      window.FIELD.setVisible(!visible);
+      setVisState(!visible);
     });
 
     resetBtn.addEventListener('click', () => {
